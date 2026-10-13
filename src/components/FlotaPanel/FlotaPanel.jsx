@@ -25,10 +25,13 @@ function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, cont
   return (
     <aside className={styles.flotaPanel}>
       <header className={styles.header}>
-        <h2 className={styles.title}>
-          <Truck size={18} className={styles.titleIcon} />
-          Flota ({total} equipos)
-        </h2>
+        <div className={styles.titleRow}>
+          <h2 className={styles.title}>
+            <Truck size={18} className={styles.titleIcon} />
+            Flota
+          </h2>
+          <span className={styles.counter}>{total} equipos</span>
+        </div>
         <label className={styles.search}>
           <Search size={16} className={styles.searchIcon} />
           <input
@@ -46,10 +49,11 @@ function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, cont
               type="button"
               role="tab"
               aria-selected={filtro === f.id}
-              className={`${styles.filtro} ${filtro === f.id ? styles.filtroActivo : ''} ${styles[`filtro_${f.id}`]}`}
+              className={`${styles.filtro} ${filtro === f.id ? styles.filtroActivo : ''}`}
               onClick={() => onFiltro(f.id)}
             >
-              {f.etiqueta} ({conteos[f.id]})
+              {f.etiqueta}
+              <span className={styles.filtroConteo}>{conteos[f.id]}</span>
             </button>
           ))}
         </div>
@@ -66,26 +70,29 @@ function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, cont
               onClick={() => onSeleccionar(maquina.idMaquina)}
             >
               <span className={styles.fila}>
-                <span className={`${styles.punto} ${styles[estado]}`} />
                 <span className={styles.codigo}>{maquina.nombre}</span>
-                <span className={styles.modelo}>
-                  {[maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' ') || 'Sin tipo'}
+                {maquina.patente && <span className={styles.patente}>{maquina.patente}</span>}
+                <span className={`${styles.badge} ${styles[`badge_${estado}`]}`}>
+                  <span className={styles.badgePunto} />
+                  {ETIQUETA_ESTADO[estado]}
                 </span>
-                <span className={`${styles.badge} ${styles[`badge_${estado}`]}`}>{ETIQUETA_ESTADO[estado]}</span>
+              </span>
+              <span className={styles.modelo}>
+                {[maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' · ') || 'Sin tipo registrado'}
               </span>
               <span className={styles.detalle}>
-                <MapPin size={14} />
+                <MapPin size={14} className={styles.detalleIcono} />
                 {ubicacion ?? 'Sin turno en curso'}
                 {ubicacion && !enMapa && <span className={styles.sinMapa}>· sin polígono en el mapa</span>}
               </span>
               <span className={styles.detalleDoble}>
                 <span className={styles.detalle}>
-                  <User size={14} />
+                  <User size={14} className={styles.detalleIcono} />
                   {maquina.operadorActual ?? maquina.operadorAsignado?.nombre ?? 'Sin operador'}
                 </span>
                 {maquina.horometroActual !== null && (
                   <span className={styles.horometro}>
-                    <Clock3 size={13} />
+                    <Clock3 size={13} className={styles.detalleIcono} />
                     {formatoHoras.format(maquina.horometroActual)} h
                   </span>
                 )}

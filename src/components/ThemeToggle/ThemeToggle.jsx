@@ -2,14 +2,15 @@ import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme.js'
 import styles from './ThemeToggle.module.css'
 
-function ThemeToggle({ className = '' }) {
+// variante 'marca': sobre el header azul CMP
+function ThemeToggle({ className = '', variante }) {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
 
   return (
     <button
       type="button"
-      className={`${styles.themeToggle} ${className}`}
+      className={`${styles.themeToggle} ${variante === 'marca' ? styles.marca : ''} ${className}`}
       onClick={toggleTheme}
       aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
       title={isDark ? 'Modo claro' : 'Modo oscuro'}

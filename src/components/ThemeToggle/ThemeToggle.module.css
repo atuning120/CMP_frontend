@@ -27,4 +27,18 @@
   .moon {
     color: var(--primary);
   }
+
+  &.marca {
+    border-color: var(--hero-rule);
+    background: none;
+
+    &:hover {
+      border-color: var(--on-hero-muted);
+    }
+
+    .moon,
+    .sun {
+      color: var(--on-hero);
+    }
+  }
 }

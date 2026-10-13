@@ -1,17 +1,13 @@
+/*
+ * Tokens del panel web. La paleta es la de la app móvil (Front-mobile/src/constants/theme.ts):
+ * azul de acción, ámbar de acento, verde/rojo de estado y neutros. El azul CMP es el del logo.
+ */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Marca */
+  --brand: #014c8f;
+  --brand-deep: #04213f;
 
-  /* Paleta compartida con la app móvil (Front-mobile/src/constants/theme.ts) */
+  /* Acción y estado */
   --primary: #1a73e8;
   --primary-hover: #1765cc;
   --primary-active: #185abc;
@@ -19,38 +15,32 @@
   --on-primary: #fff;
   --success: #1e8e3e;
   --danger: #d93025;
-  --danger-bg: rgba(244, 63, 94, 0.15);
-  --danger-border: rgba(244, 63, 94, 0.4);
+  --danger-bg: rgba(217, 48, 37, 0.1);
+  --danger-border: rgba(217, 48, 37, 0.35);
   --warning: #f9ab00;
   --warning-text: #a35a00;
+  --on-warning: #1a1a1a;
+
+  /* Superficies y texto */
+  --page-bg: #f8f9fa;
   --surface: #fff;
   --surface-alt: #f1f3f4;
+  --text-h: #202124;
+  --text: #5f6368;
   --text-tertiary: #5f6368;
+  --border: #dadce0;
   --input-border: #dadce0;
   --input-border-hover: #9aa0a6;
   --focus-ring: rgba(26, 115, 232, 0.45);
-  --selection-bg: rgba(26, 115, 232, 0.2);
-  --page-bg: #f8f9fa;
-  /* Azul del logo CMP y su variante profunda para el panel de marca */
-  --brand: #014c8f;
-  --brand-deep: #04213f;
+  --selection-bg: rgba(26, 115, 232, 0.12);
+  --code-bg: #f1f3f4;
+  --shadow: 0 1px 2px rgba(60, 64, 67, 0.12), 0 2px 6px rgba(60, 64, 67, 0.1);
+  --shadow-raised: 0 4px 12px rgba(60, 64, 67, 0.16);
+
+  /* Panel de marca (login) y header: siempre sobre azul CMP */
   --on-hero: #fff;
   --on-hero-muted: rgba(255, 255, 255, 0.78);
   --hero-rule: rgba(255, 255, 255, 0.16);
-
-  /* Mapa de planta: van sobre imagen satelital, así que no cambian con el tema */
-  --map-area: #e2e8f0;
-  --map-zona: #38bdf8;
-  --map-seleccion: #f9ab00;
-  --map-operando: #22c55e;
-  --map-alerta: #f97316;
-  --map-detenida: #94a3b8;
-  --map-label-bg: rgba(4, 33, 63, 0.88);
-  --map-label-border: rgba(56, 189, 248, 0.6);
-  --map-overlay-bg: rgba(4, 33, 63, 0.86);
-  --map-overlay-text: #e2e8f0;
-  --map-sombra: 0 2px 6px rgba(0, 0, 0, 0.45);
-  --map-alerta-halo: rgba(249, 115, 22, 0.35);
   --hero-overlay: linear-gradient(
     200deg,
     rgba(1, 76, 143, 0.35) 0%,
@@ -58,54 +48,55 @@
     rgba(4, 33, 63, 0.92) 100%
   );
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Mapa de planta: van sobre imagen satelital, así que no cambian con el tema */
+  --map-area: #fff;
+  --map-area-casing: rgba(4, 33, 63, 0.85);
+  --map-zona: #1a73e8;
+  --map-seleccion: #f9ab00;
+  --map-operando: #1e8e3e;
+  --map-alerta: #f9ab00;
+  --map-detenida: #9aa0a6;
+  --map-label-bg: rgba(4, 33, 63, 0.9);
+  --map-label-border: rgba(138, 180, 248, 0.7);
+  --map-overlay-bg: rgba(4, 33, 63, 0.88);
+  --map-overlay-text: #f1f3f4;
+  --map-sombra: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --map-alerta-halo: rgba(249, 171, 0, 0.4);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  font: 16px/1.5 var(--sans);
   color-scheme: light;
   color: var(--text);
-  background: var(--bg);
+  background: var(--page-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-/* data-theme lo fija index.html antes de pintar y lo cambia useTheme */
+/* data-theme lo fija index.html antes de pintar y lo cambia useTheme. Mismo modo oscuro que la app */
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --text: #9ca3af;
-  --text-h: #f3f4f6;
-  --bg: #16171d;
-  --border: #2e303a;
-  --code-bg: #1f2028;
-  --accent: #c084fc;
-  --accent-bg: rgba(192, 132, 252, 0.15);
-  --accent-border: rgba(192, 132, 252, 0.5);
-  --social-bg: rgba(47, 48, 58, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-
+  --page-bg: #202124;
   --surface: #292a2d;
   --surface-alt: #303134;
+  --text-h: #fff;
+  --text: #9aa0a6;
   --text-tertiary: #bdc1c6;
+  --border: #3c4043;
   --input-border: #3c4043;
   --input-border-hover: #5f6368;
-  --page-bg: #202124;
   --warning-text: #f9ab00;
+  --danger-bg: rgba(242, 139, 130, 0.12);
+  --danger-border: rgba(242, 139, 130, 0.4);
   --focus-ring: rgba(138, 180, 248, 0.6);
-  --selection-bg: rgba(138, 180, 248, 0.3);
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --selection-bg: rgba(138, 180, 248, 0.16);
+  --code-bg: #303134;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
 body {
@@ -124,45 +115,36 @@ body {
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
+h2,
+h3 {
+  font-family: var(--sans);
   color: var(--text-h);
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
   margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
 }
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
 code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
   background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 0.9em;
+  color: var(--text-h);
 }

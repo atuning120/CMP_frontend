@@ -11,7 +11,7 @@
   }
 
   .back {
-    color: var(--accent);
+    color: var(--primary);
 
     &:hover {
       text-decoration: none;

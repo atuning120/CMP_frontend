@@ -1,0 +1,25 @@
+.cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 100%;
+  min-height: 240px;
+  font-size: 14px;
+  color: var(--text);
+
+  .icono {
+    color: var(--primary);
+    animation: girar 0.9s linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

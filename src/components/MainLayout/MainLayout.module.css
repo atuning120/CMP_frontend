@@ -7,9 +7,14 @@
     display: flex;
     align-items: center;
     gap: 24px;
-    padding: 10px 20px;
-    background: var(--brand-deep);
+    min-height: 60px;
+    padding: 0 20px;
+    background: var(--brand);
     color: var(--on-hero);
+    box-shadow: var(--shadow-raised);
+    /* Sobre el contenido (mapa) al hacer scroll o con sombras de paneles */
+    position: relative;
+    z-index: 2;
 
     @media (max-width: 900px) {
       flex-wrap: wrap;
@@ -53,29 +58,36 @@
 
   .nav {
     display: flex;
+    align-self: stretch;
     gap: 4px;
     margin-right: auto;
 
+    /* Pestañas del header: la activa se marca con el ámbar de la app móvil */
     .link {
-      padding: 6px 12px;
-      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      border-bottom: 3px solid transparent;
+      border-top: 3px solid transparent;
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
       color: var(--on-hero-muted);
+      transition:
+        color 0.15s ease-out,
+        border-color 0.15s ease-out;
 
       &:hover {
-        background: var(--hero-rule);
         color: var(--on-hero);
       }
 
       &:focus-visible {
         outline: none;
-        box-shadow: 0 0 0 3px var(--focus-ring);
+        box-shadow: inset 0 0 0 2px var(--focus-ring);
       }
 
       &.active {
-        background: var(--hero-rule);
+        border-bottom-color: var(--warning);
         color: var(--on-hero);
       }
     }
@@ -101,7 +113,7 @@
     height: 32px;
     border: 1px solid var(--hero-rule);
     border-radius: 50%;
-    background: var(--brand);
+    background: var(--brand-deep);
     font-size: 12px;
     font-weight: 700;
   }

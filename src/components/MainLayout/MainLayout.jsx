@@ -55,7 +55,7 @@ function MainLayout() {
         </nav>
 
         <div className={styles.cuenta}>
-          <ThemeToggle />
+          <ThemeToggle variante="marca" />
           <span className={styles.user}>
             <span className={styles.avatar} aria-hidden="true">
               {iniciales(sesion?.email)}

@@ -90,6 +90,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     mapRef.current = map
 
     const area = token('--map-area')
+    const contornoArea = token('--map-area-casing')
     const zona = token('--map-zona')
     const sel = token('--map-seleccion')
 
@@ -102,6 +103,13 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
         type: 'fill',
         source: 'areas',
         paint: { 'fill-color': ['case', seleccionado, sel, area], 'fill-opacity': ['case', seleccionado, 0.14, 0.06] },
+      })
+      // Contorno oscuro bajo la línea discontinua: se lee igual sobre terreno claro y sobre el rajo
+      map.addLayer({
+        id: 'areas-contorno',
+        type: 'line',
+        source: 'areas',
+        paint: { 'line-color': contornoArea, 'line-width': ['case', seleccionado, 5, 3.6], 'line-opacity': 0.75 },
       })
       map.addLayer({
         id: 'areas-borde',
@@ -117,13 +125,19 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
         id: 'zonas-relleno',
         type: 'fill',
         source: 'zonas',
-        paint: { 'fill-color': ['case', seleccionado, sel, zona], 'fill-opacity': ['case', seleccionado, 0.3, 0.18] },
+        paint: { 'fill-color': ['case', seleccionado, sel, zona], 'fill-opacity': ['case', seleccionado, 0.3, 0.2] },
+      })
+      map.addLayer({
+        id: 'zonas-contorno',
+        type: 'line',
+        source: 'zonas',
+        paint: { 'line-color': contornoArea, 'line-width': ['case', seleccionado, 5.5, 4], 'line-opacity': 0.6 },
       })
       map.addLayer({
         id: 'zonas-borde',
         type: 'line',
         source: 'zonas',
-        paint: { 'line-color': ['case', seleccionado, sel, zona], 'line-width': ['case', seleccionado, 3, 2] },
+        paint: { 'line-color': ['case', seleccionado, sel, zona], 'line-width': ['case', seleccionado, 3, 2.2] },
       })
 
       // Clic en una zona (tiene prioridad) o en un área. Mientras se dibuja, el clic es de Terra Draw
