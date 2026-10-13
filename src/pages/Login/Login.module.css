@@ -1,0 +1,480 @@
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(440px, 1fr);
+  min-height: 100svh;
+  background: var(--page-bg);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+
+  /* Panel de marca: la foto de la mina queda como textura monocromática en el azul de CMP */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: 48px 56px 40px;
+    overflow: hidden;
+    background: var(--brand-deep);
+    color: var(--on-hero);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background: center / cover
+        image-set(
+          url('../../assets/Mina_fondo.webp') type('image/webp'),
+          url('../../assets/Mina_fondo.jpg') type('image/jpeg')
+        );
+      filter: grayscale(1) contrast(1.15);
+      mix-blend-mode: luminosity;
+      opacity: 0.5;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--hero-overlay);
+    }
+
+    @media (max-width: 1100px) {
+      padding: 40px 40px 32px;
+    }
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+
+    .heroLogo {
+      width: 140px;
+      height: auto;
+    }
+
+    .heroContent {
+      grid-row: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 460px;
+      padding-bottom: 40px;
+    }
+
+    .heroTitle {
+      margin: 0;
+      font-size: 40px;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+      color: var(--on-hero);
+
+      @media (max-width: 1100px) {
+        font-size: 32px;
+      }
+    }
+
+    .heroText {
+      max-width: 38ch;
+      font-size: 17px;
+      line-height: 1.55;
+      text-wrap: pretty;
+      color: var(--on-hero-muted);
+    }
+
+    .heroMeta {
+      grid-row: 4;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 20px;
+      border-top: 1px solid var(--hero-rule);
+      font-size: 13px;
+      color: var(--on-hero-muted);
+    }
+  }
+
+  .panel {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+
+    /* Teléfono: como el login de la app, la foto de la mina queda detrás de la card */
+    @media (max-width: 900px) {
+      gap: 24px;
+      background: var(--page-bg);
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: center / cover
+          image-set(
+            url('../../assets/Mina_fondo.webp') type('image/webp'),
+            url('../../assets/Mina_fondo.jpg') type('image/jpeg')
+          );
+        opacity: 0.6;
+      }
+    }
+
+    .panelHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+
+      @media (max-width: 900px) {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--page-bg);
+      }
+    }
+
+    /* En escritorio el logo ya está en la foto: el header muestra el sistema y el toggle a la derecha */
+    .panelBrand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      order: 2;
+
+      @media (max-width: 900px) {
+        order: 0;
+      }
+    }
+
+    .mobileLogo {
+      display: none;
+      width: 120px;
+      height: 40px;
+      object-fit: contain;
+
+      @media (max-width: 900px) {
+        display: block;
+      }
+    }
+
+    .panelSystem {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--warning-text);
+
+      @media (max-width: 900px) {
+        font-size: 12px;
+        letter-spacing: normal;
+      }
+    }
+
+    .formWrapper {
+      display: flex;
+      flex-direction: column;
+      align-self: center;
+      width: calc(100% - 64px);
+      max-width: 400px;
+      margin: auto 0;
+      padding: 32px 0;
+
+      @media (max-width: 900px) {
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        max-width: 480px;
+        margin: auto 0;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+    }
+
+    .title {
+      margin: 0 0 8px;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+      color: var(--text-h);
+
+      @media (max-width: 900px) {
+        margin-bottom: 24px;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: normal;
+        text-align: center;
+      }
+    }
+
+    .subtitle {
+      margin-bottom: 32px;
+      font-size: 15px;
+      color: var(--text);
+
+      @media (max-width: 900px) {
+        display: none;
+      }
+    }
+
+    .panelFooter {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text);
+
+      @media (max-width: 900px) {
+        padding: 16px;
+        background: var(--page-bg);
+        font-size: 11px;
+      }
+    }
+
+    .panelFooterRow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .panelFooterIcon {
+      color: var(--primary);
+    }
+  }
+
+  .microsoft {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 48px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .microsoftIcon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    font-size: 13px;
+    color: var(--text-tertiary);
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid var(--border);
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--danger-border);
+      border-radius: 8px;
+      background: var(--danger-bg);
+      font-size: 13px;
+      color: var(--danger);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-h);
+
+      @media (max-width: 900px) {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+    }
+
+    .inputWrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .inputIcon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    .input {
+      width: 100%;
+      height: 46px;
+      box-sizing: border-box;
+      padding: 0 40px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      background: var(--surface-alt);
+      font: inherit;
+      font-size: 15px;
+      color: var(--text-h);
+      caret-color: var(--primary);
+      transition:
+        border-color 0.15s ease-out,
+        box-shadow 0.15s ease-out;
+
+      &::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      &:hover {
+        border-color: var(--input-border-hover);
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+
+      &[aria-invalid='true'] {
+        border-color: var(--danger);
+      }
+
+      /* Autocompletado del navegador: mantiene el fondo y el texto del tema */
+      &:-webkit-autofill {
+        -webkit-text-fill-color: var(--text-h);
+        box-shadow: 0 0 0 100px var(--surface-alt) inset;
+      }
+
+      &:-webkit-autofill:focus {
+        box-shadow:
+          0 0 0 100px var(--surface-alt) inset,
+          0 0 0 3px var(--focus-ring);
+      }
+    }
+
+    .togglePassword {
+      position: absolute;
+      right: 8px;
+      display: flex;
+      padding: 4px;
+      border: none;
+      border-radius: 6px;
+      background: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-h);
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+    }
+
+    .submit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 48px;
+      margin-top: 6px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary);
+      box-shadow: 0 4px 12px var(--primary-shadow);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--on-primary);
+      cursor: pointer;
+      transition: background 0.15s ease-out;
+
+      &:hover {
+        background: var(--primary-hover);
+      }
+
+      &:active {
+        background: var(--primary-active);
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow:
+          0 4px 12px var(--primary-shadow),
+          0 0 0 3px var(--focus-ring);
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .help {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+  }
+}

@@ -4,13 +4,14 @@
   align-items: center;
   gap: 16px;
   padding-block: 48px;
+  text-align: center;
 
   .code {
     margin: 0;
   }
 
   .back {
-    color: var(--accent);
+    color: var(--primary);
 
     &:hover {
       text-decoration: none;

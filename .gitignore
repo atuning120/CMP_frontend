@@ -25,3 +25,7 @@ dist-ssr
 
 # graphify
 graphify-out/
+
+# Variables de entorno (URL del Backend, etc.); cada entorno tiene las suyas
+.env
+.env.*

@@ -1,0 +1,147 @@
+.panelLateral {
+  position: fixed;
+  inset: 0 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100vw);
+  height: 100svh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-h);
+  text-align: left;
+
+  &::backdrop {
+    background: var(--backdrop);
+  }
+
+  &[open] {
+    animation: entrar 0.2s ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .titulo {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .subtitulo {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .cerrar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: none;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .cuerpo {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .primario,
+  .ambar,
+  .secundario {
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  .primario {
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+  }
+
+  /* Acciones que sacan una máquina de servicio: ámbar con texto oscuro, como en la app */
+  .ambar {
+    background: var(--warning);
+    color: var(--on-warning);
+  }
+
+  .secundario {
+    border-color: var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+
+    &:hover:not(:disabled) {
+      background: var(--surface-alt);
+    }
+  }
+}
+
+@keyframes entrar {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}

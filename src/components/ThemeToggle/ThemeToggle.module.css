@@ -1,0 +1,44 @@
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-alt);
+  cursor: pointer;
+  transition: border-color 0.15s ease-out;
+
+  &:hover {
+    border-color: var(--input-border-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .sun {
+    color: var(--warning);
+  }
+
+  .moon {
+    color: var(--primary);
+  }
+
+  &.marca {
+    border-color: var(--hero-rule);
+    background: none;
+
+    &:hover {
+      border-color: var(--on-hero-muted);
+    }
+
+    .moon,
+    .sun {
+      color: var(--on-hero);
+    }
+  }
+}

@@ -1,0 +1,327 @@
+.flotaPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .titleRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: normal;
+    color: var(--text-h);
+  }
+
+  /* Mismo ícono ámbar que la pestaña Flota de la app */
+  .titleIcon {
+    color: var(--warning);
+  }
+
+  .counter {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .search {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .searchIcon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .searchInput {
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 12px 0 36px;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    font: inherit;
+    font-size: 14px;
+    color: var(--text-h);
+    caret-color: var(--primary);
+    transition:
+      border-color 0.15s ease-out,
+      box-shadow 0.15s ease-out;
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  /* Chips de filtro como los de la app: el activo va en azul relleno */
+  .filtros {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: 6px;
+  }
+
+  .filtro {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 5px 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    white-space: nowrap;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out,
+      color 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .filtroConteo {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .filtroActivo {
+    border-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover {
+      border-color: var(--primary-hover);
+      background: var(--primary-hover);
+      color: var(--on-primary);
+    }
+
+    .filtroConteo {
+      background: var(--hero-rule);
+    }
+  }
+
+  .lista {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 14px;
+    overflow-y: auto;
+    list-style: none;
+    background: var(--page-bg);
+  }
+
+  .vacio {
+    padding: 24px 8px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  /* Tarjeta de máquina: mismo formato que MachineFleetCard de la app (borde inferior de 3 px) */
+  .tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-bottom-width: 3px;
+    border-radius: 14px;
+    background: var(--surface);
+    font: inherit;
+    text-align: left;
+    color: var(--text-h);
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease-out,
+      box-shadow 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      box-shadow: var(--shadow);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .tarjetaActiva {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+
+    &:hover {
+      border-color: var(--primary);
+    }
+  }
+
+  .fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .codigo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .patente {
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--surface-alt);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: none;
+    margin-left: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .badgePunto {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .badge_operando {
+    background: color-mix(in srgb, var(--success) 13%, transparent);
+    color: var(--success);
+  }
+
+  .badge_alerta {
+    background: color-mix(in srgb, var(--warning) 18%, transparent);
+    color: var(--warning-text);
+  }
+
+  .badge_detenida {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  .badge_fuera {
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    color: var(--danger);
+  }
+
+  .modelo {
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+  }
+
+  .detalle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text-h);
+  }
+
+  .detalleIcono {
+    flex: none;
+    color: var(--text-tertiary);
+  }
+
+  .sinMapa {
+    color: var(--text-tertiary);
+  }
+
+  .detalleDoble {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .horometro {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-h);
+  }
+
+  .leyenda {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+}
