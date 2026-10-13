@@ -82,8 +82,8 @@
     }
   }
 
-  /* Modo edición en ámbar con texto oscuro, como los botones de acción de la app */
-  .modoEdicion {
+  /* Geocercas (edición, solo ADMIN) en ámbar con texto oscuro, como los botones de acción de la app */
+  .modoGeocercas {
     background: var(--warning);
     color: var(--on-warning);
 

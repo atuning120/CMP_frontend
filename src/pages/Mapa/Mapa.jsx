@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, Eye, ShieldCheck } from 'lucide-react'
+import { AlertCircle, Eye, Layers, Truck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
@@ -22,7 +22,7 @@ function Mapa() {
   const [conAlerta, setConAlerta] = useState(() => new Set())
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
-  const [modo, setModo] = useState('vista')
+  const [modo, setModo] = useState('flota')
   const [seleccion, setSeleccion] = useState(null)
   const [editando, setEditando] = useState(null)
   const [filtro, setFiltro] = useState('todas')
@@ -149,7 +149,7 @@ function Mapa() {
       seleccion.tipo === 'area'
         ? areas.find((a) => a.idArea === seleccion.id)
         : zonas.find((z) => z.idZona === seleccion.id)
-    if (!geocerca?.poligono || modo === 'edicion') return null
+    if (!geocerca?.poligono || modo === 'geocercas') return null
     const maquinasDentro = marcadores.filter((p) =>
       seleccion.tipo === 'area' ? p.maquina.idAreaActual === seleccion.id : p.maquina.idZonaActual === seleccion.id,
     ).length
@@ -175,30 +175,32 @@ function Mapa() {
         <span className={styles.chipPunto} />
         Planta Mina Los Colorados (MLC)
       </span>
-      {admin ? (
-        <span className={styles.modos} role="radiogroup" aria-label="Modo del mapa">
+      {/* Qué muestra la columna izquierda: la flota o, para un administrador, la edición de geocercas */}
+      {admin && (
+        <span className={styles.modos} role="radiogroup" aria-label="Contenido del panel lateral">
           <button
             type="button"
             role="radio"
-            aria-checked={modo === 'vista'}
-            className={`${styles.modo} ${modo === 'vista' ? styles.modoActivo : ''}`}
-            onClick={() => cambiarModo('vista')}
+            aria-checked={modo === 'flota'}
+            className={`${styles.modo} ${modo === 'flota' ? styles.modoActivo : ''}`}
+            onClick={() => cambiarModo('flota')}
           >
-            <Eye size={14} /> Vista
+            <Truck size={14} /> Flota
           </button>
           <button
             type="button"
             role="radio"
-            aria-checked={modo === 'edicion'}
-            className={`${styles.modo} ${modo === 'edicion' ? styles.modoEdicion : ''}`}
-            onClick={() => cambiarModo('edicion')}
+            aria-checked={modo === 'geocercas'}
+            className={`${styles.modo} ${modo === 'geocercas' ? styles.modoGeocercas : ''}`}
+            onClick={() => cambiarModo('geocercas')}
           >
-            <ShieldCheck size={14} /> Administrador
+            <Layers size={14} /> Geocercas
           </button>
         </span>
-      ) : (
+      )}
+      {sesion?.rol === 'VISOR' && (
         <span className={styles.chip}>
-          <Eye size={14} /> Vista · solo lectura
+          <Eye size={14} /> Solo lectura
         </span>
       )}
     </>
@@ -206,7 +208,7 @@ function Mapa() {
 
   return (
     <div className={styles.mapaPage}>
-      {modo === 'edicion' ? (
+      {modo === 'geocercas' ? (
         <GeocercasPanel
           areas={areas}
           zonas={zonas}
