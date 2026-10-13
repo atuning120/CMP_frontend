@@ -1,0 +1,139 @@
+.mapaPage {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 60svh auto;
+  }
+
+  .mapa {
+    position: relative;
+    min-height: 0;
+
+    /* En pantallas angostas el mapa va arriba y la lista debajo */
+    @media (max-width: 900px) {
+      order: -1;
+    }
+  }
+
+  .chip,
+  .modos {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid var(--hero-rule);
+    border-radius: 8px;
+    background: var(--map-overlay-bg);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--map-overlay-text);
+  }
+
+  .chipPunto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--map-operando);
+  }
+
+  .modos {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .modo {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    color: var(--map-overlay-text);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--hero-rule);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .modoActivo {
+    border-color: var(--map-zona);
+    background: color-mix(in srgb, var(--map-zona) 22%, transparent);
+  }
+
+  .modoEdicion {
+    border-color: var(--map-seleccion);
+    background: color-mix(in srgb, var(--map-seleccion) 22%, transparent);
+    color: var(--map-seleccion);
+  }
+
+  .error {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 14px;
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    font-size: 14px;
+    color: var(--danger);
+    transform: translateX(-50%);
+  }
+
+  /* Contenido de la tarjeta flotante (se renderiza dentro del popup del mapa) */
+  .tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+    color: var(--text);
+  }
+
+  .tarjetaTipo {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tarjetaTitulo {
+    font-size: 14px;
+    color: var(--text-h);
+  }
+
+  .tarjetaEstado {
+    margin-top: 2px;
+    font-weight: 700;
+
+    &.operando {
+      color: var(--success);
+    }
+
+    &.alerta {
+      color: var(--warning-text);
+    }
+  }
+}

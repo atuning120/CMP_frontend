@@ -78,5 +78,5 @@ export function useSesion() {
 
 export const esAdmin = (sesion) => sesion?.rol === 'ADMIN'
 
-// Pantalla de inicio según el rol
-export const rutaInicial = (sesion) => (esAdmin(sesion) ? '/admin' : '/')
+// Pantalla de inicio tras el login: el mapa de planta para todos los roles
+export const rutaInicial = () => '/mapa'

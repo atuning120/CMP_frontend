@@ -1,92 +1,156 @@
 .layout {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100svh;
 
   .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border);
+    gap: 24px;
+    padding: 10px 20px;
+    background: var(--brand-deep);
+    color: var(--on-hero);
 
-    .brand {
-      font-weight: 600;
-      color: var(--text-h);
+    @media (max-width: 900px) {
+      flex-wrap: wrap;
+      gap: 12px;
     }
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+  }
+
+  .logo {
+    width: 84px;
+    height: auto;
+  }
+
+  .product {
+    display: flex;
+    flex-direction: column;
+    padding-left: 14px;
+    border-left: 1px solid var(--hero-rule);
+    line-height: 1.25;
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+  }
+
+  .productName {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .productSub {
+    font-size: 12px;
+    color: var(--on-hero-muted);
   }
 
   .nav {
     display: flex;
-    align-items: center;
-    gap: 16px;
+    gap: 4px;
+    margin-right: auto;
 
     .link {
-      color: var(--text);
-      text-decoration: none;
-
-      &:hover {
-        color: var(--text-h);
-      }
-
-      &.active {
-        color: var(--accent);
-      }
-    }
-
-    .user {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      line-height: 1.25;
-    }
-
-    .userEmail {
-      font-size: 14px;
-      color: var(--text-h);
-    }
-
-    .userRole {
-      font-size: 12px;
-      color: var(--text);
-    }
-
-    .logout {
-      display: flex;
-      align-items: center;
-      gap: 6px;
       padding: 6px 12px;
-      border: 1px solid var(--border);
       border-radius: 8px;
-      background: none;
-      font: inherit;
       font-size: 14px;
-      color: var(--text-h);
-      cursor: pointer;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--on-hero-muted);
 
       &:hover {
-        border-color: var(--input-border-hover);
+        background: var(--hero-rule);
+        color: var(--on-hero);
       }
 
       &:focus-visible {
         outline: none;
         box-shadow: 0 0 0 3px var(--focus-ring);
       }
+
+      &.active {
+        background: var(--hero-rule);
+        color: var(--on-hero);
+      }
+    }
+  }
+
+  .cuenta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--hero-rule);
+    border-radius: 50%;
+    background: var(--brand);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .userText {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+
+    @media (max-width: 900px) {
+      display: none;
+    }
+  }
+
+  .userEmail {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .userRole {
+    font-size: 12px;
+    color: var(--on-hero-muted);
+  }
+
+  .logout {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--hero-rule);
+    border-radius: 8px;
+    background: none;
+    color: var(--on-hero);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--hero-rule);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
     }
   }
 
   .content {
-    flex: 1;
-    padding: 24px;
-
-    @media (max-width: 1024px) {
-      padding: 16px;
-    }
+    min-height: 0;
+    overflow: auto;
+    background: var(--page-bg);
   }
 }

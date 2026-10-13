@@ -37,6 +37,20 @@
   --on-hero: #fff;
   --on-hero-muted: rgba(255, 255, 255, 0.78);
   --hero-rule: rgba(255, 255, 255, 0.16);
+
+  /* Mapa de planta: van sobre imagen satelital, así que no cambian con el tema */
+  --map-area: #e2e8f0;
+  --map-zona: #38bdf8;
+  --map-seleccion: #f9ab00;
+  --map-operando: #22c55e;
+  --map-alerta: #f97316;
+  --map-detenida: #94a3b8;
+  --map-label-bg: rgba(4, 33, 63, 0.88);
+  --map-label-border: rgba(56, 189, 248, 0.6);
+  --map-overlay-bg: rgba(4, 33, 63, 0.86);
+  --map-overlay-text: #e2e8f0;
+  --map-sombra: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --map-alerta-halo: rgba(249, 115, 22, 0.35);
   --hero-overlay: linear-gradient(
     200deg,
     rgba(1, 76, 143, 0.35) 0%,

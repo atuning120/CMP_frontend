@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  HardHat,
   Lock,
   ShieldCheck,
   User,

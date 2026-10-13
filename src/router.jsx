@@ -1,8 +1,7 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import MainLayout from './components/MainLayout/MainLayout.jsx'
 import RequireAuth from './components/RequireAuth/RequireAuth.jsx'
 import Admin from './pages/Admin/Admin.jsx'
-import Home from './pages/Home/Home.jsx'
 import Login from './pages/Login/Login.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 
@@ -17,7 +16,12 @@ export const router = createBrowserRouter([
         path: '/',
         element: <MainLayout />,
         children: [
-          { index: true, element: <Home /> },
+          { index: true, element: <Navigate to="/mapa" replace /> },
+          {
+            path: 'mapa',
+            // Carga diferida: MapLibre pesa ~1 MB y no debe sumarse al login
+            lazy: () => import('./pages/Mapa/Mapa.jsx').then((m) => ({ Component: m.default })),
+          },
           {
             element: <RequireAuth roles={['ADMIN']} />,
             children: [{ path: 'admin', element: <Admin /> }],
