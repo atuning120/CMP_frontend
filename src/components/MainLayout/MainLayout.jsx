@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
 
 const navLinkClass = ({ isActive }) =>
@@ -13,6 +14,7 @@ function MainLayout() {
           <NavLink to="/" end className={navLinkClass}>
             Inicio
           </NavLink>
+          <ThemeToggle />
         </nav>
       </header>
 

@@ -11,13 +11,42 @@
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
+  /* Paleta compartida con la app móvil (Front-mobile/src/constants/theme.ts) */
+  --primary: #1a73e8;
+  --primary-hover: #1765cc;
+  --primary-active: #185abc;
+  --primary-shadow: rgba(26, 115, 232, 0.3);
+  --on-primary: #fff;
+  --success: #1e8e3e;
+  --danger: #d93025;
+  --danger-bg: rgba(244, 63, 94, 0.15);
+  --danger-border: rgba(244, 63, 94, 0.4);
+  --warning: #f9ab00;
+  --warning-text: #a35a00;
+  --surface: #fff;
+  --surface-alt: #f1f3f4;
+  --text-tertiary: #5f6368;
+  --input-border: #dadce0;
+  --input-border-hover: #9aa0a6;
+  --focus-ring: rgba(26, 115, 232, 0.45);
+  --selection-bg: rgba(26, 115, 232, 0.2);
+  --page-bg: #f8f9fa;
+  --on-hero: #fff;
+  --hero-overlay: linear-gradient(
+    160deg,
+    rgba(8, 20, 40, 0.55) 0%,
+    rgba(8, 20, 40, 0.35) 45%,
+    rgba(8, 20, 40, 0.85) 100%
+  );
+  --on-hero-muted: rgba(255, 255, 255, 0.82);
+
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
-  color-scheme: light dark;
+  color-scheme: light;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -30,20 +59,31 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* data-theme lo fija index.html antes de pintar y lo cambia useTheme */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --text: #9ca3af;
+  --text-h: #f3f4f6;
+  --bg: #16171d;
+  --border: #2e303a;
+  --code-bg: #1f2028;
+  --accent: #c084fc;
+  --accent-bg: rgba(192, 132, 252, 0.15);
+  --accent-border: rgba(192, 132, 252, 0.5);
+  --social-bg: rgba(47, 48, 58, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+
+  --surface: #292a2d;
+  --surface-alt: #303134;
+  --text-tertiary: #bdc1c6;
+  --input-border: #3c4043;
+  --input-border-hover: #5f6368;
+  --page-bg: #202124;
+  --warning-text: #f9ab00;
+  --focus-ring: rgba(138, 180, 248, 0.6);
+  --selection-bg: rgba(138, 180, 248, 0.3);
 
   #social .button-icon {
     filter: invert(1) brightness(2);
@@ -54,12 +94,11 @@ body {
   margin: 0;
 }
 
+::selection {
+  background: var(--selection-bg);
+}
+
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
