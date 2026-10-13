@@ -90,7 +90,8 @@
   /* Chips de filtro como los de la app: el activo va en azul relleno */
   .filtros {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
     gap: 6px;
   }
 

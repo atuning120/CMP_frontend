@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
+import { puedeGestionarFlota } from '../../services/flotaService.js'
 import { cerrarSesion, esAdmin, useSesion } from '../../services/session.js'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
@@ -47,6 +48,11 @@ function MainLayout() {
           <NavLink to="/mapa" className={navLinkClass}>
             Mapa
           </NavLink>
+          {puedeGestionarFlota(sesion) && (
+            <NavLink to="/flota" className={navLinkClass}>
+              Flota
+            </NavLink>
+          )}
           {esAdmin(sesion) && (
             <NavLink to="/admin" className={navLinkClass}>
               Administración

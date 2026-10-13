@@ -8,7 +8,8 @@ const CLIENT_ID = import.meta.env.VITE_AZURE_CLIENT_ID?.trim()
 export const microsoftConfigurado = Boolean(CLIENT_ID)
 
 const MENSAJES_ERROR = {
-  DOMINIO_NO_PERMITIDO: 'Solo pueden ingresar cuentas corporativas de CMP (@cmp.cl) o IMOPAC (@imopac.cl).',
+  DOMINIO_NO_PERMITIDO:
+    'Solo pueden ingresar cuentas institucionales de CMP (@cmp.cl), IMOPAC (@imopac.cl) o la UCN (@ucn.cl, @alumnos.ucn.cl).',
   USUARIO_INACTIVO: 'Tu usuario está desactivado. Contacta a un administrador.',
   SIN_ACCESO_WEB: 'Tu usuario no tiene acceso al panel web.',
   CUENTA_YA_VINCULADA: 'Tu correo ya está asociado a otra cuenta de Microsoft. Contacta a un administrador.',
@@ -26,7 +27,7 @@ export function prepararMicrosoft() {
     const msal = new PublicClientApplication({
       auth: {
         clientId: CLIENT_ID,
-        // Cuentas de cualquier organización; el Backend acepta solo los dominios de CMP e IMOPAC
+        // Cuentas de cualquier organización; el Backend acepta solo los dominios de CMP, IMOPAC y la UCN
         authority: 'https://login.microsoftonline.com/organizations',
         redirectUri: `${window.location.origin}/redirect.html`,
       },

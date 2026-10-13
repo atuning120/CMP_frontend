@@ -3,6 +3,7 @@ import Cargando from './components/Cargando/Cargando.jsx'
 import MainLayout from './components/MainLayout/MainLayout.jsx'
 import RequireAuth from './components/RequireAuth/RequireAuth.jsx'
 import Admin from './pages/Admin/Admin.jsx'
+import Flota from './pages/Flota/Flota.jsx'
 import Login from './pages/Login/Login.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 
@@ -23,6 +24,11 @@ export const router = createBrowserRouter([
             // Carga diferida: MapLibre pesa ~1 MB y no debe sumarse al login
             lazy: () => import('./pages/Mapa/Mapa.jsx').then((m) => ({ Component: m.default })),
             hydrateFallbackElement: <Cargando texto="Cargando mapa…" />,
+          },
+          {
+            // Gestión de la flota: jefes de turno y administradores
+            element: <RequireAuth roles={['JEFE_TURNO', 'ADMIN']} />,
+            children: [{ path: 'flota', element: <Flota /> }],
           },
           {
             element: <RequireAuth roles={['ADMIN']} />,

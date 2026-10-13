@@ -78,5 +78,14 @@ export function useSesion() {
 
 export const esAdmin = (sesion) => sesion?.rol === 'ADMIN'
 
+// id del usuario de la sesión (claim sub del JWT), p. ej. para marcar "tú" en la lista de usuarios
+export const idUsuarioSesion = (sesion) => {
+  try {
+    return JSON.parse(atob(sesion.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub ?? null
+  } catch {
+    return null
+  }
+}
+
 // Pantalla de inicio tras el login: el mapa de planta para todos los roles
 export const rutaInicial = () => '/mapa'

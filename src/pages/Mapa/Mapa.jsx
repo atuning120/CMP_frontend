@@ -3,7 +3,7 @@ import { AlertCircle, Eye, ShieldCheck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
-import { obtenerFlota, obtenerMaquinasConAlerta } from '../../services/flotaService.js'
+import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
 import { obtenerMapa } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
@@ -228,6 +228,7 @@ function Mapa() {
           seleccionada={seleccion?.tipo === 'maquina' ? seleccion.id : null}
           onSeleccionar={seleccionarMaquina}
           cargando={cargando}
+          conAlertas={puedeVerAlertas(sesion)}
         />
       )}
 

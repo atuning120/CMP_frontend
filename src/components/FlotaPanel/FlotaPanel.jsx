@@ -21,7 +21,23 @@ const LEYENDA = [
  * Lista lateral de la flota: búsqueda, filtro por estado y una tarjeta por máquina.
  * items: [{ maquina, estado, ubicacion, enMapa }]
  */
-function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, conteos, seleccionada, onSeleccionar, cargando }) {
+function FlotaPanel({
+  items,
+  total,
+  filtro,
+  onFiltro,
+  busqueda,
+  onBusqueda,
+  conteos,
+  seleccionada,
+  onSeleccionar,
+  cargando,
+  conAlertas,
+}) {
+  // Sin acceso a alertas (VISOR) no se muestran el filtro ni su leyenda
+  const filtros = conAlertas ? FILTROS : FILTROS.filter((f) => f.id !== 'alertas')
+  const leyenda = conAlertas ? LEYENDA : LEYENDA.filter((l) => l.clase !== 'leyendaAlerta')
+
   return (
     <aside className={styles.flotaPanel}>
       <header className={styles.header}>
@@ -43,7 +59,7 @@ function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, cont
           />
         </label>
         <div className={styles.filtros} role="tablist" aria-label="Filtrar flota">
-          {FILTROS.map((f) => (
+          {filtros.map((f) => (
             <button
               key={f.id}
               type="button"
@@ -108,7 +124,7 @@ function FlotaPanel({ items, total, filtro, onFiltro, busqueda, onBusqueda, cont
           Leyenda del mapa
         </h3>
         <ul className={styles.leyendaLista}>
-          {LEYENDA.map((l) => (
+          {leyenda.map((l) => (
             <li key={l.texto} className={styles.leyendaItem}>
               <span className={`${styles.muestra} ${styles[l.clase]}`} />
               <span className={styles.leyendaTexto}>{l.texto}</span>
