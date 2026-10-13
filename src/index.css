@@ -31,14 +31,18 @@
   --focus-ring: rgba(26, 115, 232, 0.45);
   --selection-bg: rgba(26, 115, 232, 0.2);
   --page-bg: #f8f9fa;
+  /* Azul del logo CMP y su variante profunda para el panel de marca */
+  --brand: #014c8f;
+  --brand-deep: #04213f;
   --on-hero: #fff;
+  --on-hero-muted: rgba(255, 255, 255, 0.78);
+  --hero-rule: rgba(255, 255, 255, 0.16);
   --hero-overlay: linear-gradient(
-    160deg,
-    rgba(8, 20, 40, 0.55) 0%,
-    rgba(8, 20, 40, 0.35) 45%,
-    rgba(8, 20, 40, 0.85) 100%
+    200deg,
+    rgba(1, 76, 143, 0.35) 0%,
+    rgba(4, 33, 63, 0.2) 40%,
+    rgba(4, 33, 63, 0.92) 100%
   );
-  --on-hero-muted: rgba(255, 255, 255, 0.82);
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;

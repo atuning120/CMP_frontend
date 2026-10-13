@@ -1,15 +1,13 @@
 import { useState } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
   ArrowRight,
-  BellRing,
   Eye,
   EyeOff,
   HardHat,
   Lock,
-  MapPinned,
   ShieldCheck,
-  Truck,
   User,
 } from 'lucide-react'
 import cmpLogo from '../../assets/CMP_logo.png'
@@ -17,13 +15,9 @@ import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import microsoftLogo from '../../assets/microsoft.svg'
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle.jsx'
 import { useTheme } from '../../hooks/useTheme.js'
+import { AuthError, loginConCredenciales } from '../../services/authService.js'
+import { rutaInicial, useSesion } from '../../services/session.js'
 import styles from './Login.module.css'
-
-const HIGHLIGHTS = [
-  { icon: Truck, text: 'Estado de la flota por turno' },
-  { icon: MapPinned, text: 'Ubicación de equipos y geocercas' },
-  { icon: BellRing, text: 'Alertas e historial de eventos' },
-]
 
 function Login() {
   const [email, setEmail] = useState('')
@@ -32,10 +26,17 @@ function Login() {
   const [errorMsg, setErrorMsg] = useState(null)
   // Campos marcados como inválidos en el último intento de envío
   const [invalid, setInvalid] = useState({ email: false, password: false })
+  const [submitting, setSubmitting] = useState(false)
   const { theme } = useTheme()
+  const sesion = useSesion()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  // Pendiente: conectar con el Backend (POST /auth/login)
-  const handleSubmit = (event) => {
+  // Destino tras entrar: la ruta que pidió antes del login o la pantalla de inicio de su rol.
+  // Solo un admin vuelve a /admin; al resto RequireAuth lo redirige igual.
+  const destino = (nueva) => location.state?.from ?? rutaInicial(nueva)
+
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const missing = { email: !email.trim(), password: !password.trim() }
     setInvalid(missing)
@@ -44,6 +45,14 @@ function Login() {
       return
     }
     setErrorMsg(null)
+    setSubmitting(true)
+    try {
+      const nueva = await loginConCredenciales(email, password)
+      navigate(destino(nueva), { replace: true })
+    } catch (error) {
+      setErrorMsg(error instanceof AuthError ? error.message : 'No se pudo iniciar sesión.')
+      setSubmitting(false)
+    }
   }
 
   const handleEmailChange = (event) => {
@@ -59,6 +68,9 @@ function Login() {
   // Pendiente: obtener el token de Entra ID con MSAL y enviarlo a POST /auth/login/web
   const handleMicrosoftLogin = () => {}
 
+  // Con sesión vigente no tiene sentido mostrar el login (salvo mientras se navega tras entrar)
+  if (sesion && !submitting) return <Navigate to={rutaInicial(sesion)} replace />
+
   return (
     <div className={styles.login}>
       <aside className={styles.hero}>
@@ -67,25 +79,21 @@ function Login() {
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Gestión de Riesgo en los Procesos</h1>
           <p className={styles.heroText}>
-            Panel web de supervisión de la operación en Mina Los Colorados.
+            Panel web de supervisión de la operación en faena.
           </p>
-          <ul className={styles.highlights}>
-            {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-              <li key={text} className={styles.highlight}>
-                <Icon size={18} />
-                {text}
-              </li>
-            ))}
-          </ul>
         </div>
 
-        <span className={styles.heroFooter}>GRP · Mina Los Colorados · CMP</span>
+        <div className={styles.heroMeta}>
+          <span>Mina Los Colorados</span>
+          <span>Compañía Minera del Pacífico</span>
+        </div>
       </aside>
 
       <main className={styles.panel}>
-        {/* En teléfonos la página replica el login de la app: header, card sobre la foto y footer */}
-        <header className={styles.mobileHeader}>
-          <span className={styles.mobileBrand}>
+        {/* Misma estructura que el login de la app: header, formulario y footer.
+            En teléfonos el formulario pasa a ser una card sobre la foto */}
+        <header className={styles.panelHeader}>
+          <span className={styles.panelBrand}>
             <img
               src={theme === 'dark' ? cmpLogoDark : cmpLogo}
               alt="CMP"
@@ -93,19 +101,18 @@ function Login() {
             />
             <ThemeToggle />
           </span>
-          <span className={styles.mobileSystem}>
-            <HardHat size={14} />
-            Panel Web MLC
-          </span>
         </header>
-
-        <ThemeToggle className={styles.themeToggle} />
 
         <div className={styles.formWrapper}>
           <h2 className={styles.title}>Inicio de sesión</h2>
           <p className={styles.subtitle}>Ingresa con tu cuenta corporativa de CMP.</p>
 
-          <button type="button" className={styles.microsoft} onClick={handleMicrosoftLogin}>
+          <button
+            type="button"
+            className={styles.microsoft}
+            onClick={handleMicrosoftLogin}
+            disabled={submitting}
+          >
             <img src={microsoftLogo} alt="" className={styles.microsoftIcon} />
             Iniciar sesión con Microsoft
           </button>
@@ -164,21 +171,20 @@ function Login() {
               </span>
             </label>
 
-            <button type="submit" className={styles.submit}>
-              Iniciar sesión
-              <ArrowRight size={18} />
+            <button type="submit" className={styles.submit} disabled={submitting}>
+              {submitting ? 'Ingresando…' : 'Iniciar sesión'}
+              {!submitting && <ArrowRight size={18} />}
             </button>
           </form>
 
           <p className={styles.help}>
-            <ShieldCheck size={14} className={styles.helpIcon} />
             Acceso exclusivo para personal autorizado.
           </p>
         </div>
 
-        <footer className={styles.mobileFooter}>
-          <span className={styles.mobileFooterRow}>
-            <ShieldCheck size={14} className={styles.mobileFooterIcon} />
+        <footer className={styles.panelFooter}>
+          <span className={styles.panelFooterRow}>
+            <ShieldCheck size={14} className={styles.panelFooterIcon} />
             Gestión de Riesgo en los Procesos (GRP)
           </span>
           <span>Mina Los Colorados · CMP</span>

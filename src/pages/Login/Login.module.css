@@ -1,6 +1,6 @@
 .login {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(440px, 1fr);
   min-height: 100svh;
   background: var(--page-bg);
 
@@ -8,22 +8,33 @@
     grid-template-columns: 1fr;
   }
 
+  /* Panel de marca: la foto de la mina queda como textura monocromática en el azul de CMP */
   .hero {
     position: relative;
     isolation: isolate;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 32px;
-    padding: 40px 56px;
-    background: center / cover
-      image-set(
-        url('../../assets/Mina_fondo.webp') type('image/webp'),
-        url('../../assets/Mina_fondo.jpg') type('image/jpeg')
-      );
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: 48px 56px 40px;
+    overflow: hidden;
+    background: var(--brand-deep);
     color: var(--on-hero);
 
     &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background: center / cover
+        image-set(
+          url('../../assets/Mina_fondo.webp') type('image/webp'),
+          url('../../assets/Mina_fondo.jpg') type('image/jpeg')
+        );
+      filter: grayscale(1) contrast(1.15);
+      mix-blend-mode: luminosity;
+      opacity: 0.5;
+    }
+
+    &::after {
       content: '';
       position: absolute;
       inset: 0;
@@ -31,61 +42,57 @@
       background: var(--hero-overlay);
     }
 
+    @media (max-width: 1100px) {
+      padding: 40px 40px 32px;
+    }
+
     @media (max-width: 900px) {
       display: none;
     }
 
     .heroLogo {
-      width: 150px;
+      width: 140px;
       height: auto;
     }
 
     .heroContent {
+      grid-row: 3;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      max-width: 560px;
+      gap: 14px;
+      max-width: 460px;
+      padding-bottom: 40px;
     }
 
     .heroTitle {
       margin: 0;
-      font-size: 48px;
-      font-weight: 700;
-      line-height: 1.1;
+      font-size: 40px;
+      font-weight: 600;
+      line-height: 1.12;
       letter-spacing: -0.02em;
       text-wrap: balance;
       color: var(--on-hero);
 
-      @media (max-width: 1280px) {
-        font-size: 38px;
+      @media (max-width: 1100px) {
+        font-size: 32px;
       }
     }
 
     .heroText {
-      max-width: 40ch;
-      font-size: 18px;
-      text-wrap: balance;
+      max-width: 38ch;
+      font-size: 17px;
+      line-height: 1.55;
+      text-wrap: pretty;
       color: var(--on-hero-muted);
     }
 
-    .highlights {
+    .heroMeta {
+      grid-row: 4;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin: 8px 0 0;
-      padding: 0;
-      list-style: none;
-      color: var(--on-hero-muted);
-    }
-
-    .highlight {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 15px;
-    }
-
-    .heroFooter {
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 20px;
+      border-top: 1px solid var(--hero-rule);
       font-size: 13px;
       color: var(--on-hero-muted);
     }
@@ -95,17 +102,12 @@
     position: relative;
     isolation: isolate;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 32px;
+    flex-direction: column;
     background: var(--surface);
 
     /* Teléfono: como el login de la app, la foto de la mina queda detrás de la card */
     @media (max-width: 900px) {
-      flex-direction: column;
-      align-items: stretch;
-      justify-content: space-between;
-      padding: 0;
+      gap: 24px;
       background: var(--page-bg);
 
       &::before {
@@ -122,62 +124,71 @@
       }
     }
 
-    .mobileHeader {
-      display: none;
+    .panelHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
 
       @media (max-width: 900px) {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         padding: 16px;
         border-bottom: 1px solid var(--border);
         background: var(--page-bg);
       }
     }
 
-    .mobileBrand {
+    /* En escritorio el logo ya está en la foto: el header muestra el sistema y el toggle a la derecha */
+    .panelBrand {
       display: flex;
       align-items: center;
       gap: 12px;
+      order: 2;
+
+      @media (max-width: 900px) {
+        order: 0;
+      }
     }
 
     .mobileLogo {
+      display: none;
       width: 120px;
       height: 40px;
       object-fit: contain;
-    }
-
-    .mobileSystem {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--warning-text);
-    }
-
-    .themeToggle {
-      position: absolute;
-      top: 24px;
-      right: 24px;
 
       @media (max-width: 900px) {
-        display: none;
+        display: block;
+      }
+    }
+
+    .panelSystem {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--warning-text);
+
+      @media (max-width: 900px) {
+        font-size: 12px;
+        letter-spacing: normal;
       }
     }
 
     .formWrapper {
       display: flex;
       flex-direction: column;
-      width: 100%;
+      align-self: center;
+      width: calc(100% - 64px);
       max-width: 400px;
+      margin: auto 0;
+      padding: 32px 0;
 
       @media (max-width: 900px) {
         box-sizing: border-box;
-        align-self: center;
         width: calc(100% - 32px);
         max-width: 480px;
-        margin: 24px 0;
+        margin: auto 0;
         padding: 24px;
         border: 1px solid var(--border);
         border-radius: 16px;
@@ -188,15 +199,17 @@
 
     .title {
       margin: 0 0 8px;
-      font-size: 30px;
+      font-size: 34px;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
       text-wrap: balance;
       color: var(--text-h);
 
       @media (max-width: 900px) {
         margin-bottom: 24px;
         font-size: 24px;
+        font-weight: 700;
         letter-spacing: normal;
         text-align: center;
       }
@@ -212,29 +225,30 @@
       }
     }
 
-    .mobileFooter {
-      display: none;
+    .panelFooter {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text);
 
       @media (max-width: 900px) {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
         padding: 16px;
-        border-top: 1px solid var(--border);
         background: var(--page-bg);
         font-size: 11px;
-        color: var(--text);
       }
     }
 
-    .mobileFooterRow {
+    .panelFooterRow {
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    .mobileFooterIcon {
+    .panelFooterIcon {
       color: var(--primary);
     }
   }
@@ -455,16 +469,12 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 32px;
+    margin-top: 24px;
     font-size: 13px;
     color: var(--text-tertiary);
 
     @media (max-width: 900px) {
       display: none;
-    }
-
-    .helpIcon {
-      color: var(--primary);
     }
   }
 }
