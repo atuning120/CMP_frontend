@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
@@ -15,6 +15,7 @@ import microsoftLogo from '../../assets/microsoft.svg'
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle.jsx'
 import { useTheme } from '../../hooks/useTheme.js'
 import { AuthError, loginConCredenciales } from '../../services/authService.js'
+import { loginConMicrosoft, prepararMicrosoft } from '../../services/microsoftAuth.js'
 import { rutaInicial, useSesion } from '../../services/session.js'
 import styles from './Login.module.css'
 
@@ -64,8 +65,25 @@ function Login() {
     setInvalid((prev) => ({ ...prev, password: false }))
   }
 
-  // Pendiente: obtener el token de Entra ID con MSAL y enviarlo a POST /auth/login/web
-  const handleMicrosoftLogin = () => {}
+  // Descarga e inicializa MSAL al abrir el login, para que el clic abra la ventana sin esperas
+  useEffect(() => {
+    prepararMicrosoft()?.catch(() => {})
+  }, [])
+
+  // Si la cuenta no existe, el Backend la registra como VISOR
+  const handleMicrosoftLogin = async () => {
+    setErrorMsg(null)
+    setInvalid({ email: false, password: false })
+    setSubmitting(true)
+    try {
+      const nueva = await loginConMicrosoft()
+      if (!nueva) return setSubmitting(false)
+      navigate(destino(nueva), { replace: true })
+    } catch (error) {
+      setErrorMsg(error instanceof AuthError ? error.message : 'No se pudo iniciar sesión con Microsoft.')
+      setSubmitting(false)
+    }
+  }
 
   // Con sesión vigente no tiene sentido mostrar el login (salvo mientras se navega tras entrar)
   if (sesion && !submitting) return <Navigate to={rutaInicial(sesion)} replace />
