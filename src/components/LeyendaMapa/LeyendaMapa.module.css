@@ -1,0 +1,69 @@
+.leyendaMapa {
+  text-align: left;
+
+  .titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .texto {
+    white-space: nowrap;
+    color: var(--text-h);
+  }
+
+  .detalle {
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--text-tertiary);
+  }
+
+  .muestra {
+    justify-self: center;
+  }
+
+  .area {
+    width: 20px;
+    border-top: 2px dashed var(--text);
+  }
+
+  .zona {
+    width: 20px;
+    border-top: 3px solid var(--map-zona);
+  }
+
+  .operando,
+  .alerta {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--map-operando);
+  }
+
+  .alerta {
+    background: var(--map-alerta);
+  }
+}

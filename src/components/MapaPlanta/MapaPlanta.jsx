@@ -89,6 +89,11 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left')
     mapRef.current = map
 
+    // MapLibre solo escucha el tamaño de la ventana: al contraer o expandir el panel lateral cambia
+    // el ancho del contenedor y hay que avisarle para que redibuje sin deformarse
+    const observador = new ResizeObserver(() => map.resize())
+    observador.observe(contenedorRef.current)
+
     const area = token('--map-area')
     const contornoArea = token('--map-area-casing')
     const zona = token('--map-zona')
@@ -192,6 +197,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     })
 
     return () => {
+      observador.disconnect()
       marcadoresRef.current.forEach((m) => m.remove())
       marcadoresRef.current = []
       popupRef.current?.remove()

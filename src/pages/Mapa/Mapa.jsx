@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, Eye, Layers, Truck } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Truck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
+import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
 import { obtenerMapa } from '../../services/geocercasService.js'
@@ -11,6 +12,16 @@ import styles from './Mapa.module.css'
 
 // La flota cambia con los turnos: se refresca cada minuto mientras la página está abierta
 const REFRESCO_FLOTA_MS = 60_000
+
+// Preferencia de cada usuario en su navegador: el panel lateral contraído o expandido
+const CLAVE_PANEL = 'mapa.panelContraido'
+const leerContraido = () => {
+  try {
+    return localStorage.getItem(CLAVE_PANEL) === '1'
+  } catch {
+    return false
+  }
+}
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
 function Mapa() {
@@ -23,6 +34,7 @@ function Mapa() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [modo, setModo] = useState('flota')
+  const [contraido, setContraido] = useState(leerContraido)
   const [seleccion, setSeleccion] = useState(null)
   const [editando, setEditando] = useState(null)
   const [filtro, setFiltro] = useState('todas')
@@ -81,6 +93,7 @@ function Mapa() {
       todas: items.length,
       operando: items.filter((i) => i.estado === 'operando' || i.estado === 'alerta').length,
       alertas: items.filter((i) => i.estado === 'alerta').length,
+      fuera: items.filter((i) => i.estado === 'fuera').length,
     }),
     [items],
   )
@@ -112,6 +125,21 @@ function Mapa() {
   const cambiarModo = (nuevo) => {
     setModo(nuevo)
     setSeleccion(null)
+  }
+
+  const alternarPanel = (valor) => {
+    setContraido(valor)
+    try {
+      localStorage.setItem(CLAVE_PANEL, valor ? '1' : '0')
+    } catch {
+      // Sin localStorage la preferencia dura solo esta visita
+    }
+  }
+
+  // Desde la barra contraída: abre el panel en la sección elegida
+  const abrirEn = (nuevo) => {
+    if (nuevo !== modo) cambiarModo(nuevo)
+    alternarPanel(false)
   }
 
   const alGuardar = useCallback(
@@ -207,34 +235,115 @@ function Mapa() {
   )
 
   return (
-    <div className={styles.mapaPage}>
-      {modo === 'geocercas' ? (
-        <GeocercasPanel
-          areas={areas}
-          zonas={zonas}
-          seleccion={seleccion}
-          onSeleccionar={setSeleccion}
-          mapa={mapaRef}
-          onEditando={setEditando}
-          onGuardado={alGuardar}
-        />
-      ) : (
-        <FlotaPanel
-          items={visibles}
-          total={items.length}
-          filtro={filtro}
-          onFiltro={setFiltro}
-          busqueda={busqueda}
-          onBusqueda={setBusqueda}
-          conteos={conteos}
-          seleccionada={seleccion?.tipo === 'maquina' ? seleccion.id : null}
-          onSeleccionar={seleccionarMaquina}
-          cargando={cargando}
-          conAlertas={puedeVerAlertas(sesion)}
-        />
-      )}
+    <div className={`${styles.mapaPage} ${contraido ? styles.contraido : ''}`}>
+      <div id="panel-lateral-mapa" className={styles.lateral}>
+        {contraido ? (
+          <nav className={styles.rail} aria-label="Panel lateral contraído">
+            {/* Secciones: al elegir una, el panel se expande en ella */}
+            <div className={styles.railSecciones}>
+              <button
+                type="button"
+                className={`${styles.railBoton} ${modo === 'flota' ? styles.railActivo : ''}`}
+                onClick={() => abrirEn('flota')}
+                aria-label={`Flota: ${items.length} equipos`}
+                data-tooltip="Flota"
+              >
+                <span className={styles.railIcono}>
+                  <Truck size={20} />
+                  <span className={styles.railInsignia}>{items.length}</span>
+                </span>
+                <span className={styles.railTexto}>Flota</span>
+              </button>
+              {admin && (
+                <button
+                  type="button"
+                  className={`${styles.railBoton} ${modo === 'geocercas' ? styles.railActivo : ''}`}
+                  onClick={() => abrirEn('geocercas')}
+                  aria-label={`Geocercas: ${areas.length} áreas`}
+                  data-tooltip="Geocercas"
+                >
+                  <span className={styles.railIcono}>
+                    <Layers size={20} />
+                    <span className={styles.railInsignia}>{areas.length}</span>
+                  </span>
+                  <span className={styles.railTexto}>Geocercas</span>
+                </button>
+              )}
+            </div>
+
+            {/* Resumen del estado de la flota, visible aunque el panel esté contraído */}
+            <ul className={styles.railResumen} aria-label="Resumen de la flota">
+              <li className={styles.railDato} data-tooltip="Operando ahora" tabIndex={0}>
+                <span className={`${styles.railPunto} ${styles.railOperando}`} />
+                <span className={styles.railNumero}>{conteos.operando}</span>
+                <span className={styles.visuallyHidden}>operando</span>
+              </li>
+              {puedeVerAlertas(sesion) && (
+                <li className={styles.railDato} data-tooltip="Con alerta (turno de más de 10 h)" tabIndex={0}>
+                  <span className={`${styles.railPunto} ${styles.railAlerta}`} />
+                  <span className={styles.railNumero}>{conteos.alertas}</span>
+                  <span className={styles.visuallyHidden}>con alerta</span>
+                </li>
+              )}
+              <li className={styles.railDato} data-tooltip="Fuera de servicio" tabIndex={0}>
+                <span className={`${styles.railPunto} ${styles.railFuera}`} />
+                <span className={styles.railNumero}>{conteos.fuera}</span>
+                <span className={styles.visuallyHidden}>fuera de servicio</span>
+              </li>
+            </ul>
+
+            {/* Al pie: la leyenda del mapa, que con el panel expandido va al final de la lista */}
+            <div className={styles.railInfo}>
+              <button type="button" className={styles.railInfoBoton} aria-label="Leyenda del mapa" aria-describedby="leyenda-barra">
+                <Info size={18} />
+              </button>
+              <div id="leyenda-barra" role="tooltip" className={styles.railLeyenda}>
+                <LeyendaMapa conAlertas={puedeVerAlertas(sesion)} />
+              </div>
+            </div>
+          </nav>
+        ) : modo === 'geocercas' ? (
+          <GeocercasPanel
+            areas={areas}
+            zonas={zonas}
+            seleccion={seleccion}
+            onSeleccionar={setSeleccion}
+            mapa={mapaRef}
+            onEditando={setEditando}
+            onGuardado={alGuardar}
+          />
+        ) : (
+          <FlotaPanel
+            items={visibles}
+            total={items.length}
+            filtro={filtro}
+            onFiltro={setFiltro}
+            busqueda={busqueda}
+            onBusqueda={setBusqueda}
+            conteos={conteos}
+            seleccionada={seleccion?.tipo === 'maquina' ? seleccion.id : null}
+            onSeleccionar={seleccionarMaquina}
+            cargando={cargando}
+            conAlertas={puedeVerAlertas(sesion)}
+          />
+        )}
+      </div>
 
       <section className={styles.mapa} aria-label="Mapa de la planta">
+        {/* Un único control para contraer y expandir, siempre en el mismo lugar: la pestaña del borde.
+            Mientras se dibuja una geocerca no se contrae (se perdería el dibujo) */}
+        <button
+          type="button"
+          className={styles.alternar}
+          onClick={() => alternarPanel(!contraido)}
+          aria-expanded={!contraido}
+          aria-controls="panel-lateral-mapa"
+          aria-label={contraido ? 'Expandir panel lateral' : 'Contraer panel lateral'}
+          data-tooltip={contraido ? 'Expandir panel' : 'Contraer panel'}
+          disabled={!contraido && Boolean(editando)}
+        >
+          {contraido ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
         <MapaPlanta
           ref={mapaRef}
           areas={areas}

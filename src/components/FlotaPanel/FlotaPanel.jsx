@@ -1,4 +1,5 @@
-import { Clock3, Info, MapPin, Search, Truck, User } from 'lucide-react'
+import { Clock3, MapPin, Search, Truck, User } from 'lucide-react'
+import LeyendaMapa from '../LeyendaMapa/LeyendaMapa.jsx'
 import { ETIQUETA_ESTADO } from '../../pages/Mapa/geo.js'
 import styles from './FlotaPanel.module.css'
 
@@ -9,13 +10,6 @@ const FILTROS = [
 ]
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
-
-const LEYENDA = [
-  { clase: 'leyendaArea', texto: 'Límite de área', detalle: 'Polígono mayor' },
-  { clase: 'leyendaZona', texto: 'Zona de trabajo', detalle: 'Geocerca activa' },
-  { clase: 'leyendaOperando', texto: 'Máquina operando', detalle: 'Turno en curso' },
-  { clase: 'leyendaAlerta', texto: 'Alerta', detalle: 'Turno de más de 10 h' },
-]
 
 /**
  * Lista lateral de la flota: búsqueda, filtro por estado y una tarjeta por máquina.
@@ -36,7 +30,6 @@ function FlotaPanel({
 }) {
   // Sin acceso a alertas (VISOR) no se muestran el filtro ni su leyenda
   const filtros = conAlertas ? FILTROS : FILTROS.filter((f) => f.id !== 'alertas')
-  const leyenda = conAlertas ? LEYENDA : LEYENDA.filter((l) => l.clase !== 'leyendaAlerta')
 
   return (
     <aside className={styles.flotaPanel}>
@@ -119,19 +112,7 @@ function FlotaPanel({
       </ul>
 
       <footer className={styles.leyenda}>
-        <h3 className={styles.leyendaTitulo}>
-          <Info size={14} />
-          Leyenda del mapa
-        </h3>
-        <ul className={styles.leyendaLista}>
-          {leyenda.map((l) => (
-            <li key={l.texto} className={styles.leyendaItem}>
-              <span className={`${styles.muestra} ${styles[l.clase]}`} />
-              <span className={styles.leyendaTexto}>{l.texto}</span>
-              <span className={styles.leyendaDetalle}>{l.detalle}</span>
-            </li>
-          ))}
-        </ul>
+        <LeyendaMapa conAlertas={conAlertas} />
       </footer>
     </aside>
   )
