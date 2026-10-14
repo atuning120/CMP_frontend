@@ -92,7 +92,7 @@ jobs:
       # Dependencias nuevas o actualizadas en el PR con vulnerabilidades altas o licencias problemáticas
       - name: Revisión de dependencias del PR
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
           deny-licenses: AGPL-1.0-only, AGPL-1.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later, GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later
