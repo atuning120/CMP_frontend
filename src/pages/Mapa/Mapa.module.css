@@ -5,22 +5,9 @@
   min-height: 0;
   transition: grid-template-columns 0.22s cubic-bezier(0.2, 0, 0, 1);
 
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: 60svh auto;
-  }
-
   /* Panel contraído: queda una barra angosta de íconos y el mapa gana el resto del ancho */
   &.contraido {
     grid-template-columns: 64px minmax(0, 1fr);
-
-    @media (max-width: 900px) {
-      grid-template-columns: 1fr;
-    }
   }
 
   .lateral {
@@ -46,26 +33,12 @@
     padding: 10px 0 12px;
     border-right: 1px solid var(--border);
     background: var(--surface);
-
-    @media (max-width: 900px) {
-      flex-direction: row;
-      justify-content: center;
-      gap: 12px;
-      height: auto;
-      padding: 8px 12px;
-      border-top: 1px solid var(--border);
-      border-right: none;
-    }
   }
 
   .railSecciones {
     display: flex;
     flex-direction: column;
     gap: 4px;
-
-    @media (max-width: 900px) {
-      flex-direction: row;
-    }
   }
 
   .railBoton {
@@ -161,15 +134,6 @@
     padding: 12px 0 0;
     border-top: 1px solid var(--border);
     list-style: none;
-
-    @media (max-width: 900px) {
-      flex-direction: row;
-      width: auto;
-      margin: 0;
-      padding: 0 0 0 12px;
-      border-top: none;
-      border-left: 1px solid var(--border);
-    }
   }
 
   .railDato {
@@ -231,10 +195,6 @@
       visibility: visible;
       opacity: 1;
       transform: translateX(0);
-    }
-
-    @media (max-width: 900px) {
-      display: none;
     }
   }
 
@@ -320,12 +280,6 @@
       opacity: 1;
       transform: translate(0, -50%);
     }
-
-    @media (max-width: 900px) {
-      &::after {
-        display: none;
-      }
-    }
   }
 
   .visuallyHidden {
@@ -373,20 +327,11 @@
       cursor: not-allowed;
       opacity: 0.5;
     }
-
-    @media (max-width: 900px) {
-      display: none;
-    }
   }
 
   .mapa {
     position: relative;
     min-height: 0;
-
-    /* En pantallas angostas el mapa va arriba y la lista debajo */
-    @media (max-width: 900px) {
-      order: -1;
-    }
   }
 
   /* Bajo los chips del mapa, a la izquierda (los controles de zoom están a la derecha) */
@@ -401,7 +346,7 @@
     border-radius: 14px;
     pointer-events: none;
 
-    & > * {
+    &>* {
       pointer-events: auto;
     }
 
@@ -538,6 +483,64 @@
 
     &.alerta {
       color: var(--warning-text);
+    }
+  }
+}
+
+/* MAPA RESPONSIVO*/
+@media (prefers-reduced-motion: reduce) {
+  .mapaPage {
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .mapaPage {
+    grid-template-columns: 1fr;
+    grid-template-rows: 60svh auto;
+
+    &.contraido {
+      grid-template-columns: 1fr;
+    }
+
+    .rail {
+      flex-direction: row;
+      justify-content: center;
+      gap: 12px;
+      height: auto;
+      padding: 8px 12px;
+      border-top: 1px solid var(--border);
+      border-right: none;
+    }
+
+    .railSecciones {
+      flex-direction: row;
+    }
+
+    .railResumen {
+      flex-direction: row;
+      width: auto;
+      margin: 0;
+      padding: 0 0 0 12px;
+      border-top: none;
+      border-left: 1px solid var(--border);
+    }
+
+    .railInfo {
+      display: none;
+    }
+
+    .alternar {
+      display: none;
+
+      &::after {
+        display: none;
+      }
+    }
+
+    /* En pantallas angostas el mapa va arriba y la lista debajo */
+    .mapa {
+      order: -1;
     }
   }
 }

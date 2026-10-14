@@ -7,10 +7,6 @@
   padding: 32px 24px 48px;
   text-align: left;
 
-  @media (max-width: 900px) {
-    padding: 20px 16px 32px;
-  }
-
   .header {
     display: flex;
     align-items: flex-end;
@@ -213,7 +209,7 @@
       background: var(--page-bg);
     }
 
-    & + .fila .td {
+    &+.fila .td {
       border-top: 1px solid var(--border);
     }
   }
@@ -340,10 +336,6 @@
   .girando {
     color: var(--primary);
     animation: girar 0.9s linear infinite;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
   }
 
   .errorFila {
@@ -367,5 +359,21 @@
 @keyframes girar {
   to {
     transform: rotate(360deg);
+  }
+}
+
+
+/* Ajuste responsivo */
+@media (max-width: 900px) {
+  .admin {
+    padding: 20px 16px 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin {
+    .girando {
+      animation: none;
+    }
   }
 }

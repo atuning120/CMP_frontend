@@ -15,11 +15,6 @@
     /* Sobre el contenido (mapa) al hacer scroll o con sombras de paneles */
     position: relative;
     z-index: 2;
-
-    @media (max-width: 900px) {
-      flex-wrap: wrap;
-      gap: 12px;
-    }
   }
 
   .brand {
@@ -40,10 +35,6 @@
     padding-left: 14px;
     border-left: 1px solid var(--hero-rule);
     line-height: 1.25;
-
-    @media (max-width: 900px) {
-      display: none;
-    }
   }
 
   .productName {
@@ -122,10 +113,6 @@
     display: flex;
     flex-direction: column;
     line-height: 1.25;
-
-    @media (max-width: 900px) {
-      display: none;
-    }
   }
 
   .userEmail {
@@ -164,5 +151,21 @@
     min-height: 0;
     overflow: auto;
     background: var(--page-bg);
+  }
+}
+
+/* Ajuste responsivo */
+@media (max-width: 900px) {
+  .layout {
+    flex-wrap: wrap;
+    gap: 12px;
+
+    .userText {
+      display: none;
+    }
+
+    .product {
+      display: none;
+    }
   }
 }

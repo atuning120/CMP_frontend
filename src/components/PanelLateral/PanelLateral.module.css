@@ -22,10 +22,6 @@
 
   &[open] {
     animation: entrar 0.2s ease-out;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
   }
 
   .header {
@@ -143,5 +139,14 @@
   from {
     transform: translateX(24px);
     opacity: 0;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .panleLateral {
+    &[open] {
+      animation: none;
+    }
   }
 }
