@@ -1,27 +1,40 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, Layers, MapPinned, PencilLine, Plus, Shapes, SquareDashed, Trash2 } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { AlertTriangle, ChevronRight, Layers, MapPinned, Plus, Search } from 'lucide-react'
+import GeocercaDetalle from '../GeocercaDetalle/GeocercaDetalle.jsx'
 import { fueraDeFaena } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
 import styles from './GeocercasPanel.module.css'
 
 const NOMBRE = { area: 'área', zona: 'zona' }
 
-const INSTRUCCIONES = {
-  dibujando: 'Haz clic en el mapa para agregar vértices y clic en el primero para cerrar el polígono.',
-  ajustando:
-    'Arrastra los vértices para ajustar la forma; arrastra un punto intermedio para agregar un vértice. Luego guarda.',
+// "Área 51 - Chancado Primario" se muestra como número + nombre para no repetir el prefijo en cada fila
+const PATRON_AREA = /^área\s+(\S+)\s*[-–]\s*(.+)$/i
+
+const partesArea = (nombre) => {
+  const m = PATRON_AREA.exec(nombre)
+  return m ? { numero: m[1], nombre: m[2] } : { numero: null, nombre }
 }
+
+const normalizar = (texto) =>
+  (texto ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
 
 /**
  * Edición de geocercas (solo ADMIN). Las geometrías se dibujan en el mapa con Terra Draw a través de
  * `mapa` (ref de MapaPlanta); el Backend valida que el polígono sea válido y que cada zona quede dentro
- * de su área.
+ * de su área. La geocerca seleccionada y la acción en curso se muestran en una tarjeta flotante sobre el
+ * mapa (`destino`, nodo que provee la página), para que la lista conserve todo el alto del panel.
  */
-function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, onEditando, onGuardado }) {
+function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino, onEditando, onGuardado }) {
   const [accion, setAccion] = useState(null)
   const [form, setForm] = useState({ nombre: '', descripcion: '' })
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
+  const [abiertas, setAbiertas] = useState(() => new Set())
 
   // Al salir del modo edición no debe quedar nada a medio dibujar
   useEffect(
@@ -125,17 +138,54 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, onEditan
   const zonasDe = (idArea) => zonas.filter((z) => z.idArea === idArea)
 
   const seleccionar = (entidad, item) => {
-    onSeleccionar({ tipo: entidad, id: entidad === 'area' ? item.idArea : item.idZona })
+    const id = entidad === 'area' ? item.idArea : item.idZona
+    // Un segundo clic sobre la geocerca ya seleccionada la deselecciona
+    if (seleccion?.tipo === entidad && seleccion.id === id) return onSeleccionar(null)
+    onSeleccionar({ tipo: entidad, id })
     // Una geocerca mal ubicada (lejos de la faena) no se encuadra: se redibuja sobre la mina
     if (item.poligono && !fueraDeFaena(item.poligono)) mapa.current?.enfocar(item.poligono)
   }
 
-  const etiquetas = (item) => (
-    <>
-      {!item.poligono && <span className={styles.flag}>Sin polígono</span>}
-      {fueraDeFaena(item.poligono) && <span className={styles.flag}>Fuera de la faena</span>}
-    </>
-  )
+  const alternar = (idArea) =>
+    setAbiertas((prev) => {
+      const sig = new Set(prev)
+      if (sig.has(idArea)) sig.delete(idArea)
+      else sig.add(idArea)
+      return sig
+    })
+
+  // En la lista basta un ícono; el detalle de la tarjeta flotante explica el problema
+  const aviso = (item) => {
+    const motivo = !item.poligono ? 'Sin polígono' : fueraDeFaena(item.poligono) ? 'Fuera de la faena' : null
+    return (
+      motivo && (
+        <span className={styles.aviso} title={motivo}>
+          <AlertTriangle size={14} aria-hidden="true" />
+          <span className={styles.visuallyHidden}>{motivo}</span>
+        </span>
+      )
+    )
+  }
+
+  const conProblema = [...areas, ...zonas].filter((g) => !g.poligono || fueraDeFaena(g.poligono)).length
+
+  // Un área aparece si coincide su nombre o el de alguna de sus zonas; en ese caso se muestran solo las zonas que coinciden
+  const termino = normalizar(busqueda.trim())
+  const grupos = areas
+    .map((a) => {
+      const propias = zonasDe(a.idArea)
+      if (!termino) return { area: a, zonas: propias }
+      const coincideArea = normalizar(a.nombre).includes(termino)
+      const coincidentes = propias.filter((z) => normalizar(z.nombre).includes(termino))
+      if (!coincideArea && coincidentes.length === 0) return null
+      return { area: a, zonas: coincideArea ? propias : coincidentes }
+    })
+    .filter(Boolean)
+
+  const idAreaSeleccionada =
+    seleccion?.tipo === 'area' ? seleccion.id : seleccion?.tipo === 'zona' ? buscar('zona', seleccion.id)?.idArea : null
+
+  const estaAbierta = (idArea) => Boolean(termino) || abiertas.has(idArea) || idAreaSeleccionada === idArea
 
   return (
     <aside className={styles.geocercasPanel}>
@@ -149,127 +199,113 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, onEditan
         </button>
       </header>
 
-      {accion && (
-        <form className={styles.accion} onSubmit={guardar}>
-          <h3 className={styles.accionTitulo}>{titulo()}</h3>
-          {(accion.tipo === 'crear' || accion.tipo === 'forma') && (
-            <p className={styles.ayuda}>{INSTRUCCIONES[accion.fase]}</p>
-          )}
-          {accion.tipo === 'desactivar' && (
-            <p className={styles.ayuda}>
-              {accion.entidad === 'area'
-                ? 'El área y todas sus zonas dejarán de mostrarse y de estar disponibles al iniciar turno. Queda registrado en la auditoría.'
-                : 'La zona dejará de mostrarse y de estar disponible al iniciar turno. Queda registrado en la auditoría.'}
-            </p>
-          )}
-          {(accion.tipo === 'datos' || (accion.tipo === 'crear' && accion.fase === 'ajustando')) && (
-            <>
-              <label className={styles.campo}>
-                <span className={styles.label}>Nombre</span>
-                <input
-                  className={styles.input}
-                  value={form.nombre}
-                  maxLength={100}
-                  onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
-                  placeholder={accion.entidad === 'area' ? 'Área 51 - Chancado Primario' : 'Tolva de alimentación'}
-                  autoFocus
-                />
-              </label>
-              <label className={styles.campo}>
-                <span className={styles.label}>Descripción (opcional)</span>
-                <textarea
-                  className={styles.textarea}
-                  rows={2}
-                  value={form.descripcion}
-                  onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
-                />
-              </label>
-            </>
-          )}
-          {error && (
-            <p className={styles.error} role="alert">
-              <AlertCircle size={15} /> {error}
-            </p>
-          )}
-          <div className={styles.acciones}>
-            <button type="button" className={styles.secundario} onClick={limpiar} disabled={guardando}>
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className={accion.tipo === 'desactivar' ? styles.peligro : styles.primario}
-              disabled={guardando || accion.fase === 'dibujando'}
-            >
-              {guardando ? 'Guardando…' : accion.tipo === 'desactivar' ? 'Desactivar' : 'Guardar'}
-            </button>
-          </div>
-        </form>
-      )}
+      {destino &&
+        createPortal(
+          <GeocercaDetalle
+            accion={accion}
+            titulo={titulo()}
+            form={form}
+            onForm={setForm}
+            error={error}
+            guardando={guardando}
+            onGuardar={guardar}
+            onCancelar={limpiar}
+            geocerca={seleccionado}
+            tipo={seleccion?.tipo}
+            onCerrar={() => onSeleccionar(null)}
+            onEditarForma={(redibujar) => editarForma(seleccion.tipo, seleccionado, redibujar)}
+            onEditarDatos={() => editarDatos(seleccion.tipo, seleccionado)}
+            onNuevaZona={() => crear('zona', seleccionado.idArea)}
+            onDesactivar={() => confirmarDesactivar(seleccion.tipo, seleccionado)}
+          />,
+          destino,
+        )}
 
-      {!accion && seleccionado && (
-        <section className={styles.detalle}>
-          <span className={styles.tipo}>{seleccion.tipo === 'area' ? 'Área' : 'Zona de trabajo'}</span>
-          <h3 className={styles.detalleNombre}>{seleccionado.nombre}</h3>
-          {seleccionado.descripcion && <p className={styles.ayuda}>{seleccionado.descripcion}</p>}
-          <div className={styles.flags}>{etiquetas(seleccionado)}</div>
-          <div className={styles.botones}>
-            {seleccionado.poligono && !fueraDeFaena(seleccionado.poligono) && (
-              <button type="button" className={styles.secundario} onClick={() => editarForma(seleccion.tipo, seleccionado, false)}>
-                <Shapes size={15} /> Editar forma
-              </button>
+      {areas.length > 0 && (
+        <div className={styles.herramientas}>
+          <label className={styles.search}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Buscar área o zona…"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </label>
+          <p className={styles.resumen}>
+            {areas.length} {areas.length === 1 ? 'área' : 'áreas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'}
+            {conProblema > 0 && (
+              <span className={styles.resumenAviso}>
+                <AlertTriangle size={13} /> {conProblema} por revisar
+              </span>
             )}
-            <button type="button" className={styles.secundario} onClick={() => editarForma(seleccion.tipo, seleccionado, true)}>
-              <SquareDashed size={15} /> {seleccionado.poligono ? 'Redibujar' : 'Dibujar polígono'}
-            </button>
-            <button type="button" className={styles.secundario} onClick={() => editarDatos(seleccion.tipo, seleccionado)}>
-              <PencilLine size={15} /> Nombre y descripción
-            </button>
-            {seleccion.tipo === 'area' && (
-              <button type="button" className={styles.secundario} onClick={() => crear('zona', seleccionado.idArea)}>
-                <Plus size={15} /> Nueva zona aquí
-              </button>
-            )}
-            <button type="button" className={styles.peligroSuave} onClick={() => confirmarDesactivar(seleccion.tipo, seleccionado)}>
-              <Trash2 size={15} /> Desactivar
-            </button>
-          </div>
-        </section>
+          </p>
+        </div>
       )}
 
       <ul className={styles.lista}>
         {areas.length === 0 && <li className={styles.vacio}>Aún no hay áreas. Crea la primera con “Nueva área”.</li>}
-        {areas.map((a) => (
-          <li key={a.idArea} className={styles.grupo}>
-            <button
-              type="button"
-              className={`${styles.item} ${seleccion?.tipo === 'area' && seleccion.id === a.idArea ? styles.itemActivo : ''}`}
-              onClick={() => seleccionar('area', a)}
-            >
-              <span className={styles.lineaArea} />
-              <span className={styles.itemNombre}>{a.nombre}</span>
-              {etiquetas(a)}
-            </button>
-            {zonasDe(a.idArea).length > 0 && (
-              <ul className={styles.sublista}>
-                {zonasDe(a.idArea).map((z) => (
-                  <li key={z.idZona}>
-                    <button
-                      type="button"
-                      className={`${styles.item} ${styles.itemZona} ${
-                        seleccion?.tipo === 'zona' && seleccion.id === z.idZona ? styles.itemActivo : ''
-                      }`}
-                      onClick={() => seleccionar('zona', z)}
-                    >
-                      <MapPinned size={14} className={styles.iconoZona} />
-                      <span className={styles.itemNombre}>{z.nombre}</span>
-                      {etiquetas(z)}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
+        {areas.length > 0 && grupos.length === 0 && (
+          <li className={styles.vacio}>Ninguna área o zona coincide con “{busqueda.trim()}”.</li>
+        )}
+        {grupos.map(({ area: a, zonas: zonasArea }) => {
+          const { numero, nombre } = partesArea(a.nombre)
+          const abierta = estaAbierta(a.idArea)
+          const total = zonasDe(a.idArea).length
+          return (
+            <li key={a.idArea} className={styles.grupo}>
+              <div
+                className={`${styles.fila} ${seleccion?.tipo === 'area' && seleccion.id === a.idArea ? styles.itemActivo : ''}`}
+              >
+                <button
+                  type="button"
+                  className={`${styles.toggle} ${abierta ? styles.toggleAbierto : ''}`}
+                  onClick={() => alternar(a.idArea)}
+                  disabled={total === 0 || Boolean(termino)}
+                  aria-expanded={total > 0 ? abierta : undefined}
+                  aria-label={abierta ? `Ocultar zonas de ${a.nombre}` : `Mostrar zonas de ${a.nombre}`}
+                >
+                  {total > 0 && <ChevronRight size={16} className={styles.chevron} />}
+                </button>
+                <button type="button" className={styles.item} onClick={() => seleccionar('area', a)} title={a.nombre}>
+                  {numero ? (
+                    <span className={styles.numero}>{numero}</span>
+                  ) : (
+                    <Layers size={15} className={styles.iconoArea} />
+                  )}
+                  <span className={styles.itemNombre}>{nombre}</span>
+                  {aviso(a)}
+                  {total > 0 && (
+                    <span className={styles.conteo} title={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
+                      {total}
+                    </span>
+                  )}
+                </button>
+              </div>
+              {abierta && zonasArea.length > 0 && (
+                <ul className={styles.sublista}>
+                  {zonasArea.map((z) => (
+                    <li key={z.idZona}>
+                      <button
+                        type="button"
+                        className={`${styles.item} ${styles.itemZona} ${
+                          seleccion?.tipo === 'zona' && seleccion.id === z.idZona ? styles.itemActivo : ''
+                        }`}
+                        onClick={() => seleccionar('zona', z)}
+                        title={z.nombre}
+                      >
+                        <MapPinned size={14} className={styles.iconoZona} />
+                        <span className={styles.itemNombre}>{z.nombre}</span>
+                        {aviso(z)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </aside>
   )
