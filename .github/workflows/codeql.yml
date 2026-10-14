@@ -27,7 +27,7 @@ jobs:
       contents: read
       security-events: write # publica los hallazgos en la pestaña Security del repositorio
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # JavaScript no necesita compilarse para el análisis
       - uses: github/codeql-action/init@v4

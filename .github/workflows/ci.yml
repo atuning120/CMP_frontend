@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Mismas versiones que el Backend
       - uses: pnpm/action-setup@v4
@@ -73,7 +73,7 @@ jobs:
     timeout-minutes: 10
     steps:
       # Historial completo: gitleaks revisa también commits anteriores del PR
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
