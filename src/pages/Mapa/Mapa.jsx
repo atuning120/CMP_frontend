@@ -36,6 +36,7 @@ function Mapa() {
   const [modo, setModo] = useState('flota')
   const [contraido, setContraido] = useState(leerContraido)
   const [seleccion, setSeleccion] = useState(null)
+  const [destinoDetalle, setDestinoDetalle] = useState(null)
   const [editando, setEditando] = useState(null)
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
@@ -309,6 +310,7 @@ function Mapa() {
             seleccion={seleccion}
             onSeleccionar={setSeleccion}
             mapa={mapaRef}
+            destino={destinoDetalle}
             onEditando={setEditando}
             onGuardado={alGuardar}
           />
@@ -355,6 +357,8 @@ function Mapa() {
           popup={popup}
           overlay={overlay}
         />
+        {/* Tarjeta flotante de la geocerca seleccionada (la llena GeocercasPanel con un portal) */}
+        <div ref={setDestinoDetalle} className={styles.detalleGeocerca} />
         {error && (
           <p className={styles.error} role="alert">
             <AlertCircle size={16} /> {error}

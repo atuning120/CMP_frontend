@@ -31,10 +31,7 @@
     color: var(--warning);
   }
 
-  .primario,
-  .secundario,
-  .peligro,
-  .peligroSuave {
+  .primario {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -43,9 +40,12 @@
     padding: 0 14px;
     border: 1px solid transparent;
     border-radius: 10px;
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
     font: inherit;
     font-size: 13px;
     font-weight: 600;
+    color: var(--on-primary);
     cursor: pointer;
     transition:
       background 0.15s ease-out,
@@ -60,102 +60,38 @@
       cursor: not-allowed;
       opacity: 0.6;
     }
-  }
-
-  .primario {
-    background: var(--primary);
-    box-shadow: 0 2px 6px var(--primary-shadow);
-    color: var(--on-primary);
 
     &:hover:not(:disabled) {
       background: var(--primary-hover);
     }
   }
 
-  .secundario {
-    border-color: var(--input-border);
-    background: var(--surface);
-    color: var(--text-h);
-
-    &:hover:not(:disabled) {
-      border-color: var(--input-border-hover);
-      background: var(--surface-alt);
-    }
-  }
-
-  .peligro {
-    background: var(--danger);
-    color: var(--on-primary);
-  }
-
-  .peligroSuave {
-    border-color: var(--danger-border);
-    background: none;
-    color: var(--danger);
-
-    &:hover {
-      background: var(--danger-bg);
-    }
-  }
-
-  /* Tarjeta de la acción en curso (crear, editar forma, datos, desactivar) */
-  .accion,
-  .detalle {
+  /* Búsqueda y resumen sobre la lista */
+  .herramientas {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin: 14px 14px 0;
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-bottom-width: 3px;
-    border-radius: 14px;
+    gap: 8px;
+    padding: 12px 14px 4px;
   }
 
-  .accion {
-    border-color: var(--map-seleccion);
-    background: color-mix(in srgb, var(--map-seleccion) 8%, var(--surface));
-  }
-
-  .accionTitulo,
-  .detalleNombre {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: normal;
-    color: var(--text-h);
-  }
-
-  .tipo {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text);
-  }
-
-  .ayuda {
-    font-size: 13px;
-    line-height: 1.45;
-    color: var(--text);
-  }
-
-  .campo {
+  .search {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
   }
 
-  .label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-h);
+  .searchIcon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-tertiary);
+    pointer-events: none;
   }
 
-  .input,
-  .textarea {
+  .searchInput {
     box-sizing: border-box;
     width: 100%;
-    padding: 9px 12px;
+    height: 38px;
+    padding: 0 12px 0 36px;
     border: 1px solid var(--input-border);
     border-radius: 10px;
     background: var(--surface-alt);
@@ -163,7 +99,17 @@
     font: inherit;
     font-size: 14px;
     color: var(--text-h);
-    resize: vertical;
+    transition:
+      border-color 0.15s ease-out,
+      box-shadow 0.15s ease-out;
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
 
     &:focus {
       outline: none;
@@ -172,52 +118,20 @@
     }
   }
 
-  .error {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 8px 10px;
-    border: 1px solid var(--danger-border);
-    border-radius: 8px;
-    background: var(--danger-bg);
-    font-size: 13px;
-    color: var(--danger);
-  }
-
-  .acciones {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-
-  .botones {
-    display: grid;
-    gap: 6px;
-    margin-top: 4px;
-
-    /* Acciones en columna, alineadas como un menú */
-    .secundario,
-    .peligroSuave {
-      justify-content: flex-start;
-    }
-  }
-
-  .flags {
+  .resumen {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-
-    &:empty {
-      display: none;
-    }
+    align-items: center;
+    gap: 4px 10px;
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-tertiary);
   }
 
-  .flag {
-    flex: none;
-    padding: 1px 6px;
-    border-radius: 5px;
-    background: color-mix(in srgb, var(--map-alerta) 14%, transparent);
-    font-size: 11px;
+  .resumenAviso {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-weight: 600;
     color: var(--warning-text);
   }
@@ -225,7 +139,7 @@
   .lista {
     flex: 1;
     margin: 0;
-    padding: 12px;
+    padding: 6px 10px 12px;
     overflow-y: auto;
     list-style: none;
   }
@@ -238,21 +152,77 @@
   }
 
   .grupo + .grupo {
-    margin-top: 4px;
+    margin-top: 2px;
+  }
+
+  /* Fila de un área: flecha para desplegar sus zonas + botón que la selecciona */
+  .fila {
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+
+    .item:hover {
+      background: none;
+    }
+  }
+
+  .toggle {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-left: 2px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--border);
+      color: var(--text-h);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .chevron {
+    transition: transform 0.15s ease-out;
+  }
+
+  .toggleAbierto .chevron {
+    transform: rotate(90deg);
   }
 
   .sublista {
-    margin: 2px 0 0 18px;
-    padding: 0 0 0 8px;
+    margin: 2px 0 6px 14px;
+    padding: 0 0 0 10px;
     border-left: 1px solid var(--border);
     list-style: none;
   }
 
   .item {
     display: flex;
+    flex: 1;
     align-items: center;
     gap: 8px;
     width: 100%;
+    min-width: 0;
     padding: 7px 8px;
     border: 1px solid transparent;
     border-radius: 8px;
@@ -274,30 +244,81 @@
   }
 
   .itemZona {
+    padding: 6px 8px;
     font-size: 13px;
+    color: var(--text);
   }
 
   .itemActivo {
     border-color: var(--primary);
     background: var(--selection-bg);
+
+    &:hover {
+      background: var(--selection-bg);
+    }
   }
 
+  /* El nombre puede ocupar dos líneas antes de cortarse */
   .itemNombre {
     flex: 1;
     min-width: 0;
+    display: -webkit-box;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
   }
 
-  .lineaArea {
+  .numero {
     flex: none;
-    width: 14px;
-    border-top: 2px dashed var(--text);
+    min-width: 28px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: var(--surface-alt);
+    box-shadow: inset 0 0 0 1px var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: var(--text-h);
+  }
+
+  .iconoArea {
+    flex: none;
+    color: var(--text-tertiary);
+  }
+
+  .conteo {
+    flex: none;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--map-zona) 14%, transparent);
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--map-zona);
+  }
+
+  .aviso {
+    display: flex;
+    flex: none;
+    color: var(--warning-text);
   }
 
   .iconoZona {
     flex: none;
     color: var(--map-zona);
+  }
+
+  .visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

@@ -389,6 +389,27 @@
     }
   }
 
+  /* Bajo los chips del mapa, a la izquierda (los controles de zoom están a la derecha) */
+  .detalleGeocerca {
+    position: absolute;
+    top: 60px;
+    left: 16px;
+    z-index: 3;
+    width: min(300px, calc(100% - 32px));
+    max-height: calc(100% - 110px);
+    overflow-y: auto;
+    border-radius: 14px;
+    pointer-events: none;
+
+    & > * {
+      pointer-events: auto;
+    }
+
+    &:empty {
+      display: none;
+    }
+  }
+
   .chip,
   .modos {
     display: inline-flex;

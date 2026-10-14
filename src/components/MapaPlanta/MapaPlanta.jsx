@@ -174,6 +174,13 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
             },
           }),
           new TerraDrawSelectMode({
+            // Radio invisible (px) alrededor de cada vértice dentro del cual se puede tomar para arrastrarlo
+            pointerDistance: 40,
+            // Un clic que no cae justo sobre la geocerca no la deselecciona: sin selección los vértices no se
+            // pueden arrastrar, y eso obligaba a apuntar con precisión. Se sale de la edición con Guardar/Cancelar
+            allowManualDeselection: false,
+            // El cursor avisa que el vértice ya está al alcance antes de presionar
+            cursors: { pointerOverCoordinate: 'grab', dragStart: 'grabbing', dragEnd: 'grab' },
             flags: {
               polygon: {
                 feature: { draggable: true, coordinates: { midpoints: true, draggable: true, deletable: true } },
@@ -185,7 +192,10 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
               selectedPolygonOutlineColor: sel,
               selectionPointColor: sel,
               selectionPointOutlineColor: area,
+              selectionPointWidth: 7,
+              selectionPointOutlineWidth: 2,
               midPointColor: area,
+              midPointWidth: 5,
             },
           }),
         ],
