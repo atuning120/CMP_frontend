@@ -11,15 +11,22 @@
   .icono {
     color: var(--primary);
     animation: girar 0.9s linear infinite;
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
   }
 }
 
 @keyframes girar {
   to {
     transform: rotate(360deg);
+  }
+}
+
+
+
+/* Ajuste responsivo */
+@media (prefers-reduced-motion: reduce) {
+  .cargando {
+    .icono {
+      animation: none;
+    }
   }
 }

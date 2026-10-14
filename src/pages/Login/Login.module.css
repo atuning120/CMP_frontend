@@ -4,10 +4,6 @@
   min-height: 100svh;
   background: var(--page-bg);
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-  }
-
   /* Panel de marca: la foto de la mina queda como textura monocromática en el azul de CMP */
   .hero {
     position: relative;
@@ -24,11 +20,8 @@
       position: absolute;
       inset: 0;
       z-index: -2;
-      background: center / cover
-        image-set(
-          url('../../assets/Mina_fondo.webp') type('image/webp'),
-          url('../../assets/Mina_fondo.jpg') type('image/jpeg')
-        );
+      background: center / cover image-set(url('../../assets/Mina_fondo.webp') type('image/webp'),
+          url('../../assets/Mina_fondo.jpg') type('image/jpeg'));
       filter: grayscale(1) contrast(1.15);
       mix-blend-mode: luminosity;
       opacity: 0.5;
@@ -40,14 +33,6 @@
       inset: 0;
       z-index: -1;
       background: var(--hero-overlay);
-    }
-
-    @media (max-width: 1100px) {
-      padding: 40px 40px 32px;
-    }
-
-    @media (max-width: 900px) {
-      display: none;
     }
 
     .heroLogo {
@@ -72,10 +57,6 @@
       letter-spacing: -0.02em;
       text-wrap: balance;
       color: var(--on-hero);
-
-      @media (max-width: 1100px) {
-        font-size: 32px;
-      }
     }
 
     .heroText {
@@ -105,36 +86,11 @@
     flex-direction: column;
     background: var(--surface);
 
-    /* Teléfono: como el login de la app, la foto de la mina queda detrás de la card */
-    @media (max-width: 900px) {
-      gap: 24px;
-      background: var(--page-bg);
-
-      &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        background: center / cover
-          image-set(
-            url('../../assets/Mina_fondo.webp') type('image/webp'),
-            url('../../assets/Mina_fondo.jpg') type('image/jpeg')
-          );
-        opacity: 0.6;
-      }
-    }
-
     .panelHeader {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 20px 32px;
-
-      @media (max-width: 900px) {
-        padding: 16px;
-        border-bottom: 1px solid var(--border);
-        background: var(--page-bg);
-      }
     }
 
     /* En escritorio el logo ya está en la foto: el header muestra el sistema y el toggle a la derecha */
@@ -143,10 +99,6 @@
       align-items: center;
       gap: 12px;
       order: 2;
-
-      @media (max-width: 900px) {
-        order: 0;
-      }
     }
 
     .mobileLogo {
@@ -154,10 +106,6 @@
       width: 120px;
       height: 40px;
       object-fit: contain;
-
-      @media (max-width: 900px) {
-        display: block;
-      }
     }
 
     .panelSystem {
@@ -168,11 +116,6 @@
       font-weight: 700;
       letter-spacing: 0.02em;
       color: var(--warning-text);
-
-      @media (max-width: 900px) {
-        font-size: 12px;
-        letter-spacing: normal;
-      }
     }
 
     .formWrapper {
@@ -183,18 +126,6 @@
       max-width: 400px;
       margin: auto 0;
       padding: 32px 0;
-
-      @media (max-width: 900px) {
-        box-sizing: border-box;
-        width: calc(100% - 32px);
-        max-width: 480px;
-        margin: auto 0;
-        padding: 24px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: var(--surface);
-        box-shadow: var(--shadow);
-      }
     }
 
     .title {
@@ -205,24 +136,12 @@
       letter-spacing: -0.03em;
       text-wrap: balance;
       color: var(--text-h);
-
-      @media (max-width: 900px) {
-        margin-bottom: 24px;
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: normal;
-        text-align: center;
-      }
     }
 
     .subtitle {
       margin-bottom: 32px;
       font-size: 15px;
       color: var(--text);
-
-      @media (max-width: 900px) {
-        display: none;
-      }
     }
 
     .panelFooter {
@@ -234,12 +153,6 @@
       border-top: 1px solid var(--border);
       font-size: 12px;
       color: var(--text);
-
-      @media (max-width: 900px) {
-        padding: 16px;
-        background: var(--page-bg);
-        font-size: 11px;
-      }
     }
 
     .panelFooterRow {
@@ -335,13 +248,6 @@
       font-size: 14px;
       font-weight: 600;
       color: var(--text-h);
-
-      @media (max-width: 900px) {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text);
-      }
     }
 
     .inputWrapper {
@@ -472,9 +378,105 @@
     margin-top: 24px;
     font-size: 13px;
     color: var(--text-tertiary);
+  }
+}
 
-    @media (max-width: 900px) {
+/* Adaptación a pantallas pequeñas: el panel de marca desaparece y el panel de login ocupa toda la pantalla */
+@media (max-width: 900px) {
+  .login {
+    grid-template-columns: 1fr;
+
+    .hero {
       display: none;
+    }
+
+    .panel {
+      gap: 24px;
+      background: var(--page-bg);
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: center / cover image-set(url('../../assets/Mina_fondo.webp') type('image/webp'),
+            url('../../assets/Mina_fondo.jpg') type('image/jpeg'));
+        opacity: 0.6;
+      }
+
+      .panelFooter {
+        padding: 16px;
+        background: var(--page-bg);
+        font-size: 11px;
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .title {
+        margin-bottom: 24px;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: normal;
+        text-align: center;
+      }
+
+      .formWrapper {
+        box-sizing: border-box;
+        width: calc(100% - 32px);
+        max-width: 480px;
+        margin: auto 0;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .panelSystem {
+        font-size: 12px;
+        letter-spacing: normal;
+      }
+
+      .mobileLogo {
+        display: block;
+      }
+
+      .panelBrand {
+        order: 0;
+      }
+
+      .panelHeader {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--page-bg);
+      }
+    }
+
+    .form {
+      .label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text);
+      }
+    }
+
+    .help {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 1100px) {
+  .login {
+    .hero {
+      padding: 40px 40px 32px;
+
+      .heroTitle {
+        font-size: 32px;
+      }
     }
   }
 }
