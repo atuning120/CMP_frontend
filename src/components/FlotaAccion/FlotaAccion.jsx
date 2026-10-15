@@ -7,13 +7,8 @@ import {
   editarMaquina,
   reemplazarMaquina,
 } from '../../services/flotaService.js'
-import {
-  MOTIVOS_DESHABILITAR,
-  MOTIVOS_EDICION,
-  MOTIVOS_HABILITAR,
-  MOTIVOS_INCORPORACION,
-  MOTIVOS_REEMPLAZO,
-} from '../../pages/Flota/motivos.js'
+import { MOTIVOS_EDICION, MOTIVOS_INCORPORACION, MOTIVOS_POR_ESTADO, MOTIVOS_REEMPLAZO } from '../../pages/Flota/motivos.js'
+import { ESTADOS_MAQUINA, estadoDe } from '../../pages/Flota/estados.js'
 import styles from './FlotaAccion.module.css'
 
 const FICHA_VACIA = {
@@ -148,7 +143,11 @@ function CamposFicha({ ficha, onCambio, catalogos, conHorometro, conPlantilla })
  */
 function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const { tipo, maquina } = accion
-  const deshabilitar = tipo === 'estado' && maquina.estado !== 'BAJA'
+  const estadoActual = maquina ? estadoDe(maquina) : null
+  // Estado elegido en el panel de cambio de estado
+  const [nuevoEstado, setNuevoEstado] = useState('')
+  const deshabilitar = tipo === 'estado' && nuevoEstado === 'BAJA'
+  const destino = ESTADOS_MAQUINA.find((e) => e.valor === nuevoEstado)
   const [ficha, setFicha] = useState(() => (tipo === 'editar' ? fichaDe(maquina) : FICHA_VACIA))
   // '' = sin operador; en un reemplazo, 'mantener' = el de la saliente pasa a la entrante
   const [operador, setOperador] = useState(() =>
@@ -163,14 +162,14 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const motivos = {
     incorporar: MOTIVOS_INCORPORACION,
     editar: MOTIVOS_EDICION,
-    estado: deshabilitar ? MOTIVOS_DESHABILITAR : MOTIVOS_HABILITAR,
+    estado: MOTIVOS_POR_ESTADO[nuevoEstado] ?? [],
     reemplazar: MOTIVOS_REEMPLAZO,
   }[tipo]
 
   const titulo = {
     incorporar: 'Incorporar máquina',
     editar: `Editar ${maquina?.nombre}`,
-    estado: `${deshabilitar ? 'Dejar fuera de servicio' : 'Habilitar'} ${maquina?.nombre}`,
+    estado: `Cambiar estado de ${maquina?.nombre}`,
     reemplazar: `Reemplazar ${maquina?.nombre}`,
   }[tipo]
 
@@ -183,6 +182,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const guardar = async (event) => {
     event.preventDefault()
     setError(null)
+    if (tipo === 'estado' && !nuevoEstado) return setError('Elige el nuevo estado de la máquina.')
     if (!motivo) return setError('Elige el motivo: queda registrado en la bitácora.')
     const justificacion = { motivo, observacion: observacion.trim() || null }
     const idOperador = operador === '' ? null : Number(operador)
@@ -193,12 +193,11 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         const nueva = await crearMaquina({ ...datosFicha(ficha, true), idOperador, ...justificacion })
         await onGuardado(`${nueva.nombre} se incorporó a la flota.`)
       } else if (tipo === 'editar') {
-        const estado = maquina.estado === 'BAJA' ? 'BAJA' : 'ACTIVA'
-        await editarMaquina(maquina.idMaquina, { ...datosFicha(ficha, false), idOperador, estado, ...justificacion })
+        await editarMaquina(maquina.idMaquina, { ...datosFicha(ficha, false), idOperador, ...justificacion })
         await onGuardado(`Se guardaron los cambios de ${ficha.nombre.trim().toUpperCase()}.`)
       } else if (tipo === 'estado') {
-        await cambiarEstadoMaquina(maquina.idMaquina, deshabilitar ? 'BAJA' : 'ACTIVA', justificacion.motivo, justificacion.observacion)
-        await onGuardado(`${maquina.nombre} quedó ${deshabilitar ? 'fuera de servicio' : 'operativa'}.`)
+        await cambiarEstadoMaquina(maquina.idMaquina, nuevoEstado, justificacion.motivo, justificacion.observacion)
+        await onGuardado(`${maquina.nombre} quedó ${destino.etiqueta.toLowerCase()}.`)
       } else {
         if (entrante.origen === 'flota' && !entrante.idMaquina) {
           setGuardando(false)
@@ -213,7 +212,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           ...justificacion,
         }
         const { entrante: nueva } = await reemplazarMaquina(maquina.idMaquina, datos)
-        await onGuardado(`${maquina.nombre} salió de servicio y ${nueva.nombre} tomó su lugar.`)
+        await onGuardado(`${nueva.nombre} tomó el lugar de ${maquina.nombre}.`)
       }
     } catch (e) {
       setError(e.message)
@@ -224,7 +223,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const textoConfirmar = {
     incorporar: 'Incorporar',
     editar: 'Guardar cambios',
-    estado: deshabilitar ? 'Dejar fuera de servicio' : 'Habilitar',
+    estado: 'Cambiar estado',
     reemplazar: 'Reemplazar',
   }[tipo]
 
@@ -243,19 +242,43 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     >
       <form id="flota-accion" className={styles.flotaAccion} onSubmit={guardar} noValidate>
         {tipo === 'estado' && (
-          <p className={styles.aviso}>
-            <Info size={16} className={styles.avisoIcono} />
-            {deshabilitar
-              ? 'La máquina dejará de estar disponible para iniciar turnos. No se puede si tiene un turno en curso.'
-              : 'La máquina vuelve a estar disponible para iniciar turnos.'}
-          </p>
+          <>
+            <label className={styles.campo}>
+              <span className={styles.label}>Nuevo estado *</span>
+              <select
+                className={styles.input}
+                value={nuevoEstado}
+                onChange={(e) => {
+                  setNuevoEstado(e.target.value)
+                  setMotivo('') // los motivos dependen del estado
+                }}
+                required
+              >
+                <option value="">Elegir estado…</option>
+                {ESTADOS_MAQUINA.filter((e) => e.valor !== estadoActual.valor).map((e) => (
+                  <option key={e.valor} value={e.valor}>
+                    {e.etiqueta}
+                  </option>
+                ))}
+              </select>
+              <span className={styles.ayuda}>Estado actual: {estadoActual.etiqueta}</span>
+            </label>
+            {nuevoEstado && (
+              <p className={styles.aviso}>
+                <Info size={16} className={styles.avisoIcono} />
+                {deshabilitar
+                  ? 'La máquina dejará de estar disponible para iniciar turnos y podrá reemplazarse. No se puede si tiene un turno en curso.'
+                  : 'La máquina queda disponible para iniciar turnos.'}
+              </p>
+            )}
+          </>
         )}
 
         {tipo === 'reemplazar' && (
           <>
             <p className={styles.aviso}>
               <Info size={16} className={styles.avisoIcono} />
-              {maquina.nombre} quedará fuera de servicio y otra máquina tomará su lugar.
+              {maquina.nombre} está fuera de servicio: otra máquina tomará su lugar y su operador.
             </p>
             <fieldset className={styles.fieldset}>
               <legend className={styles.label}>Máquina que entra</legend>
