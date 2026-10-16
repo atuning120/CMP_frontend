@@ -62,6 +62,48 @@
     }
   }
 
+  /* Editar: secciones numeradas como en la app (estado, datos, justificación) */
+  .seccion {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--page-bg);
+  }
+
+  .seccionTitulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .seccionIcono {
+    color: var(--primary);
+  }
+
+  .seccionIconoAmbar {
+    color: var(--warning);
+  }
+
+  .soloLectura {
+    color: var(--text);
+    cursor: default;
+
+    &:hover,
+    &:focus {
+      border-color: var(--input-border);
+      box-shadow: none;
+    }
+  }
+
   .mayusculas {
     text-transform: uppercase;
   }
