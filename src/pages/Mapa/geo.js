@@ -2,8 +2,11 @@ import pointOnFeature from '@turf/point-on-feature'
 
 // Centro del rajo de Mina Los Colorados (WGS84)
 export const LOS_COLORADOS = [-70.8085, -28.2999]
-// Más allá de esta distancia una geocerca no está en la faena (p. ej. datos de prueba mal ubicados)
-const RADIO_FAENA_KM = 15
+// Límite de la faena: rectángulo en UTM 19S entre las esquinas suroeste y noreste de la mina
+export const LIMITE_FAENA = { zona: 19, hemisferio: 'S', este: [318188, 326929], norte: [6865281, 6871216] }
+// Más allá de esta distancia el polígono está mal ubicado (p. ej. latitud con el signo invertido):
+// el mapa no vuela hasta él ni se edita su forma, se redibuja
+const RADIO_MAL_UBICADO_KM = 15
 
 const RAD = Math.PI / 180
 
@@ -48,8 +51,26 @@ const distanciaKm = ([lon1, lat1], [lon2, lat2]) => {
 // Punto garantizado dentro del polígono (el centroide puede caer fuera en formas cóncavas)
 export const puntoInterior = (poligono) => pointOnFeature(poligono).geometry.coordinates
 
+const dentroDeFaena = ([lon, lat]) => {
+  const { zona, hemisferio, este, norte } = aUtm(lon, lat)
+  const { este: [oeste, esteMax], norte: [sur, norteMax] } = LIMITE_FAENA
+  return (
+    zona === LIMITE_FAENA.zona &&
+    hemisferio === LIMITE_FAENA.hemisferio &&
+    este >= oeste &&
+    este <= esteMax &&
+    norte >= sur &&
+    norte <= norteMax
+  )
+}
+
+// Fuera de la faena si algún vértice queda fuera del límite (el rectángulo es convexo: con todos los
+// vértices dentro, el polígono entero está dentro)
 export const fueraDeFaena = (poligono) =>
-  Boolean(poligono) && distanciaKm(puntoInterior(poligono), LOS_COLORADOS) > RADIO_FAENA_KM
+  Boolean(poligono) && poligono.coordinates.some((anillo) => anillo.some((vertice) => !dentroDeFaena(vertice)))
+
+export const malUbicado = (poligono) =>
+  Boolean(poligono) && distanciaKm(puntoInterior(poligono), LOS_COLORADOS) > RADIO_MAL_UBICADO_KM
 
 /**
  * Estado operativo de una máquina para el mapa y la lista:

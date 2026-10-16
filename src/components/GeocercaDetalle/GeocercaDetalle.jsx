@@ -1,5 +1,5 @@
 import { AlertCircle, AlertTriangle, Layers, MapPinned, PencilLine, Plus, Shapes, SquareDashed, Trash2, X } from 'lucide-react'
-import { fueraDeFaena } from '../../pages/Mapa/geo.js'
+import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import styles from './GeocercaDetalle.module.css'
 
 const INSTRUCCIONES = {
@@ -20,6 +20,7 @@ function GeocercaDetalle({
   error,
   guardando,
   onGuardar,
+  fueraDeFaena: dibujoFuera,
   onCancelar,
   geocerca,
   tipo,
@@ -35,6 +36,13 @@ function GeocercaDetalle({
         <h3 className={styles.nombre}>{titulo}</h3>
         {(accion.tipo === 'crear' || accion.tipo === 'forma') && (
           <p className={styles.ayuda}>{INSTRUCCIONES[accion.fase]}</p>
+        )}
+        {dibujoFuera && (
+          <p className={styles.alerta} role="status">
+            <AlertTriangle size={14} />
+            Fuera de la faena: parte del polígono queda fuera del límite de la mina. Puedes guardarlo igual, pero quedará
+            marcado.
+          </p>
         )}
         {accion.tipo === 'desactivar' && (
           <p className={styles.ayuda}>
@@ -90,6 +98,7 @@ function GeocercaDetalle({
 
   if (!geocerca) return null
 
+  const lejos = malUbicado(geocerca.poligono)
   const fuera = fueraDeFaena(geocerca.poligono)
   const IconoTipo = tipo === 'area' ? Layers : MapPinned
 
@@ -110,11 +119,13 @@ function GeocercaDetalle({
           <AlertTriangle size={14} />
           {!geocerca.poligono
             ? 'Sin polígono: dibújalo para que aparezca en el mapa.'
-            : 'Fuera de la faena: el polígono está lejos de la mina, redibújalo.'}
+            : lejos
+              ? 'Fuera de la faena: el polígono está lejos de la mina, redibújalo.'
+              : 'Fuera de la faena: parte del polígono queda fuera del límite de la mina. Ajusta su forma.'}
         </p>
       )}
       <ul className={styles.menu}>
-        {geocerca.poligono && !fuera && (
+        {geocerca.poligono && !lejos && (
           <li>
             <button type="button" className={styles.opcion} onClick={() => onEditarForma(false)}>
               <Shapes size={15} /> Editar forma

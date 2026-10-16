@@ -345,6 +345,15 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
       const poligono = drawRef.current?.getSnapshot().find((f) => f.geometry.type === 'Polygon')
       return poligono ? poligono.geometry : null
     },
+    // Avisa el polígono actual ahora y en cada cambio (vértices arrastrados o agregados). Devuelve cómo dejar de observar
+    observarGeometria(alCambiar) {
+      const draw = drawRef.current
+      if (!draw) return () => {}
+      const avisar = () => alCambiar(this.geometria())
+      draw.on('change', avisar)
+      avisar()
+      return () => draw.off('change', avisar)
+    },
     cancelarDibujo() {
       const draw = drawRef.current
       if (!draw) return
