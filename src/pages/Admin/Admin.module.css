@@ -370,10 +370,163 @@
   }
 }
 
+/* Teléfono: la tabla pasa a una tarjeta por usuario */
+@media (max-width: 640px) {
+  .admin {
+    gap: 14px;
+    padding: 16px 12px 28px;
+
+    .title {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+
+    .search {
+      flex-basis: 100%;
+      max-width: none;
+    }
+
+    /* Filtros en una sola fila deslizable, pegada a los bordes de la pantalla */
+    .filtros {
+      flex-wrap: nowrap;
+      margin: 0 -12px;
+      padding: 2px 12px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filtro {
+      flex-shrink: 0;
+    }
+
+    .tablaWrapper {
+      overflow: visible;
+      border: none;
+      border-radius: 0;
+      background: none;
+    }
+
+    .tabla {
+      display: block;
+      min-width: 0;
+    }
+
+    .cabecera {
+      display: none;
+    }
+
+    /* Como flex, cada fila (tr) se vuelve un bloque: una tarjeta */
+    .cuerpo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vacio {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+
+    /* Nombre arriba; ingreso, estado y fecha en una línea; el rol abajo con su resultado */
+    .fila {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-bottom-width: 3px;
+      border-radius: 14px;
+      background: var(--surface);
+
+      &:hover {
+        background: var(--surface);
+      }
+
+      /* La línea entre filas de la tabla no aplica a las tarjetas (salvo la del rol) */
+      & + .fila .td:not(.rol) {
+        border-top: none;
+      }
+    }
+
+    .td {
+      display: block;
+      padding: 0;
+
+      &:first-child {
+        flex-basis: 100%;
+        min-width: 0;
+      }
+    }
+
+    .email {
+      overflow-wrap: anywhere;
+    }
+
+    .fecha {
+      font-size: 13px;
+
+      &::before {
+        content: attr(data-label) ' ';
+        color: var(--text-tertiary);
+      }
+    }
+
+    .rol {
+      display: flex;
+      flex: 1 1 100%;
+      align-items: center;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+
+      &::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+      }
+    }
+
+    .select {
+      flex: 1;
+      height: 40px;
+    }
+
+    .resultado {
+      width: auto;
+
+      &:empty {
+        display: none;
+      }
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .admin {
     .girando {
       animation: none;
+    }
+  }
+}
+/* Pantallas táctiles: filtros y acciones más altos para el dedo */
+@media (pointer: coarse) {
+  .admin {
+    .filtro {
+      height: 40px;
+    }
+
+    .accion,
+    .select {
+      height: 44px;
     }
   }
 }

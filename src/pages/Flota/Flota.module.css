@@ -434,3 +434,155 @@
     }
   }
 }
+
+/* Teléfono: la tabla pasa a una tarjeta por máquina, con la etiqueta de cada dato (data-label) */
+@media (max-width: 640px) {
+  .flota {
+    gap: 14px;
+    padding: 16px 12px 28px;
+
+    .header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .title {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+
+    .primario {
+      justify-content: center;
+    }
+
+    .search {
+      flex-basis: 100%;
+      max-width: none;
+    }
+
+    /* Filtros en una sola fila deslizable, pegada a los bordes de la pantalla */
+    .filtros {
+      flex-wrap: nowrap;
+      margin: 0 -12px;
+      padding: 2px 12px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filtro {
+      flex-shrink: 0;
+    }
+
+    .tablaWrapper {
+      overflow: visible;
+      border: none;
+      border-radius: 0;
+      background: none;
+    }
+
+    .tabla {
+      display: block;
+      min-width: 0;
+    }
+
+    .cabecera {
+      display: none;
+    }
+
+    /* Como flex, cada fila (tr) se vuelve un bloque: una tarjeta */
+    .cuerpo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vacio {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+
+    .fila {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-bottom-width: 3px;
+      border-radius: 14px;
+      background: var(--surface);
+
+      &:hover {
+        background: var(--surface);
+      }
+
+      /* La línea entre filas de la tabla no aplica a las tarjetas (salvo la de las acciones) */
+      & + .fila .td:not(.acciones) {
+        border-top: none;
+      }
+    }
+
+    .td {
+      display: block;
+      padding: 0;
+
+      &[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+      }
+
+      /* Máquina y acciones ocupan todo el ancho de la tarjeta */
+      &:first-child,
+      &.acciones {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .numero {
+      text-align: left;
+    }
+
+    .acciones {
+      width: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .botones {
+      gap: 8px;
+    }
+
+    .accion {
+      flex: 1;
+      justify-content: center;
+      height: 38px;
+    }
+
+    .accionTexto {
+      display: inline;
+    }
+  }
+}
+/* Pantallas táctiles: filtros y acciones más altos para el dedo */
+@media (pointer: coarse) {
+  .flota {
+    .filtro {
+      height: 40px;
+    }
+
+    .accion,
+    .select {
+      height: 44px;
+    }
+  }
+}

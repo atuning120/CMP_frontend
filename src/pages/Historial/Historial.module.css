@@ -282,3 +282,53 @@
     color: var(--text-tertiary);
   }
 }
+
+/* Teléfono: tipo de evento a todo el ancho y rangos en una fila deslizable */
+@media (max-width: 640px) {
+  .historial {
+    padding: 16px 12px 28px;
+
+    .title {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+
+    .grupo {
+      display: flex;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .segmento {
+      flex: 1;
+      justify-content: center;
+      padding: 0 8px;
+    }
+
+    .rangos {
+      flex: 1 1 100%;
+      flex-wrap: nowrap;
+      margin: 0 -12px;
+      padding: 2px 12px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filtro {
+      flex-shrink: 0;
+    }
+  }
+}
+
+/* Pantallas táctiles: filtros y segmentos más altos para el dedo */
+@media (pointer: coarse) {
+  .historial {
+    .filtro,
+    .segmento {
+      height: 40px;
+    }
+  }
+}

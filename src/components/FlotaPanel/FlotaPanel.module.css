@@ -325,3 +325,26 @@
     border-top: 1px solid var(--border);
   }
 }
+
+/* Pantalla angosta: el panel va bajo el mapa con su altura natural y la página entera hace scroll
+   (una lista con scroll propio quedaría como una franja de pocos píxeles) */
+@media (max-width: 900px) {
+  .flotaPanel {
+    height: auto;
+    border-right: none;
+
+    .lista {
+      flex: none;
+      overflow: visible;
+    }
+  }
+}
+
+/* Pantallas táctiles: filtros más altos para el dedo */
+@media (pointer: coarse) {
+  .flotaPanel {
+    .filtro {
+      height: 40px;
+    }
+  }
+}

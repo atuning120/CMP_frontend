@@ -9,10 +9,20 @@
   border-radius: 50%;
   background: var(--surface-alt);
   cursor: pointer;
-  transition: border-color 0.15s ease-out;
+  transition:
+    border-color 0.15s ease-out,
+    transform 0.1s ease-out;
 
-  &:hover {
-    border-color: var(--input-border-hover);
+  /* Solo con mouse: en pantallas táctiles el hover queda pegado tras el toque */
+  @media (hover: hover) {
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+  }
+
+  /* Respuesta al toque o clic */
+  &:active {
+    transform: scale(0.92);
   }
 
   &:focus-visible {
@@ -32,13 +42,29 @@
     border-color: var(--hero-rule);
     background: none;
 
-    &:hover {
-      border-color: var(--on-hero-muted);
+    @media (hover: hover) {
+      &:hover {
+        border-color: var(--on-hero-muted);
+      }
     }
 
     .moon,
     .sun {
       color: var(--on-hero);
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle:active {
+    transform: none;
+  }
+}
+
+/* Pantallas táctiles: al menos 44 px */
+@media (pointer: coarse) {
+  .themeToggle {
+    width: 44px;
+    height: 44px;
   }
 }
