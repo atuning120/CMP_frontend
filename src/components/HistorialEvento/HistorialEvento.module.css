@@ -1,0 +1,122 @@
+/* --acento lo fija el tono (exito, primario, aviso, peligro) */
+.historialEvento {
+  --acento: var(--primary);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  list-style: none;
+
+  /* Eventos del mismo día, uno bajo otro en la tarjeta */
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+
+  &.exito {
+    --acento: var(--success);
+  }
+
+  &.aviso {
+    --acento: var(--warning-text);
+  }
+
+  &.peligro {
+    --acento: var(--danger);
+  }
+
+  .icono {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    color: var(--acento);
+  }
+
+  .cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .titulo {
+    font-size: 14px;
+    color: var(--text-h);
+
+    .actor {
+      font-weight: 700;
+    }
+
+    .maquina {
+      font-weight: 800;
+      color: var(--acento);
+    }
+  }
+
+  .etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .motivo,
+    .cierreAuto {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px;
+      border: 1px solid color-mix(in srgb, var(--acento) 25%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--acento) 8%, transparent);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--acento);
+    }
+
+    .cierreAuto {
+      border-color: color-mix(in srgb, var(--warning) 25%, transparent);
+      background: color-mix(in srgb, var(--warning) 8%, transparent);
+      color: var(--warning-text);
+    }
+  }
+
+  .observacion {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text);
+
+    .metaItem {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+
+  .fecha {
+    flex: none;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--text-tertiary);
+  }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+
+    .fecha {
+      width: 100%;
+      padding-left: 50px;
+    }
+  }
+}

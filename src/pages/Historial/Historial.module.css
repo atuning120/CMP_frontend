@@ -1,0 +1,284 @@
+.historial {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  text-align: left;
+
+  @media (max-width: 900px) {
+    padding: 20px 16px 32px;
+  }
+
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .titleIcon {
+    color: var(--primary);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .recargar,
+  .cargarMas {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+
+  .cargarMas {
+    align-self: center;
+    margin: 4px 0;
+    color: var(--danger);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Control segmentado, como el de la app */
+  .grupo {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--surface-alt);
+  }
+
+  .segmento {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .segmentoActivo {
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    color: var(--text-h);
+  }
+
+  .rangos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filtro {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .filtroActivo {
+    border-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover {
+      color: var(--on-primary);
+    }
+  }
+
+  .conteo {
+    margin-left: auto;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+  }
+
+  .personalizado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .fechaInput {
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--text-h);
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--danger-border);
+    border-radius: 10px;
+    background: var(--danger-bg);
+    font-size: 14px;
+    color: var(--danger);
+  }
+
+  .reintentar {
+    margin-left: auto;
+    padding: 4px 10px;
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .vacio {
+    padding: 32px 16px;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .diaTitulo {
+    margin: 0 0 8px 4px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  /* Tarjeta con el borde inferior de 3 px de la app; cada evento separado por una línea */
+  .eventos {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-bottom-width: 3px;
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .fin {
+    min-height: 1px;
+    padding: 8px 0 0;
+    font-size: 13px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+}

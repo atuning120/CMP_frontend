@@ -349,9 +349,37 @@
   }
 
   .fuera {
-    margin-bottom: 4px;
     background: color-mix(in srgb, var(--danger) 12%, transparent);
     color: var(--danger);
+  }
+
+  .observacion {
+    background: color-mix(in srgb, var(--warning) 18%, transparent);
+    color: var(--warning-text);
+  }
+
+  .mantenimiento {
+    background: color-mix(in srgb, var(--primary) 13%, transparent);
+    color: var(--primary);
+  }
+
+  .reserva {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  /* No es un estado: acompaña al estado cuando nadie tiene asignada la máquina */
+  .sinOperador {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--border);
+    color: var(--text-tertiary);
+  }
+
+  .etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
   }
 
   .acciones {

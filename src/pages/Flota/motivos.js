@@ -29,6 +29,34 @@ export const MOTIVOS_DESHABILITAR = [
 
 export const MOTIVOS_HABILITAR = ['Reparación finalizada', 'Retorno desde mantención', 'Operador disponible', 'Otro']
 
+export const MOTIVOS_OBSERVACION = [
+  'Ruido o vibración anormal',
+  'Fuga menor',
+  'Alarma intermitente',
+  'Reparación reciente en seguimiento',
+  'Otro',
+]
+
+export const MOTIVOS_MANTENIMIENTO = [
+  'Mantención programada',
+  'Mantención correctiva',
+  'Falla mecánica',
+  'Falla eléctrica',
+  'Falla hidráulica',
+  'Otro',
+]
+
+export const MOTIVOS_RESERVA = ['Equipo de respaldo', 'Baja demanda operacional', 'Sin frente de trabajo asignado', 'Otro']
+
+// Motivos según el estado al que pasa la máquina
+export const MOTIVOS_POR_ESTADO = {
+  ACTIVA: MOTIVOS_HABILITAR,
+  BAJO_OBSERVACION: MOTIVOS_OBSERVACION,
+  EN_MANTENIMIENTO: MOTIVOS_MANTENIMIENTO,
+  EN_RESERVA: MOTIVOS_RESERVA,
+  BAJA: MOTIVOS_DESHABILITAR,
+}
+
 export const MOTIVOS_REEMPLAZO = [
   'Falla mecánica',
   'Falla eléctrica',

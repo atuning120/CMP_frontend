@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AlertCircle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Power, PowerOff, Search, Truck } from 'lucide-react'
+import { Activity, AlertCircle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
 import {
   listarMarcasMaquina,
@@ -8,12 +8,14 @@ import {
   listarTiposMaquina,
   obtenerFlota,
 } from '../../services/flotaService.js'
+import { ESTADOS_MAQUINA, estadoDe, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
 
+// Un filtro por estado más "Sin operador", que se combina con cualquiera de ellos
 const FILTROS = [
-  { id: 'todas', etiqueta: 'Todas' },
-  { id: 'operativas', etiqueta: 'Operativas' },
-  { id: 'fuera', etiqueta: 'Fuera de servicio' },
+  { id: 'todas', etiqueta: 'Todas', incluye: () => true },
+  ...ESTADOS_MAQUINA.map((e) => ({ id: e.valor, etiqueta: e.etiqueta, incluye: (m) => estadoDe(m).valor === e.valor })),
+  { id: 'sinOperador', etiqueta: 'Sin operador', incluye: sinOperador },
 ]
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
@@ -62,20 +64,12 @@ function Flota() {
     }
   }, [cargar])
 
-  const conteos = useMemo(
-    () => ({
-      todas: flota.length,
-      operativas: flota.filter((m) => m.estado !== 'BAJA').length,
-      fuera: flota.filter((m) => m.estado === 'BAJA').length,
-    }),
-    [flota],
-  )
+  const conteos = useMemo(() => Object.fromEntries(FILTROS.map((f) => [f.id, flota.filter(f.incluye).length])), [flota])
 
   const visibles = useMemo(() => {
     const texto = busqueda.trim().toLowerCase()
     return flota.filter((m) => {
-      if (filtro === 'operativas' && m.estado === 'BAJA') return false
-      if (filtro === 'fuera' && m.estado !== 'BAJA') return false
+      if (!FILTROS.find((f) => f.id === filtro).incluye(m)) return false
       if (!texto) return true
       return [m.nombre, m.patente, m.tipoMaquina, m.marca, m.modelo, m.operadorAsignado?.nombre, m.operadorActual]
         .filter(Boolean)
@@ -99,7 +93,7 @@ function Flota() {
             <Truck size={22} className={styles.titleIcon} />
             Flota
           </h1>
-          <p className={styles.subtitle}>Incorpora, edita, habilita y reemplaza las máquinas de la planta.</p>
+          <p className={styles.subtitle}>Incorpora, edita, cambia el estado y reemplaza las máquinas de la planta.</p>
         </div>
         <button type="button" className={styles.primario} onClick={() => setAccion({ tipo: 'incorporar' })}>
           <Plus size={18} /> Incorporar máquina
@@ -177,7 +171,8 @@ function Flota() {
               </tr>
             )}
             {visibles.map((m) => {
-              const fuera = m.estado === 'BAJA'
+              const estado = estadoDe(m)
+              const fuera = estado.valor === 'BAJA'
               return (
                 <tr key={m.idMaquina} className={styles.fila}>
                   <td className={styles.td}>
@@ -205,13 +200,14 @@ function Flota() {
                     {m.horometroActual !== null ? `${formatoHoras.format(m.horometroActual)} h` : '—'}
                   </td>
                   <td className={styles.td}>
-                    <span className={`${styles.estado} ${fuera ? styles.fuera : styles.operativa}`}>
-                      {fuera ? 'Fuera de servicio' : 'Operativa'}
+                    <span className={styles.etiquetas}>
+                      <span className={`${styles.estado} ${styles[estado.clase]}`}>{estado.etiqueta}</span>
+                      {sinOperador(m) && <span className={`${styles.estado} ${styles.sinOperador}`}>Sin operador</span>}
                     </span>
-                    {fuera && m.fueraDeServicio && (
+                    {estado.valor !== 'ACTIVA' && m.motivoEstado && (
                       <span className={styles.secundario}>
-                        {m.fueraDeServicio.motivo} · {formatoFecha.format(new Date(m.fueraDeServicio.fecha))}
-                        {m.fueraDeServicio.reemplazadaPor && ` · por ${m.fueraDeServicio.reemplazadaPor}`}
+                        {m.motivoEstado.motivo} · {formatoFecha.format(new Date(m.motivoEstado.fecha))}
+                        {m.motivoEstado.reemplazadaPor && ` · por ${m.motivoEstado.reemplazadaPor}`}
                       </span>
                     )}
                   </td>
@@ -230,12 +226,13 @@ function Flota() {
                         type="button"
                         className={styles.accion}
                         onClick={() => setAccion({ tipo: 'estado', maquina: m })}
-                        title={fuera ? 'Habilitar' : 'Dejar fuera de servicio'}
+                        title="Cambiar el estado"
                       >
-                        {fuera ? <Power size={15} /> : <PowerOff size={15} />}
-                        <span className={styles.accionTexto}>{fuera ? 'Habilitar' : 'Deshabilitar'}</span>
+                        <Activity size={15} />
+                        <span className={styles.accionTexto}>Estado</span>
                       </button>
-                      {!fuera && (
+                      {/* Solo se reemplaza una máquina que ya está fuera de servicio */}
+                      {fuera && (
                         <button
                           type="button"
                           className={styles.accion}
