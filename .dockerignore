@@ -1,0 +1,4 @@
+# La imagen solo necesita el build y la configuración de nginx
+*
+!dist/
+!nginx/

@@ -58,6 +58,7 @@ jobs:
         run: pnpm build
         env:
           VITE_API_URL: https://cmp-backend.blueglacier-678ef622.chilecentral.azurecontainerapps.io
+          VITE_AZURE_CLIENT_ID: 48d2c1fc-c126-4905-85ab-b8f0a185f660
 
       # El bundle queda disponible en el PR por si hay que revisarlo
       - name: Guardar build
@@ -100,3 +101,81 @@ jobs:
       # Secretos (claves, tokens, contraseñas) en el código o en el historial. Imagen oficial con versión fija
       - name: Buscar secretos (gitleaks)
         run: docker run --rm -v "$GITHUB_WORKSPACE:/repo" ghcr.io/gitleaks/gitleaks:v8.24.3 git /repo --redact --no-banner
+
+  # CD: solo en push a main y con ambos checks en verde. La imagen lleva el mismo dist que se probó en "calidad"
+  desplegar:
+    name: Desplegar en Azure
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [calidad, seguridad]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # El environment limita qué workflows pueden autenticarse en Azure (credencial federada OIDC)
+    environment:
+      name: produccion
+      url: https://${{ vars.AZURE_CONTAINERAPP_FQDN }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REGISTRO: cmpcapstoneacr
+      IMAGEN: cmpcapstoneacr.azurecr.io/cmp-frontend
+      GRUPO: CMP_Capstone
+      APP: cmp-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      # Sin contraseñas guardadas: GitHub entrega un token OIDC que Azure canjea por la identidad del pipeline
+      - name: Login en Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login en ACR
+        run: az acr login -n "$REGISTRO"
+
+      - uses: docker/setup-buildx-action@v3
+
+      # El entorno Express de Container Apps exige imágenes OCI (sin attestations de provenance/SBOM)
+      - name: Construir y publicar imagen
+        id: imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
+          outputs: type=registry,"name=${{ env.IMAGEN }}:${{ github.sha }},${{ env.IMAGEN }}:latest",oci-mediatypes=true
+
+      # Express no admite sufijos de revisión: se despliega por digest para forzar una revisión nueva
+      - name: Actualizar Container App
+        env:
+          DIGEST: ${{ steps.imagen.outputs.digest }}
+        run: |
+          if [ -z "$DIGEST" ]; then
+            DIGEST=$(az acr manifest show-metadata -r "$REGISTRO" -n "cmp-frontend:$GITHUB_SHA" --query digest -o tsv)
+          fi
+          az config set extension.use_dynamic_install=yes_without_prompt --only-show-errors
+          az containerapp update -g "$GRUPO" -n "$APP" --image "$IMAGEN@$DIGEST" -o none --only-show-errors
+          echo "Desplegado ${GITHUB_SHA::7} ($DIGEST)" >> "$GITHUB_STEP_SUMMARY"
+
+      # Con mínimo 0 réplicas el primer request despierta el contenedor: se reintenta hasta ~3 minutos
+      - name: Verificar /healthz
+        run: |
+          URL="https://$(az containerapp show -g "$GRUPO" -n "$APP" --query properties.configuration.ingress.fqdn -o tsv --only-show-errors)/healthz"
+          for intento in $(seq 1 18); do
+            if curl -fsS --max-time 10 "$URL"; then
+              echo; echo "OK: $URL"
+              exit 0
+            fi
+            echo "Intento $intento: aún no responde, reintentando en 10 s..."
+            sleep 10
+          done
+          echo "::error::El Frontend no respondió en $URL"
+          exit 1
