@@ -118,8 +118,11 @@ function Admin() {
 
       <p className={styles.nota}>
         <Info size={16} className={styles.notaIcono} />
-        Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). El
-        cambio de rol se aplica la próxima vez que la persona inicie sesión.
+        {/* En un span: dentro del flex, el texto y el <strong> serían columnas separadas */}
+        <span>
+          Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). El
+          cambio de rol se aplica la próxima vez que la persona inicie sesión.
+        </span>
       </p>
 
       <div className={styles.toolbar}>
@@ -158,7 +161,7 @@ function Admin() {
 
       <div className={styles.tablaWrapper}>
         <table className={styles.tabla}>
-          <thead>
+          <thead className={styles.cabecera}>
             <tr>
               <th className={styles.th}>Usuario</th>
               <th className={styles.th}>Ingreso</th>
@@ -170,7 +173,7 @@ function Admin() {
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={styles.cuerpo}>
             {cargando && (
               <tr>
                 <td className={styles.vacio} colSpan={6}>
@@ -204,8 +207,8 @@ function Admin() {
                     {u.activo ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td className={`${styles.td} ${styles.fecha}`}>{formatoFecha.format(new Date(u.creadoEn))}</td>
-                <td className={styles.td}>{controlRol(u)}</td>
+                <td className={`${styles.td} ${styles.fecha}`} data-label="Registrado">{formatoFecha.format(new Date(u.creadoEn))}</td>
+                <td className={`${styles.td} ${styles.rol}`} data-label="Rol">{controlRol(u)}</td>
                 <td className={`${styles.td} ${styles.resultado}`}>{estadoGuardado(u)}</td>
               </tr>
             ))}

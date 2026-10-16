@@ -322,3 +322,16 @@
     white-space: nowrap;
   }
 }
+
+/* Pantalla angosta: el panel va bajo el mapa con su altura natural y la página entera hace scroll */
+@media (max-width: 900px) {
+  .geocercasPanel {
+    height: auto;
+    border-right: none;
+
+    .lista {
+      flex: none;
+      overflow: visible;
+    }
+  }
+}

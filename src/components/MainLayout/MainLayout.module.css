@@ -1,5 +1,7 @@
 .layout {
   display: grid;
+  /* minmax(0, 1fr): ningún hijo (header, tablas) puede ensanchar la página más allá de la pantalla */
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   height: 100svh;
 
@@ -154,11 +156,12 @@
   }
 }
 
-/* Ajuste responsivo */
+/* Tablet: sin el subtítulo del producto ni el correo, el header cabe en una fila */
 @media (max-width: 900px) {
   .layout {
-    flex-wrap: wrap;
-    gap: 12px;
+    .header {
+      gap: 16px;
+    }
 
     .userText {
       display: none;
@@ -166,6 +169,64 @@
 
     .product {
       display: none;
+    }
+  }
+}
+
+/* Teléfono: logo y cuenta arriba; las pestañas en una segunda fila a todo el ancho, con scroll
+   horizontal si no caben */
+@media (max-width: 640px) {
+  .layout {
+    .header {
+      flex-wrap: wrap;
+      gap: 0 12px;
+      min-height: 0;
+      padding: 8px 12px 0;
+    }
+
+    .logo {
+      width: 68px;
+    }
+
+    .cuenta {
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .nav {
+      order: 1;
+      flex: 1 0 100%;
+      gap: 0;
+      height: 44px;
+      margin: 6px -12px 0;
+      padding: 0 4px;
+      overflow-x: auto;
+      border-top: 1px solid var(--hero-rule);
+      scrollbar-width: none;
+
+      .link {
+        flex-shrink: 0;
+        padding: 0 12px;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+/* Teléfonos muy angostos (320 px): las cuatro pestañas caben sin cortarse */
+@media (max-width: 360px) {
+  .layout {
+    .nav .link {
+      padding: 0 8px;
+    }
+  }
+}
+
+/* Pantallas táctiles: botones del header de al menos 44 px */
+@media (pointer: coarse) {
+  .layout {
+    .logout {
+      width: 44px;
+      height: 44px;
     }
   }
 }

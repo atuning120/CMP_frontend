@@ -145,7 +145,7 @@ function Flota() {
 
       <div className={styles.tablaWrapper}>
         <table className={styles.tabla}>
-          <thead>
+          <thead className={styles.cabecera}>
             <tr>
               <th className={styles.th}>Máquina</th>
               <th className={styles.th}>Operador asignado</th>
@@ -155,7 +155,7 @@ function Flota() {
               <th className={`${styles.th} ${styles.acciones}`}>Acciones</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={styles.cuerpo}>
             {cargando && (
               <tr>
                 <td className={styles.vacio} colSpan={6}>
@@ -185,8 +185,8 @@ function Flota() {
                       {[m.tipoMaquina, m.marca, m.modelo].filter(Boolean).join(' · ') || 'Sin tipo registrado'}
                     </span>
                   </td>
-                  <td className={styles.td}>{m.operadorAsignado?.nombre ?? <span className={styles.secundario}>Sin operador</span>}</td>
-                  <td className={styles.td}>
+                  <td className={styles.td} data-label="Operador asignado">{m.operadorAsignado?.nombre ?? <span className={styles.secundario}>Sin operador</span>}</td>
+                  <td className={styles.td} data-label="Turno en curso">
                     {m.operadorActual ? (
                       <>
                         <span className={styles.enTurno}>{m.operadorActual}</span>
@@ -196,10 +196,10 @@ function Flota() {
                       <span className={styles.secundario}>—</span>
                     )}
                   </td>
-                  <td className={`${styles.td} ${styles.numero}`}>
+                  <td className={`${styles.td} ${styles.numero}`} data-label="Horómetro">
                     {m.horometroActual !== null ? `${formatoHoras.format(m.horometroActual)} h` : '—'}
                   </td>
-                  <td className={styles.td}>
+                  <td className={styles.td} data-label="Estado">
                     <span className={styles.etiquetas}>
                       <span className={`${styles.estado} ${styles[estado.clase]}`}>{estado.etiqueta}</span>
                       {sinOperador(m) && <span className={`${styles.estado} ${styles.sinOperador}`}>Sin operador</span>}

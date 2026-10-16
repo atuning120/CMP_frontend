@@ -496,11 +496,18 @@
 
 @media (max-width: 900px) {
   .mapaPage {
-    grid-template-columns: 1fr;
-    grid-template-rows: 60svh auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: min(58svh, 560px) auto;
+    /* Altura natural: el panel queda bajo el mapa y la página entera hace scroll */
+    height: auto;
+    min-height: 100%;
 
     &.contraido {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lateral {
+      overflow: visible;
     }
 
     .rail {
@@ -541,6 +548,31 @@
     /* En pantallas angostas el mapa va arriba y la lista debajo */
     .mapa {
       order: -1;
+    }
+  }
+}
+
+/* Teléfono: el header ya dice dónde estamos; los chips se achican para dejar ver el mapa */
+@media (max-width: 640px) {
+  .mapaPage {
+    .chipPlanta {
+      display: none;
+    }
+
+    .chip,
+    .modos {
+      height: 32px;
+      font-size: 12px;
+    }
+
+    .modo {
+      font-size: 12px;
+    }
+
+    .detalleGeocerca {
+      top: 54px;
+      left: 10px;
+      width: calc(100% - 20px);
     }
   }
 }

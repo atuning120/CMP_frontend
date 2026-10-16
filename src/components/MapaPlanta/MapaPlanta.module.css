@@ -146,3 +146,23 @@
     display: none;
   }
 }
+
+/* Pantallas táctiles: no hay cursor, así que las coordenadas UTM del cursor no aplican */
+@media (hover: none) {
+  .mapaPlanta {
+    .coordenadas {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .mapaPlanta {
+    .overlay {
+      top: 10px;
+      left: 10px;
+      right: 56px;
+      gap: 6px;
+    }
+  }
+}

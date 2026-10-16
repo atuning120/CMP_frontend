@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, ChevronRight, Layers, MapPinned, Plus, Search } from 'lucide-react'
 import GeocercaDetalle from '../GeocercaDetalle/GeocercaDetalle.jsx'
-import { fueraDeFaena } from '../../pages/Mapa/geo.js'
+import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
 import styles from './GeocercasPanel.module.css'
 
@@ -35,6 +35,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
   const [guardando, setGuardando] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [abiertas, setAbiertas] = useState(() => new Set())
+  const [poligonoDibujado, setPoligonoDibujado] = useState(null)
 
   // Al salir del modo edición no debe quedar nada a medio dibujar
   useEffect(
@@ -44,6 +45,13 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     },
     [mapa, onEditando],
   )
+
+  // Con el polígono ya cerrado, se sigue cada ajuste de vértices para avisar si sale de la faena
+  const ajustando = accion?.fase === 'ajustando'
+  useEffect(() => {
+    if (!ajustando) return
+    return mapa.current?.observarGeometria(setPoligonoDibujado)
+  }, [ajustando, mapa])
 
   const buscar = (entidad, id) =>
     entidad === 'area' ? areas.find((a) => a.idArea === id) : zonas.find((z) => z.idZona === id)
@@ -143,7 +151,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     if (seleccion?.tipo === entidad && seleccion.id === id) return onSeleccionar(null)
     onSeleccionar({ tipo: entidad, id })
     // Una geocerca mal ubicada (lejos de la faena) no se encuadra: se redibuja sobre la mina
-    if (item.poligono && !fueraDeFaena(item.poligono)) mapa.current?.enfocar(item.poligono)
+    if (item.poligono && !malUbicado(item.poligono)) mapa.current?.enfocar(item.poligono)
   }
 
   const alternar = (idArea) =>
@@ -209,6 +217,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
             error={error}
             guardando={guardando}
             onGuardar={guardar}
+            fueraDeFaena={ajustando && fueraDeFaena(poligonoDibujado)}
             onCancelar={limpiar}
             geocerca={seleccionado}
             tipo={seleccion?.tipo}

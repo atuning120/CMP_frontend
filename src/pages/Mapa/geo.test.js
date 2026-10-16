@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aUtm, estadoMaquina, fueraDeFaena, posicionarMaquinas, puntoInterior } from './geo.js'
+import { aUtm, estadoMaquina, fueraDeFaena, malUbicado, posicionarMaquinas, puntoInterior } from './geo.js'
 
 const cuadrado = (lon, lat, lado = 0.002) => ({
   type: 'Polygon',
@@ -36,12 +36,41 @@ describe('fueraDeFaena', () => {
     expect(fueraDeFaena(cuadrado(-70.81, -28.30))).toBe(false)
   })
 
+  it('un polígono que cubre casi todo el límite (UTM 19S) está dentro', () => {
+    // Esquinas del límite en WGS84: suroeste -70.85457, -28.32606 y noreste -70.76456, -28.27369. La grilla UTM está
+    // levemente girada respecto de lon/lat, así que el rectángulo de prueba queda unos metros hacia dentro
+    const casiTodo = {
+      type: 'Polygon',
+      coordinates: [[[-70.853, -28.3255], [-70.766, -28.3255], [-70.766, -28.274], [-70.853, -28.274], [-70.853, -28.3255]]],
+    }
+    expect(fueraDeFaena(casiTodo)).toBe(false)
+  })
+
+  it('basta un vértice fuera del límite para estar fuera', () => {
+    // Cruza el borde este (~ -70.7635)
+    expect(fueraDeFaena(cuadrado(-70.766, -28.30, 0.004))).toBe(true)
+  })
+
+  it('una geocerca cerca de la mina pero fuera del límite está fuera', () => {
+    expect(fueraDeFaena(cuadrado(-70.75, -28.30))).toBe(true)
+  })
+
   it('detecta polígonos lejos de la mina (p. ej. latitud con el signo invertido)', () => {
     expect(fueraDeFaena(cuadrado(-70.79, 28.52))).toBe(true)
   })
 
   it('sin polígono no se considera fuera', () => {
     expect(fueraDeFaena(null)).toBe(false)
+  })
+})
+
+describe('malUbicado', () => {
+  it('fuera del límite pero a pocos km de la mina no está mal ubicado: se puede ajustar', () => {
+    expect(malUbicado(cuadrado(-70.75, -28.30))).toBe(false)
+  })
+
+  it('a decenas de km sí (se redibuja)', () => {
+    expect(malUbicado(cuadrado(-70.79, 28.52))).toBe(true)
   })
 })
 

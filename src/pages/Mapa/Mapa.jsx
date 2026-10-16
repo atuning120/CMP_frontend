@@ -28,6 +28,7 @@ function Mapa() {
   const sesion = useSesion()
   const admin = esAdmin(sesion)
   const mapaRef = useRef(null)
+  const seccionMapaRef = useRef(null)
   const [geocercas, setGeocercas] = useState({ areas: [], zonas: [] })
   const [flota, setFlota] = useState([])
   const [conAlerta, setConAlerta] = useState(() => new Set())
@@ -120,7 +121,14 @@ function Mapa() {
   const seleccionarMaquina = (idMaquina) => {
     setSeleccion({ tipo: 'maquina', id: idMaquina })
     const posicion = posiciones.find((p) => p.maquina.idMaquina === idMaquina)
-    if (posicion) mapaRef.current?.enfocar(posicion.lngLat)
+    if (posicion) {
+      mapaRef.current?.enfocar(posicion.lngLat)
+      // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver la máquina elegida
+      if (matchMedia('(max-width: 900px)').matches) {
+        const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
+        seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
+      }
+    }
   }
 
   const cambiarModo = (nuevo) => {
@@ -200,7 +208,7 @@ function Mapa() {
 
   const overlay = (
     <>
-      <span className={styles.chip}>
+      <span className={`${styles.chip} ${styles.chipPlanta}`}>
         <span className={styles.chipPunto} />
         Planta Mina Los Colorados (MLC)
       </span>
@@ -331,7 +339,7 @@ function Mapa() {
         )}
       </div>
 
-      <section className={styles.mapa} aria-label="Mapa de la planta">
+      <section ref={seccionMapaRef} className={styles.mapa} aria-label="Mapa de la planta">
         {/* Un único control para contraer y expandir, siempre en el mismo lugar: la pestaña del borde.
             Mientras se dibuja una geocerca no se contrae (se perdería el dibujo) */}
         <button

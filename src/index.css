@@ -75,6 +75,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Sin el recuadro que pinta el navegador móvil al tocar: cada control da su propia respuesta */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* data-theme lo fija index.html antes de pintar y lo cambia useTheme. Mismo modo oscuro que la app */
