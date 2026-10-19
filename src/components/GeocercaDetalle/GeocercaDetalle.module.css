@@ -319,4 +319,43 @@
     background: var(--danger);
     color: var(--on-primary);
   }
+
+  /* Teléfono: tarjeta compacta, con las acciones en una fila deslizable en vez de un menú vertical */
+  @media (max-width: 640px) {
+    gap: 8px;
+    padding: 10px 12px;
+
+    /* La fila llega a los bordes para deslizarse, pero se recorta con el radio de la tarjeta
+       (14px menos el borde) y queda sobre el padding inferior: los botones no tocan las esquinas */
+    .menu {
+      flex: none;
+      flex-direction: row;
+      gap: 6px;
+      margin: 0 -12px;
+      padding: 8px 12px 4px;
+      overflow-x: auto;
+      border-radius: 0 0 11px 11px;
+      scroll-padding-inline: 12px;
+      scrollbar-width: none;
+    }
+
+    .separador {
+      margin: 0;
+      padding: 0;
+      border-top: none;
+    }
+
+    .opcion {
+      width: auto;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .opcionPeligro {
+      border-color: var(--danger-border);
+    }
+  }
 }

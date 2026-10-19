@@ -341,12 +341,16 @@
     left: 16px;
     z-index: 3;
     width: min(300px, calc(100% - 32px));
+    display: flex;
+    flex-direction: column;
     max-height: calc(100% - 110px);
-    overflow-y: auto;
-    border-radius: 14px;
     pointer-events: none;
 
+    /* El scroll va en la tarjeta y no en este contenedor: si este recortara, cortaría también la sombra
+       y el borde inferior de la tarjeta, que se verían como esquinas cuadradas */
     &>* {
+      min-height: 0;
+      overflow-y: auto;
       pointer-events: auto;
     }
 
@@ -569,10 +573,15 @@
       font-size: 12px;
     }
 
+    /* Hoja inferior: deja a la vista la parte alta del mapa, donde queda encuadrada la geocerca.
+       Va sobre la escala y el botón de atribución de MapLibre (abajo, ~34px): si los tapara, asomarían
+       por sus esquinas redondeadas */
     .detalleGeocerca {
-      top: 54px;
+      top: auto;
+      bottom: 44px;
       left: 10px;
       width: calc(100% - 20px);
+      max-height: calc(100% - 98px);
     }
   }
 }

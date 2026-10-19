@@ -31,7 +31,7 @@ const normalizar = (texto) =>
  * de su área. La geocerca seleccionada y la acción en curso se muestran en una tarjeta flotante sobre el
  * mapa (`destino`, nodo que provee la página), para que la lista conserve todo el alto del panel.
  */
-function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino, onEditando, onGuardado }) {
+function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino, onEditando, onGuardado, onVerMapa }) {
   const [accion, setAccion] = useState(null)
   const [form, setForm] = useState(FORM_VACIO)
   const [error, setError] = useState(null)
@@ -72,6 +72,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     limpiar()
     setForm(FORM_VACIO)
     setAccion({ tipo: 'crear', entidad, idArea, fase: 'dibujando' })
+    onVerMapa()
     mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
   }
 
@@ -154,6 +155,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     // Un segundo clic sobre la geocerca ya seleccionada la deselecciona
     if (seleccion?.tipo === entidad && seleccion.id === id) return onSeleccionar(null)
     onSeleccionar({ tipo: entidad, id })
+    onVerMapa()
     // Una geocerca mal ubicada (lejos de la faena) no se encuadra: se redibuja sobre la mina
     if (item.poligono && !malUbicado(item.poligono)) mapa.current?.enfocar(item.poligono)
   }

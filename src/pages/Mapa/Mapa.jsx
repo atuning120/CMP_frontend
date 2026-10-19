@@ -118,16 +118,19 @@ function Mapa() {
     return posiciones.map((p) => ({ ...p, estado: estados.get(p.maquina.idMaquina) }))
   }, [posiciones, items])
 
+  // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver lo elegido o dibujar
+  const verMapa = useCallback(() => {
+    if (!matchMedia('(max-width: 900px)').matches) return
+    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
+  }, [])
+
   const seleccionarMaquina = (idMaquina) => {
     setSeleccion({ tipo: 'maquina', id: idMaquina })
     const posicion = posiciones.find((p) => p.maquina.idMaquina === idMaquina)
     if (posicion) {
       mapaRef.current?.enfocar(posicion.lngLat)
-      // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver la máquina elegida
-      if (matchMedia('(max-width: 900px)').matches) {
-        const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
-        seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
-      }
+      verMapa()
     }
   }
 
@@ -321,6 +324,7 @@ function Mapa() {
             destino={destinoDetalle}
             onEditando={setEditando}
             onGuardado={alGuardar}
+            onVerMapa={verMapa}
           />
         ) : (
           <FlotaPanel
