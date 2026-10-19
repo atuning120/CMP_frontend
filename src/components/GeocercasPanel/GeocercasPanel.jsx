@@ -116,6 +116,7 @@ function GeocercasPanel({
   const [busqueda, setBusqueda] = useState('')
   const [abiertas, setAbiertas] = useState(() => new Set())
   const [poligonoDibujado, setPoligonoDibujado] = useState(null)
+  const [puntos, setPuntos] = useState(0)
   const [errorOrden, setErrorOrden] = useState(null)
 
   // El arrastre empieza tras mover 5px el puntero (un toque simple en el asa no hace nada); con teclado, espacio o Enter
@@ -140,12 +141,19 @@ function GeocercasPanel({
     [mapa, onEditando],
   )
 
-  // Con el polígono ya cerrado, se sigue cada ajuste de vértices para avisar si sale de la faena
-  const ajustando = accion?.fase === 'ajustando'
+  // Con el polígono ya cerrado (ajustando o llenando los datos), se sigue cada ajuste de vértices para avisar si sale de la faena
+  const conPoligono = accion?.fase === 'ajustando' || accion?.fase === 'datos'
   useEffect(() => {
-    if (!ajustando) return
+    if (!conPoligono) return
     return mapa.current?.observarGeometria(setPoligonoDibujado)
-  }, [ajustando, mapa])
+  }, [conPoligono, mapa])
+
+  // Mientras se dibuja se cuentan los puntos: "Cerrar figura" se habilita con 3
+  const dibujando = accion?.fase === 'dibujando'
+  useEffect(() => {
+    if (!dibujando) return
+    return mapa.current?.observarDibujo(setPuntos)
+  }, [dibujando, mapa])
 
   const buscar = (entidad, id) =>
     entidad === 'area' ? areas.find((a) => a.idArea === id) : zonas.find((z) => z.idZona === id)
@@ -159,25 +167,48 @@ function GeocercasPanel({
     setError(null)
   }
 
+  // Al cerrar la figura (tocando el primer punto o con "Cerrar figura") se pasa a ajustar los vértices
+  const empezarDibujo = () => {
+    setPuntos(0)
+    mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
+  }
+
+  // Crear es un asistente de 3 pasos (dibujar, ajustar, datos): en teléfono el formulario taparía el mapa
+  // mientras se mueven los vértices, así que aparece recién al terminar la forma
   const crear = (entidad, idArea) => {
     limpiar()
     setForm(FORM_VACIO)
-    setAccion({ tipo: 'crear', entidad, idArea, fase: 'dibujando' })
+    // La página agranda el mapa mientras hay una geocerca en edición (id null: aún no existe)
+    onEditando({ tipo: entidad, id: null })
+    setAccion({ tipo: 'crear', entidad, idArea, fase: 'dibujando', pasos: 3 })
     onVerMapa()
-    mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
+    empezarDibujo()
   }
 
   const editarForma = (entidad, item, redibujar) => {
     limpiar()
     const id = entidad === 'area' ? item.idArea : item.idZona
     onEditando({ tipo: entidad, id })
+    onVerMapa()
     if (redibujar || !item.poligono) {
-      setAccion({ tipo: 'forma', entidad, id, fase: 'dibujando' })
-      mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
+      setAccion({ tipo: 'forma', entidad, id, fase: 'dibujando', pasos: 2 })
+      empezarDibujo()
     } else {
-      setAccion({ tipo: 'forma', entidad, id, fase: 'ajustando' })
+      setAccion({ tipo: 'forma', entidad, id, fase: 'ajustando', pasos: 1 })
       mapa.current.editarForma(item.poligono)
     }
+  }
+
+  // Desde "ajustar": descarta la figura y se vuelve a marcar desde cero
+  const volverADibujar = () => {
+    setError(null)
+    setAccion((a) => ({ ...a, fase: 'dibujando', pasos: a.tipo === 'crear' ? 3 : 2 }))
+    empezarDibujo()
+  }
+
+  const irAFase = (fase) => {
+    setError(null)
+    setAccion((a) => ({ ...a, fase }))
   }
 
   const editarDatos = (entidad, item) => {
@@ -322,8 +353,14 @@ function GeocercasPanel({
             error={error}
             guardando={guardando}
             onGuardar={guardar}
-            fueraDeFaena={ajustando && fueraDeFaena(poligonoDibujado)}
+            fueraDeFaena={conPoligono && fueraDeFaena(poligonoDibujado)}
             onCancelar={limpiar}
+            puntos={puntos}
+            onDeshacerPunto={() => mapa.current?.deshacerPunto()}
+            onCerrarFigura={() => mapa.current?.cerrarFigura()}
+            onVolverADibujar={volverADibujar}
+            onContinuar={() => irAFase('datos')}
+            onAtras={() => irAFase('ajustando')}
             geocerca={seleccionado}
             tipo={seleccion?.tipo}
             onCerrar={() => onSeleccionar(null)}

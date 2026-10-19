@@ -78,6 +78,38 @@
     color: var(--text);
   }
 
+  /* Avance del asistente: una barra por paso, llenas las ya hechas */
+  .pasos {
+    display: flex;
+    gap: 4px;
+    margin: -2px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .barraPaso {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+
+    &.barraPasoHecho {
+      background: var(--map-seleccion);
+    }
+  }
+
+  .contador {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-h);
+
+    &.contadorListo {
+      color: var(--success);
+    }
+  }
+
   .alerta {
     display: flex;
     align-items: flex-start;
@@ -356,6 +388,12 @@
 
     .opcionPeligro {
       border-color: var(--danger-border);
+    }
+
+    /* Botones del pie a todo el ancho y de 44 px de alto, fáciles de tocar con el pulgar */
+    .pie > * {
+      flex: 1;
+      height: 44px;
     }
   }
 }

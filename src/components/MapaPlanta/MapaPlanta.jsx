@@ -51,6 +51,16 @@ const desplazamiento = (indice) => {
 
 const formatoUtm = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
 
+// Puntos ya marcados del polígono que se está dibujando. Terra Draw los lleva en committedCoordinateCount;
+// si no viniera, se cuentan los vértices distintos del anillo (sin el de cierre, que repite el primero)
+const puntosEnDibujo = (draw) => {
+  const enCurso = draw.getSnapshot().find((f) => f.properties.currentlyDrawing)
+  if (!enCurso) return 0
+  const { committedCoordinateCount } = enCurso.properties
+  if (Number.isInteger(committedCoordinateCount)) return committedCoordinateCount
+  return new Set(enCurso.geometry.coordinates[0].slice(0, -1).map((c) => c.join())).size
+}
+
 /**
  * Mapa satelital de la planta con áreas (borde discontinuo), zonas de trabajo (borde continuo) y
  * máquinas. Expone por `ref` el control del dibujo (Terra Draw) para el modo administrador.
@@ -59,6 +69,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
   const contenedorRef = useRef(null)
   const mapRef = useRef(null)
   const drawRef = useRef(null)
+  const modoPoligonoRef = useRef(null)
   const listoRef = useRef(false)
   const marcadoresRef = useRef([])
   const popupRef = useRef(null)
@@ -163,7 +174,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
       const draw = new TerraDraw({
         adapter: new TerraDrawMapLibreGLAdapter({ map }),
         modes: [
-          new TerraDrawPolygonMode({
+          (modoPoligonoRef.current = new TerraDrawPolygonMode({
             styles: {
               fillColor: sel,
               fillOpacity: 0.25,
@@ -172,7 +183,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
               closingPointColor: sel,
               closingPointOutlineColor: area,
             },
-          }),
+          })),
           new TerraDrawSelectMode({
             // Radio invisible (px) alrededor de cada vértice dentro del cual se puede tomar para arrastrarlo
             pointerDistance: 40,
@@ -331,6 +342,28 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
         onTerminado()
       }
       draw.on('finish', alTerminar)
+    },
+    // Cierra el polígono en curso con los puntos ya marcados (mínimo 3), sin tener que tocar el primero:
+    // equivale a la tecla Enter, el atajo de "terminar" del modo polígono. Dispara el mismo 'finish'
+    cerrarFigura() {
+      modoPoligonoRef.current?.onKeyUp({ key: 'Enter', heldKeys: [], preventDefault: () => {} })
+    },
+    // Quita el último punto marcado. Con uno solo, el undo de Terra Draw no tiene a qué volver: se borra el
+    // dibujo y el modo polígono queda listo para marcar desde cero
+    deshacerPunto() {
+      const draw = drawRef.current
+      if (!draw) return
+      if (puntosEnDibujo(draw) <= 1) draw.clear()
+      else modoPoligonoRef.current?.undo()
+    },
+    // Avisa cuántos puntos lleva el polígono en curso, ahora y en cada cambio. Devuelve cómo dejar de observar
+    observarDibujo(alCambiar) {
+      const draw = drawRef.current
+      if (!draw) return () => {}
+      const avisar = () => alCambiar(puntosEnDibujo(draw))
+      draw.on('change', avisar)
+      avisar()
+      return () => draw.off('change', avisar)
     },
     // Carga un polígono existente para mover sus vértices
     editarForma(poligono) {
