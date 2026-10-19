@@ -42,7 +42,8 @@ function HistorialEvento({ evento }) {
   // Cambio de estado: a cuál pasó (los registros antiguos de habilitar/deshabilitar no lo traen)
   const estadoNuevo =
     evento.tipo === 'CAMBIAR_ESTADO' || evento.tipo === 'HABILITAR' ? texto(detalle?.despues?.estado) : null
-  // El sistema lo cerró al pasar las 12 h (probablemente el operador olvidó finalizarlo)
+  // El sistema lo cerró al pasar la duración máxima (probablemente el operador olvidó finalizarlo).
+  // Sin número de horas: los turnos antiguos se cerraban a las 12 h y los actuales a las 13 h
   const cierreAutomatico = esTurno && detalle?.estadoTurno === 'CERRADO_AUTO'
   // Inicio de turno: dónde y con qué horómetro partió
   const ubicacion = [texto(detalle?.area), texto(detalle?.zona)].filter(Boolean).join(' · ')
@@ -72,7 +73,7 @@ function HistorialEvento({ evento }) {
             {evento.motivo && <span className={styles.motivo}>{evento.motivo}</span>}
             {cierreAutomatico && (
               <span className={styles.cierreAuto}>
-                <AlarmClockOff size={12} /> Cierre automático (más de 12 h)
+                <AlarmClockOff size={12} /> Cierre automático (superó la duración máxima)
               </span>
             )}
           </p>
