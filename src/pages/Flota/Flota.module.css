@@ -256,6 +256,32 @@
     }
   }
 
+  .atrasadas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--warning) 50%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+    font-size: 14px;
+    color: var(--warning-text);
+  }
+
+  .regresoVencido {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--warning-text);
+  }
+
+  .respaldoDe {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
   .exito {
     display: flex;
     align-items: center;
