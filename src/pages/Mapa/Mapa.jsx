@@ -5,7 +5,7 @@ import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
-import { obtenerMapa } from '../../services/geocercasService.js'
+import { obtenerMapa, reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
 import styles from './Mapa.module.css'
@@ -153,6 +153,23 @@ function Mapa() {
     if (nuevo !== modo) cambiarModo(nuevo)
     alternarPanel(false)
   }
+
+  // El listado cambia de inmediato; si el Backend rechaza el orden se recarga el vigente
+  const alReordenar = useCallback(
+    async (idsAreas) => {
+      setGeocercas((g) => {
+        const porId = new Map(g.areas.map((a) => [a.idArea, a]))
+        return { ...g, areas: idsAreas.map((id) => porId.get(id)) }
+      })
+      try {
+        await reordenarAreas(idsAreas)
+      } catch (e) {
+        await cargarGeocercas().catch(() => {})
+        throw e
+      }
+    },
+    [cargarGeocercas],
+  )
 
   const alGuardar = useCallback(
     async (nuevaSeleccion) => {
@@ -325,6 +342,7 @@ function Mapa() {
             onEditando={setEditando}
             onGuardado={alGuardar}
             onVerMapa={verMapa}
+            onReordenar={alReordenar}
           />
         ) : (
           <FlotaPanel
