@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import { puedeGestionarFlota } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
 import { cerrarSesion, esAdmin, useSesion } from '../../services/session.js'
+import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
 
@@ -28,6 +30,7 @@ const iniciales = (email = '') =>
 function MainLayout() {
   const sesion = useSesion()
   const navigate = useNavigate()
+  const [confirmandoSalida, setConfirmandoSalida] = useState(false)
 
   const handleLogout = () => {
     cerrarSesion()
@@ -77,11 +80,29 @@ function MainLayout() {
               <span className={styles.userRole}>{ROL_LABEL[sesion?.rol] ?? sesion?.rol}</span>
             </span>
           </span>
-          <button type="button" className={styles.logout} onClick={handleLogout} aria-label="Cerrar sesión" title="Cerrar sesión">
+          <button
+            type="button"
+            className={styles.logout}
+            onClick={() => setConfirmandoSalida(true)}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            aria-haspopup="dialog"
+          >
             <LogOut size={16} />
           </button>
         </div>
       </header>
+
+      {confirmandoSalida && (
+        <DialogoConfirmacion
+          titulo="¿Cerrar sesión?"
+          mensaje="Tendrás que volver a iniciar sesión para usar el panel. Si estabas dibujando o editando una geocerca, ese cambio sin guardar se pierde."
+          icono={<LogOut size={20} />}
+          textoConfirmar="Cerrar sesión"
+          onConfirmar={handleLogout}
+          onCancelar={() => setConfirmandoSalida(false)}
+        />
+      )}
 
       <main className={styles.content}>
         <Outlet />

@@ -1,0 +1,117 @@
+.dialogoConfirmacion {
+  width: min(400px, calc(100vw - 32px));
+  max-width: none;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-h);
+  text-align: left;
+
+  &::backdrop {
+    background: var(--backdrop);
+  }
+
+  &[open] {
+    animation: aparecer 0.18s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[open] {
+      animation: none;
+    }
+  }
+
+  .tarjeta {
+    padding: 22px 22px 18px;
+  }
+
+  .icono {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+
+  .titulo {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .mensaje {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .pie {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 22px;
+
+    /* En teléfono los botones ocupan el ancho y son fáciles de tocar */
+    @media (max-width: 640px) {
+      flex-direction: column-reverse;
+    }
+  }
+
+  .secundario,
+  .peligro {
+    height: 40px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    @media (max-width: 640px) {
+      height: 44px;
+    }
+  }
+
+  .secundario {
+    border-color: var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+  }
+
+  .peligro {
+    background: var(--danger);
+    color: var(--on-primary);
+
+    &:hover {
+      filter: brightness(0.92);
+    }
+  }
+}
+
+@keyframes aparecer {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
