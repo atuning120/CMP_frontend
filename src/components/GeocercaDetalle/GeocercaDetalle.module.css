@@ -154,6 +154,76 @@
     color: var(--text-h);
   }
 
+  .sublabel {
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .distintivo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+
+  /* Réplica de la fila del listado para ver el resultado antes de guardar */
+  .vistaPrevia {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 7px 8px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-h);
+  }
+
+  .vistaPreviaNombre {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .iconos {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+  }
+
+  .icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &.iconoElegido {
+      border-color: var(--primary);
+      background: var(--selection-bg);
+      color: var(--primary);
+    }
+  }
+
   .input,
   .textarea {
     box-sizing: border-box;
@@ -248,5 +318,44 @@
   .peligro {
     background: var(--danger);
     color: var(--on-primary);
+  }
+
+  /* Teléfono: tarjeta compacta, con las acciones en una fila deslizable en vez de un menú vertical */
+  @media (max-width: 640px) {
+    gap: 8px;
+    padding: 10px 12px;
+
+    /* La fila llega a los bordes para deslizarse, pero se recorta con el radio de la tarjeta
+       (14px menos el borde) y queda sobre el padding inferior: los botones no tocan las esquinas */
+    .menu {
+      flex: none;
+      flex-direction: row;
+      gap: 6px;
+      margin: 0 -12px;
+      padding: 8px 12px 4px;
+      overflow-x: auto;
+      border-radius: 0 0 11px 11px;
+      scroll-padding-inline: 12px;
+      scrollbar-width: none;
+    }
+
+    .separador {
+      margin: 0;
+      padding: 0;
+      border-top: none;
+    }
+
+    .opcion {
+      width: auto;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .opcionPeligro {
+      border-color: var(--danger-border);
+    }
   }
 }

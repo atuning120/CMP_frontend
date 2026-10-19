@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertTriangle, ChevronRight, Layers, MapPinned, Plus, Search } from 'lucide-react'
+import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { AlertCircle, AlertTriangle, ChevronRight, GripVertical, Layers, MapPinned, Plus, Search } from 'lucide-react'
+import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
 import GeocercaDetalle from '../GeocercaDetalle/GeocercaDetalle.jsx'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
@@ -8,12 +18,71 @@ import styles from './GeocercasPanel.module.css'
 
 const NOMBRE = { area: 'área', zona: 'zona' }
 
-// "Área 51 - Chancado Primario" se muestra como número + nombre para no repetir el prefijo en cada fila
+// En "Área 51 - Chancado Primario" con código 51 el prefijo repite el distintivo, así que la fila muestra solo el resto
 const PATRON_AREA = /^área\s+(\S+)\s*[-–]\s*(.+)$/i
 
-const partesArea = (nombre) => {
-  const m = PATRON_AREA.exec(nombre)
-  return m ? { numero: m[1], nombre: m[2] } : { numero: null, nombre }
+const nombreEnLista = (area) => {
+  const m = PATRON_AREA.exec(area.nombre)
+  return m && area.codigo && m[1].toLowerCase() === area.codigo.toLowerCase() ? m[2] : area.nombre
+}
+
+const FORM_VACIO = { nombre: '', descripcion: '', codigo: '', icono: '' }
+
+// Las áreas solo se mueven en vertical, dentro de la lista
+const soloVertical = ({ transform }) => ({ ...transform, x: 0 })
+
+const nombreDe = (areas, id) => areas.find((a) => a.idArea === id)?.nombre ?? 'el área'
+
+// Textos que dnd-kit anuncia al lector de pantalla mientras se arrastra con teclado o puntero
+const accesibilidad = (areas) => ({
+  screenReaderInstructions: {
+    draggable:
+      'Para mover el área, presiona espacio o Enter, usa las flechas arriba y abajo, y vuelve a presionar espacio o Enter para soltarla. Escape cancela.',
+  },
+  announcements: {
+    onDragStart: ({ active }) => `Moviendo ${nombreDe(areas, active.id)}.`,
+    onDragOver: ({ active, over }) =>
+      over ? `${nombreDe(areas, active.id)} pasa a la posición de ${nombreDe(areas, over.id)}.` : undefined,
+    onDragEnd: ({ active, over }) =>
+      over
+        ? `${nombreDe(areas, active.id)} quedó en la posición de ${nombreDe(areas, over.id)}.`
+        : 'Se canceló el movimiento.',
+    onDragCancel: () => 'Se canceló el movimiento.',
+  },
+})
+
+/**
+ * Grupo del listado (área + sus zonas) que se puede arrastrar desde su asa. dnd-kit mueve el elemento con
+ * un transform calculado en cada cuadro, por eso es el único estilo en línea del panel.
+ */
+function GrupoOrdenable({ id, nombre, ordenable, children }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    disabled: !ordenable,
+  })
+  return (
+    <li
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className={`${styles.grupo} ${isDragging ? styles.arrastrando : ''}`}
+    >
+      {children(
+        ordenable && (
+          <button
+            ref={setActivatorNodeRef}
+            type="button"
+            className={styles.asa}
+            aria-label={`Mover ${nombre}`}
+            title="Arrastra para cambiar el orden"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical size={16} />
+          </button>
+        ),
+      )}
+    </li>
+  )
 }
 
 const normalizar = (texto) =>
@@ -28,14 +97,39 @@ const normalizar = (texto) =>
  * de su área. La geocerca seleccionada y la acción en curso se muestran en una tarjeta flotante sobre el
  * mapa (`destino`, nodo que provee la página), para que la lista conserve todo el alto del panel.
  */
-function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino, onEditando, onGuardado }) {
+function GeocercasPanel({
+  areas,
+  zonas,
+  seleccion,
+  onSeleccionar,
+  mapa,
+  destino,
+  onEditando,
+  onGuardado,
+  onVerMapa,
+  onReordenar,
+}) {
   const [accion, setAccion] = useState(null)
-  const [form, setForm] = useState({ nombre: '', descripcion: '' })
+  const [form, setForm] = useState(FORM_VACIO)
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [abiertas, setAbiertas] = useState(() => new Set())
   const [poligonoDibujado, setPoligonoDibujado] = useState(null)
+  const [errorOrden, setErrorOrden] = useState(null)
+
+  // El arrastre empieza tras mover 5px el puntero (un toque simple en el asa no hace nada); con teclado, espacio o Enter
+  const sensores = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const alSoltar = ({ active, over }) => {
+    if (!over || active.id === over.id) return
+    const ids = areas.map((a) => a.idArea)
+    setErrorOrden(null)
+    onReordenar(arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id))).catch((e) => setErrorOrden(e.message))
+  }
 
   // Al salir del modo edición no debe quedar nada a medio dibujar
   useEffect(
@@ -67,8 +161,9 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
 
   const crear = (entidad, idArea) => {
     limpiar()
-    setForm({ nombre: '', descripcion: '' })
+    setForm(FORM_VACIO)
     setAccion({ tipo: 'crear', entidad, idArea, fase: 'dibujando' })
+    onVerMapa()
     mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
   }
 
@@ -87,7 +182,12 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
 
   const editarDatos = (entidad, item) => {
     limpiar()
-    setForm({ nombre: item.nombre, descripcion: item.descripcion ?? '' })
+    setForm({
+      nombre: item.nombre,
+      descripcion: item.descripcion ?? '',
+      codigo: item.codigo ?? '',
+      icono: item.icono ?? '',
+    })
     setAccion({ tipo: 'datos', entidad, id: entidad === 'area' ? item.idArea : item.idZona })
   }
 
@@ -105,6 +205,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     if ((tipo === 'crear' || tipo === 'datos') && !form.nombre.trim()) return setError('Ingresa un nombre.')
 
     const datos = { nombre: form.nombre.trim(), descripcion: form.descripcion.trim() || null }
+    if (entidad === 'area') Object.assign(datos, { codigo: form.codigo.trim() || null, icono: form.icono || null })
     setGuardando(true)
     try {
       let nueva = seleccion
@@ -150,6 +251,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     // Un segundo clic sobre la geocerca ya seleccionada la deselecciona
     if (seleccion?.tipo === entidad && seleccion.id === id) return onSeleccionar(null)
     onSeleccionar({ tipo: entidad, id })
+    onVerMapa()
     // Una geocerca mal ubicada (lejos de la faena) no se encuadra: se redibuja sobre la mina
     if (item.poligono && !malUbicado(item.poligono)) mapa.current?.enfocar(item.poligono)
   }
@@ -183,7 +285,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     .map((a) => {
       const propias = zonasDe(a.idArea)
       if (!termino) return { area: a, zonas: propias }
-      const coincideArea = normalizar(a.nombre).includes(termino)
+      const coincideArea = normalizar(a.nombre).includes(termino) || normalizar(a.codigo) === termino
       const coincidentes = propias.filter((z) => normalizar(z.nombre).includes(termino))
       if (!coincideArea && coincidentes.length === 0) return null
       return { area: a, zonas: coincideArea ? propias : coincidentes }
@@ -192,6 +294,9 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
 
   const idAreaSeleccionada =
     seleccion?.tipo === 'area' ? seleccion.id : seleccion?.tipo === 'zona' ? buscar('zona', seleccion.id)?.idArea : null
+
+  // Con una búsqueda la lista está filtrada, y durante una acción el orden no debe cambiar bajo el formulario
+  const ordenable = !termino && !accion && areas.length > 1
 
   const estaAbierta = (idArea) => Boolean(termino) || abiertas.has(idArea) || idAreaSeleccionada === idArea
 
@@ -243,7 +348,8 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
             />
           </label>
           <p className={styles.resumen}>
-            {areas.length} {areas.length === 1 ? 'área' : 'áreas'} · {zonas.length} {zonas.length === 1 ? 'zona' : 'zonas'}
+            {areas.length} {areas.length === 1 ? 'área' : 'áreas'} · {zonas.length}{' '}
+            {zonas.length === 1 ? 'zona' : 'zonas'}
             {conProblema > 0 && (
               <span className={styles.resumenAviso}>
                 <AlertTriangle size={13} /> {conProblema} por revisar
@@ -253,69 +359,92 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
         </div>
       )}
 
-      <ul className={styles.lista}>
-        {areas.length === 0 && <li className={styles.vacio}>Aún no hay áreas. Crea la primera con “Nueva área”.</li>}
-        {areas.length > 0 && grupos.length === 0 && (
-          <li className={styles.vacio}>Ninguna área o zona coincide con “{busqueda.trim()}”.</li>
-        )}
-        {grupos.map(({ area: a, zonas: zonasArea }) => {
-          const { numero, nombre } = partesArea(a.nombre)
-          const abierta = estaAbierta(a.idArea)
-          const total = zonasDe(a.idArea).length
-          return (
-            <li key={a.idArea} className={styles.grupo}>
-              <div
-                className={`${styles.fila} ${seleccion?.tipo === 'area' && seleccion.id === a.idArea ? styles.itemActivo : ''}`}
-              >
-                <button
-                  type="button"
-                  className={`${styles.toggle} ${abierta ? styles.toggleAbierto : ''}`}
-                  onClick={() => alternar(a.idArea)}
-                  disabled={total === 0 || Boolean(termino)}
-                  aria-expanded={total > 0 ? abierta : undefined}
-                  aria-label={abierta ? `Ocultar zonas de ${a.nombre}` : `Mostrar zonas de ${a.nombre}`}
-                >
-                  {total > 0 && <ChevronRight size={16} className={styles.chevron} />}
-                </button>
-                <button type="button" className={styles.item} onClick={() => seleccionar('area', a)} title={a.nombre}>
-                  {numero ? (
-                    <span className={styles.numero}>{numero}</span>
-                  ) : (
-                    <Layers size={15} className={styles.iconoArea} />
-                  )}
-                  <span className={styles.itemNombre}>{nombre}</span>
-                  {aviso(a)}
-                  {total > 0 && (
-                    <span className={styles.conteo} title={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
-                      {total}
-                    </span>
-                  )}
-                </button>
-              </div>
-              {abierta && zonasArea.length > 0 && (
-                <ul className={styles.sublista}>
-                  {zonasArea.map((z) => (
-                    <li key={z.idZona}>
-                      <button
-                        type="button"
-                        className={`${styles.item} ${styles.itemZona} ${
-                          seleccion?.tipo === 'zona' && seleccion.id === z.idZona ? styles.itemActivo : ''
-                        }`}
-                        onClick={() => seleccionar('zona', z)}
-                        title={z.nombre}
+      {errorOrden && (
+        <p className={styles.errorOrden} role="alert">
+          <AlertCircle size={15} /> {errorOrden}
+        </p>
+      )}
+
+      <DndContext
+        sensors={sensores}
+        collisionDetection={closestCenter}
+        modifiers={[soloVertical]}
+        onDragEnd={alSoltar}
+        accessibility={accesibilidad(areas)}
+      >
+        <SortableContext items={grupos.map((g) => g.area.idArea)} strategy={verticalListSortingStrategy}>
+          <ul className={styles.lista}>
+            {areas.length === 0 && (
+              <li className={styles.vacio}>Aún no hay áreas. Crea la primera con “Nueva área”.</li>
+            )}
+            {areas.length > 0 && grupos.length === 0 && (
+              <li className={styles.vacio}>Ninguna área o zona coincide con “{busqueda.trim()}”.</li>
+            )}
+            {grupos.map(({ area: a, zonas: zonasArea }) => {
+              const abierta = estaAbierta(a.idArea)
+              const total = zonasDe(a.idArea).length
+              return (
+                <GrupoOrdenable key={a.idArea} id={a.idArea} nombre={a.nombre} ordenable={ordenable}>
+                  {(asa) => (
+                    <>
+                      <div
+                        className={`${styles.fila} ${seleccion?.tipo === 'area' && seleccion.id === a.idArea ? styles.itemActivo : ''}`}
                       >
-                        <MapPinned size={14} className={styles.iconoZona} />
-                        <span className={styles.itemNombre}>{z.nombre}</span>
-                        {aviso(z)}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          )
-        })}
-      </ul>
+                        <button
+                          type="button"
+                          className={`${styles.toggle} ${abierta ? styles.toggleAbierto : ''}`}
+                          onClick={() => alternar(a.idArea)}
+                          disabled={total === 0 || Boolean(termino)}
+                          aria-expanded={total > 0 ? abierta : undefined}
+                          aria-label={abierta ? `Ocultar zonas de ${a.nombre}` : `Mostrar zonas de ${a.nombre}`}
+                        >
+                          {total > 0 && <ChevronRight size={16} className={styles.chevron} />}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.item}
+                          onClick={() => seleccionar('area', a)}
+                          title={a.nombre}
+                        >
+                          <DistintivoArea codigo={a.codigo} icono={a.icono} />
+                          <span className={styles.itemNombre}>{nombreEnLista(a)}</span>
+                          {aviso(a)}
+                          {total > 0 && (
+                            <span className={styles.conteo} title={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
+                              {total}
+                            </span>
+                          )}
+                        </button>
+                        {asa}
+                      </div>
+                      {abierta && zonasArea.length > 0 && (
+                        <ul className={styles.sublista}>
+                          {zonasArea.map((z) => (
+                            <li key={z.idZona}>
+                              <button
+                                type="button"
+                                className={`${styles.item} ${styles.itemZona} ${
+                                  seleccion?.tipo === 'zona' && seleccion.id === z.idZona ? styles.itemActivo : ''
+                                }`}
+                                onClick={() => seleccionar('zona', z)}
+                                title={z.nombre}
+                              >
+                                <MapPinned size={14} className={styles.iconoZona} />
+                                <span className={styles.itemNombre}>{z.nombre}</span>
+                                {aviso(z)}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </GrupoOrdenable>
+              )
+            })}
+          </ul>
+        </SortableContext>
+      </DndContext>
     </aside>
   )
 }

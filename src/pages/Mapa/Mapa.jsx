@@ -5,7 +5,7 @@ import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
-import { obtenerMapa } from '../../services/geocercasService.js'
+import { obtenerMapa, reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
 import styles from './Mapa.module.css'
@@ -118,16 +118,19 @@ function Mapa() {
     return posiciones.map((p) => ({ ...p, estado: estados.get(p.maquina.idMaquina) }))
   }, [posiciones, items])
 
+  // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver lo elegido o dibujar
+  const verMapa = useCallback(() => {
+    if (!matchMedia('(max-width: 900px)').matches) return
+    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
+    seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
+  }, [])
+
   const seleccionarMaquina = (idMaquina) => {
     setSeleccion({ tipo: 'maquina', id: idMaquina })
     const posicion = posiciones.find((p) => p.maquina.idMaquina === idMaquina)
     if (posicion) {
       mapaRef.current?.enfocar(posicion.lngLat)
-      // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver la máquina elegida
-      if (matchMedia('(max-width: 900px)').matches) {
-        const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
-        seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
-      }
+      verMapa()
     }
   }
 
@@ -150,6 +153,23 @@ function Mapa() {
     if (nuevo !== modo) cambiarModo(nuevo)
     alternarPanel(false)
   }
+
+  // El listado cambia de inmediato; si el Backend rechaza el orden se recarga el vigente
+  const alReordenar = useCallback(
+    async (idsAreas) => {
+      setGeocercas((g) => {
+        const porId = new Map(g.areas.map((a) => [a.idArea, a]))
+        return { ...g, areas: idsAreas.map((id) => porId.get(id)) }
+      })
+      try {
+        await reordenarAreas(idsAreas)
+      } catch (e) {
+        await cargarGeocercas().catch(() => {})
+        throw e
+      }
+    },
+    [cargarGeocercas],
+  )
 
   const alGuardar = useCallback(
     async (nuevaSeleccion) => {
@@ -321,6 +341,8 @@ function Mapa() {
             destino={destinoDetalle}
             onEditando={setEditando}
             onGuardado={alGuardar}
+            onVerMapa={verMapa}
+            onReordenar={alReordenar}
           />
         ) : (
           <FlotaPanel

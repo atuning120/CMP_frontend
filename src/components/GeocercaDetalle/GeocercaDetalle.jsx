@@ -1,5 +1,7 @@
 import { AlertCircle, AlertTriangle, Layers, MapPinned, PencilLine, Plus, Shapes, SquareDashed, Trash2, X } from 'lucide-react'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
+import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
+import { ICONOS_AREA } from '../DistintivoArea/iconosArea.js'
 import styles from './GeocercaDetalle.module.css'
 
 const INSTRUCCIONES = {
@@ -60,10 +62,53 @@ function GeocercaDetalle({
                 value={form.nombre}
                 maxLength={100}
                 onChange={(e) => onForm((f) => ({ ...f, nombre: e.target.value }))}
-                placeholder={accion.entidad === 'area' ? 'Área 51 - Chancado Primario' : 'Tolva de alimentación'}
+                placeholder={accion.entidad === 'area' ? 'Chancado Primario' : 'Tolva de alimentación'}
                 autoFocus
               />
             </label>
+            {accion.entidad === 'area' && (
+              <fieldset className={styles.distintivo}>
+                <legend className={styles.label}>Cómo se ve en el listado</legend>
+                <div className={styles.vistaPrevia}>
+                  <DistintivoArea codigo={form.codigo.trim()} icono={form.icono} />
+                  <span className={styles.vistaPreviaNombre}>{form.nombre.trim() || 'Nombre del área'}</span>
+                </div>
+                <label className={styles.campo}>
+                  <span className={styles.sublabel}>Código (opcional, hasta 4 caracteres)</span>
+                  <input
+                    className={styles.input}
+                    value={form.codigo}
+                    maxLength={4}
+                    onChange={(e) => onForm((f) => ({ ...f, codigo: e.target.value.replace(/\s/g, '') }))}
+                    placeholder="51"
+                  />
+                </label>
+                <div className={styles.campo}>
+                  <span className={styles.sublabel}>
+                    {form.codigo.trim() ? 'Ícono (se muestra si quitas el código)' : 'Ícono'}
+                  </span>
+                  <div className={styles.iconos} role="radiogroup" aria-label="Ícono del área">
+                    {ICONOS_AREA.map(({ clave, nombre, Icono }) => {
+                      const elegido = (form.icono || 'capas') === clave
+                      return (
+                        <button
+                          key={clave}
+                          type="button"
+                          role="radio"
+                          aria-checked={elegido}
+                          aria-label={nombre}
+                          title={nombre}
+                          className={`${styles.icono} ${elegido ? styles.iconoElegido : ''}`}
+                          onClick={() => onForm((f) => ({ ...f, icono: clave === 'capas' ? '' : clave }))}
+                        >
+                          <Icono size={16} />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </fieldset>
+            )}
             <label className={styles.campo}>
               <span className={styles.label}>Descripción (opcional)</span>
               <textarea
@@ -89,7 +134,7 @@ function GeocercaDetalle({
             className={accion.tipo === 'desactivar' ? styles.peligro : styles.primario}
             disabled={guardando || accion.fase === 'dibujando'}
           >
-            {guardando ? 'Guardando…' : accion.tipo === 'desactivar' ? 'Desactivar' : 'Guardar'}
+            {guardando ? 'Guardando…' : accion.tipo === 'desactivar' ? 'Eliminar' : 'Guardar'}
           </button>
         </div>
       </form>
@@ -139,7 +184,7 @@ function GeocercaDetalle({
         </li>
         <li>
           <button type="button" className={styles.opcion} onClick={onEditarDatos}>
-            <PencilLine size={15} /> Nombre y descripción
+            <PencilLine size={15} /> {tipo === 'area' ? 'Nombre, código e ícono' : 'Nombre y descripción'}
           </button>
         </li>
         {tipo === 'area' && (
@@ -151,7 +196,7 @@ function GeocercaDetalle({
         )}
         <li className={styles.separador}>
           <button type="button" className={`${styles.opcion} ${styles.opcionPeligro}`} onClick={onDesactivar}>
-            <Trash2 size={15} /> Desactivar
+            <Trash2 size={15} /> Eliminar
           </button>
         </li>
       </ul>

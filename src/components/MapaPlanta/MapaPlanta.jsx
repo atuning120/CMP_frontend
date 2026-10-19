@@ -313,7 +313,10 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
       if (!map) return
       if (Array.isArray(objetivo)) return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5) })
       const [o, s, e, n] = bbox(objetivo)
-      map.fitBounds([[o, s], [e, n]], { padding: 80, maxZoom: 18 })
+      // En teléfono la tarjeta de la geocerca ocupa el borde inferior: se deja ese espacio libre
+      const angosto = map.getContainer().clientWidth <= 640
+      const padding = angosto ? { top: 56, bottom: 184, left: 24, right: 24 } : 80
+      map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices
     dibujar(onTerminado) {
