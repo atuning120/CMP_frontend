@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AlertTriangle, ChevronRight, Layers, MapPinned, Plus, Search } from 'lucide-react'
+import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
 import GeocercaDetalle from '../GeocercaDetalle/GeocercaDetalle.jsx'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
@@ -8,13 +9,15 @@ import styles from './GeocercasPanel.module.css'
 
 const NOMBRE = { area: 'área', zona: 'zona' }
 
-// "Área 51 - Chancado Primario" se muestra como número + nombre para no repetir el prefijo en cada fila
+// En "Área 51 - Chancado Primario" con código 51 el prefijo repite el distintivo, así que la fila muestra solo el resto
 const PATRON_AREA = /^área\s+(\S+)\s*[-–]\s*(.+)$/i
 
-const partesArea = (nombre) => {
-  const m = PATRON_AREA.exec(nombre)
-  return m ? { numero: m[1], nombre: m[2] } : { numero: null, nombre }
+const nombreEnLista = (area) => {
+  const m = PATRON_AREA.exec(area.nombre)
+  return m && area.codigo && m[1].toLowerCase() === area.codigo.toLowerCase() ? m[2] : area.nombre
 }
+
+const FORM_VACIO = { nombre: '', descripcion: '', codigo: '', icono: '' }
 
 const normalizar = (texto) =>
   (texto ?? '')
@@ -30,7 +33,7 @@ const normalizar = (texto) =>
  */
 function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino, onEditando, onGuardado }) {
   const [accion, setAccion] = useState(null)
-  const [form, setForm] = useState({ nombre: '', descripcion: '' })
+  const [form, setForm] = useState(FORM_VACIO)
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
   const [busqueda, setBusqueda] = useState('')
@@ -67,7 +70,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
 
   const crear = (entidad, idArea) => {
     limpiar()
-    setForm({ nombre: '', descripcion: '' })
+    setForm(FORM_VACIO)
     setAccion({ tipo: 'crear', entidad, idArea, fase: 'dibujando' })
     mapa.current.dibujar(() => setAccion((a) => a && { ...a, fase: 'ajustando' }))
   }
@@ -87,7 +90,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
 
   const editarDatos = (entidad, item) => {
     limpiar()
-    setForm({ nombre: item.nombre, descripcion: item.descripcion ?? '' })
+    setForm({ nombre: item.nombre, descripcion: item.descripcion ?? '', codigo: item.codigo ?? '', icono: item.icono ?? '' })
     setAccion({ tipo: 'datos', entidad, id: entidad === 'area' ? item.idArea : item.idZona })
   }
 
@@ -105,6 +108,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     if ((tipo === 'crear' || tipo === 'datos') && !form.nombre.trim()) return setError('Ingresa un nombre.')
 
     const datos = { nombre: form.nombre.trim(), descripcion: form.descripcion.trim() || null }
+    if (entidad === 'area') Object.assign(datos, { codigo: form.codigo.trim() || null, icono: form.icono || null })
     setGuardando(true)
     try {
       let nueva = seleccion
@@ -183,7 +187,7 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
     .map((a) => {
       const propias = zonasDe(a.idArea)
       if (!termino) return { area: a, zonas: propias }
-      const coincideArea = normalizar(a.nombre).includes(termino)
+      const coincideArea = normalizar(a.nombre).includes(termino) || normalizar(a.codigo) === termino
       const coincidentes = propias.filter((z) => normalizar(z.nombre).includes(termino))
       if (!coincideArea && coincidentes.length === 0) return null
       return { area: a, zonas: coincideArea ? propias : coincidentes }
@@ -259,7 +263,6 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
           <li className={styles.vacio}>Ninguna área o zona coincide con “{busqueda.trim()}”.</li>
         )}
         {grupos.map(({ area: a, zonas: zonasArea }) => {
-          const { numero, nombre } = partesArea(a.nombre)
           const abierta = estaAbierta(a.idArea)
           const total = zonasDe(a.idArea).length
           return (
@@ -278,12 +281,8 @@ function GeocercasPanel({ areas, zonas, seleccion, onSeleccionar, mapa, destino,
                   {total > 0 && <ChevronRight size={16} className={styles.chevron} />}
                 </button>
                 <button type="button" className={styles.item} onClick={() => seleccionar('area', a)} title={a.nombre}>
-                  {numero ? (
-                    <span className={styles.numero}>{numero}</span>
-                  ) : (
-                    <Layers size={15} className={styles.iconoArea} />
-                  )}
-                  <span className={styles.itemNombre}>{nombre}</span>
+                  <DistintivoArea codigo={a.codigo} icono={a.icono} />
+                  <span className={styles.itemNombre}>{nombreEnLista(a)}</span>
                   {aviso(a)}
                   {total > 0 && (
                     <span className={styles.conteo} title={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
