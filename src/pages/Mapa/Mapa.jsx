@@ -264,7 +264,9 @@ function Mapa() {
   )
 
   return (
-    <div className={`${styles.mapaPage} ${contraido ? styles.contraido : ''}`}>
+    <div
+      className={`${styles.mapaPage} ${contraido ? styles.contraido : ''} ${editando ? styles.editandoGeocerca : ''}`}
+    >
       <div id="panel-lateral-mapa" className={styles.lateral}>
         {contraido ? (
           <nav className={styles.rail} aria-label="Panel lateral contraído">

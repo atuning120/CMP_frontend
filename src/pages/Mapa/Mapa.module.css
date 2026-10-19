@@ -510,6 +510,11 @@
       grid-template-columns: minmax(0, 1fr);
     }
 
+    /* Dibujando o editando una geocerca, el mapa es lo que importa: gana casi toda la pantalla */
+    &.editandoGeocerca {
+      grid-template-rows: min(82svh, 820px) auto;
+    }
+
     .lateral {
       overflow: visible;
     }

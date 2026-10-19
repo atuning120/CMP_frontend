@@ -1,14 +1,42 @@
-import { AlertCircle, AlertTriangle, Layers, MapPinned, PencilLine, Plus, Shapes, SquareDashed, Trash2, X } from 'lucide-react'
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Layers,
+  MapPinned,
+  PencilLine,
+  Plus,
+  Shapes,
+  SquareDashed,
+  Trash2,
+  Undo2,
+  X,
+} from 'lucide-react'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
 import { ICONOS_AREA } from '../DistintivoArea/iconosArea.js'
 import styles from './GeocercaDetalle.module.css'
 
-const INSTRUCCIONES = {
-  dibujando: 'Haz clic en el mapa para agregar vértices y clic en el primero para cerrar el polígono.',
-  ajustando:
-    'Arrastra los vértices para ajustar la forma; arrastra un punto intermedio para agregar un vértice. Luego guarda.',
+const MINIMO_PUNTOS = 3
+const NOMBRE_PASO = { dibujando: 'Dibuja la forma', ajustando: 'Ajusta los bordes', datos: 'Ponle nombre' }
+const NUMERO_PASO = { dibujando: 1, ajustando: 2, datos: 3 }
+
+// En pantallas táctiles se habla de "tocar"; con mouse, de "hacer clic"
+const esTactil = () => typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+
+const instruccion = (fase, puntos) => {
+  const toca = esTactil() ? 'Toca' : 'Haz clic en'
+  if (fase === 'ajustando') {
+    return 'Arrastra los puntos para afinar los bordes. Para agregar una esquina, arrastra uno de los puntos pequeños que hay entre dos esquinas.'
+  }
+  if (puntos === 0) return `${toca} el mapa en cada esquina de la geocerca, una tras otra.`
+  if (puntos < MINIMO_PUNTOS) return `${toca} la siguiente esquina. Necesitas al menos ${MINIMO_PUNTOS} puntos.`
+  return `Sigue marcando esquinas o cierra la figura cuando termines.`
 }
+
+const textoPuntos = (puntos) => (puntos === 1 ? '1 punto' : `${puntos} puntos`)
 
 /**
  * Tarjeta flotante sobre el mapa con la geocerca seleccionada o la acción en curso (crear, editar
@@ -31,13 +59,48 @@ function GeocercaDetalle({
   onEditarDatos,
   onNuevaZona,
   onDesactivar,
+  puntos = 0,
+  onDeshacerPunto,
+  onCerrarFigura,
+  onVolverADibujar,
+  onContinuar,
+  onAtras,
 }) {
   if (accion) {
+    const enForma = accion.tipo === 'crear' || accion.tipo === 'forma'
+    // Al crear, "Guardar" llega en el paso de datos; al editar la forma, apenas se ajusta
+    const pideDatos = accion.tipo === 'datos' || (accion.tipo === 'crear' && accion.fase === 'datos')
+    const paso = enForma && accion.pasos > 1 ? NUMERO_PASO[accion.fase] : null
+
     return (
       <form className={`${styles.geocercaDetalle} ${styles.enEdicion}`} onSubmit={onGuardar}>
+        <header className={styles.cabecera}>
+          {paso ? (
+            <span className={styles.tipo}>
+              Paso {paso} de {accion.pasos} · {NOMBRE_PASO[accion.fase]}
+            </span>
+          ) : (
+            <span />
+          )}
+          <button type="button" className={styles.cerrar} onClick={onCancelar} disabled={guardando} aria-label="Cancelar">
+            <X size={16} />
+          </button>
+        </header>
         <h3 className={styles.nombre}>{titulo}</h3>
-        {(accion.tipo === 'crear' || accion.tipo === 'forma') && (
-          <p className={styles.ayuda}>{INSTRUCCIONES[accion.fase]}</p>
+        {paso && (
+          <ol className={styles.pasos} aria-hidden="true">
+            {Array.from({ length: accion.pasos }, (_, i) => (
+              <li key={i} className={`${styles.barraPaso} ${i < paso ? styles.barraPasoHecho : ''}`} />
+            ))}
+          </ol>
+        )}
+
+        {enForma && accion.fase !== 'datos' && <p className={styles.ayuda}>{instruccion(accion.fase, puntos)}</p>}
+        {enForma && accion.fase === 'dibujando' && (
+          <p className={`${styles.contador} ${puntos >= MINIMO_PUNTOS ? styles.contadorListo : ''}`} aria-live="polite">
+            {puntos === 0 ? 'Aún no hay puntos' : textoPuntos(puntos)}
+            {puntos >= MINIMO_PUNTOS && ' · ya puedes cerrar la figura'}
+          </p>
         )}
         {dibujoFuera && (
           <p className={styles.alerta} role="status">
@@ -53,7 +116,7 @@ function GeocercaDetalle({
               : 'La zona dejará de mostrarse y de estar disponible al iniciar turno. Queda registrado en la auditoría.'}
           </p>
         )}
-        {(accion.tipo === 'datos' || (accion.tipo === 'crear' && accion.fase === 'ajustando')) && (
+        {pideDatos && (
           <>
             <label className={styles.campo}>
               <span className={styles.label}>Nombre</span>
@@ -126,16 +189,55 @@ function GeocercaDetalle({
           </p>
         )}
         <div className={styles.pie}>
-          <button type="button" className={styles.secundario} onClick={onCancelar} disabled={guardando}>
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className={accion.tipo === 'desactivar' ? styles.peligro : styles.primario}
-            disabled={guardando || accion.fase === 'dibujando'}
-          >
-            {guardando ? 'Guardando…' : accion.tipo === 'desactivar' ? 'Eliminar' : 'Guardar'}
-          </button>
+          {accion.fase === 'dibujando' ? (
+            <>
+              <button type="button" className={styles.secundario} onClick={onDeshacerPunto} disabled={puntos === 0}>
+                <Undo2 size={15} /> Deshacer punto
+              </button>
+              <button
+                type="button"
+                className={styles.primario}
+                onClick={onCerrarFigura}
+                disabled={puntos < MINIMO_PUNTOS}
+              >
+                <Check size={15} /> Cerrar figura
+              </button>
+            </>
+          ) : accion.fase === 'ajustando' ? (
+            <>
+              <button type="button" className={styles.secundario} onClick={onVolverADibujar} disabled={guardando}>
+                <SquareDashed size={15} /> Volver a dibujar
+              </button>
+              {accion.tipo === 'crear' ? (
+                <button type="button" className={styles.primario} onClick={onContinuar}>
+                  Continuar <ArrowRight size={15} />
+                </button>
+              ) : (
+                <button type="submit" className={styles.primario} disabled={guardando}>
+                  {guardando ? 'Guardando…' : 'Guardar'}
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {accion.tipo === 'crear' ? (
+                <button type="button" className={styles.secundario} onClick={onAtras} disabled={guardando}>
+                  <ArrowLeft size={15} /> Atrás
+                </button>
+              ) : (
+                <button type="button" className={styles.secundario} onClick={onCancelar} disabled={guardando}>
+                  Cancelar
+                </button>
+              )}
+              <button
+                type="submit"
+                className={accion.tipo === 'desactivar' ? styles.peligro : styles.primario}
+                disabled={guardando}
+              >
+                {guardando ? 'Guardando…' : accion.tipo === 'desactivar' ? 'Eliminar' : 'Guardar'}
+              </button>
+            </>
+          )}
         </div>
       </form>
     )
