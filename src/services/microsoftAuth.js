@@ -15,6 +15,8 @@ const MENSAJES_ERROR = {
   CUENTA_YA_VINCULADA: 'Tu correo ya está asociado a otra cuenta de Microsoft. Contacta a un administrador.',
   MICROSOFT_NO_CONFIGURADO: 'El inicio de sesión con Microsoft aún no está disponible.',
   TOKEN_INVALIDO: 'No se pudo validar tu cuenta de Microsoft. Intenta nuevamente.',
+  MICROSOFT_NO_DISPONIBLE: 'No se pudo validar tu cuenta con Microsoft en este momento. Intenta nuevamente en unos minutos.',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos de inicio de sesión. Espera unos minutos e intenta nuevamente.',
 }
 
 // MSAL se descarga e inicializa al abrir el login, no al hacer clic: si el clic tuviera que esperar

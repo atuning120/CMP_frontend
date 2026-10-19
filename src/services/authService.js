@@ -6,6 +6,7 @@ const MENSAJES_ERROR = {
   DATOS_INCOMPLETOS: 'Ingresa tu correo corporativo y tu contraseña para continuar.',
   CREDENCIALES_INVALIDAS: 'Correo o contraseña incorrectos.',
   SIN_ACCESO_WEB: 'Tu usuario no tiene acceso al panel web.',
+  DEMASIADOS_INTENTOS: 'Demasiados intentos fallidos. Espera unos minutos e intenta nuevamente.',
 }
 
 export class AuthError extends Error {}
