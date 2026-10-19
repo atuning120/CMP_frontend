@@ -57,6 +57,9 @@ export const MOTIVOS_POR_ESTADO = {
   BAJA: MOTIVOS_DESHABILITAR,
 }
 
+// Al devolver la máquina original (vuelve de la reparación) y sacar a su respaldo
+export const MOTIVOS_DEVOLUCION = ['Reparación finalizada', 'Mantención finalizada', 'Revisión aprobada', 'Otro']
+
 export const MOTIVOS_REEMPLAZO = [
   'Falla mecánica',
   'Falla eléctrica',

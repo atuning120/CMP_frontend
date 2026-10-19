@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Activity, AlertCircle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck } from 'lucide-react'
+import { Activity, AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
 import {
   listarMarcasMaquina,
@@ -8,7 +8,7 @@ import {
   listarTiposMaquina,
   obtenerFlota,
 } from '../../services/flotaService.js'
-import { ESTADOS_MAQUINA, estadoDe, sinOperador } from './estados.js'
+import { conRegreso, ESTADOS_MAQUINA, estadoDe, regresoVencido, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
 
 // Un filtro por estado más "Sin operador", que se combina con cualquiera de ellos
@@ -20,6 +20,10 @@ const FILTROS = [
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' })
+const formatoFechaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+// Se reemplaza una máquina que opera o que salió de operación por una falla; una en reserva no tiene a quién cubrir
+const reemplazable = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubreA
 
 const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
 
@@ -36,6 +40,8 @@ function Flota() {
   const [busqueda, setBusqueda] = useState('')
   const [accion, setAccion] = useState(null)
   const [aviso, setAviso] = useState(null)
+  // Momento de la última carga de la flota: para marcar los regresos vencidos (no hace falta que avance en vivo)
+  const [ahora, setAhora] = useState(() => Date.now())
 
   // Flota y catálogos de los formularios (tipos, marcas, modelos y operadores asignables)
   const cargar = useCallback(async () => {
@@ -56,6 +62,7 @@ function Flota() {
         if (!vigente) return
         setFlota(maquinas)
         setCatalogos(c)
+        setAhora(Date.now())
       })
       .catch((e) => vigente && setError(e.message))
       .finally(() => vigente && setCargando(false))
@@ -65,6 +72,8 @@ function Flota() {
   }, [cargar])
 
   const conteos = useMemo(() => Object.fromEntries(FILTROS.map((f) => [f.id, flota.filter(f.incluye).length])), [flota])
+  // Ya pasó su regreso estimado y sigue en mantenimiento o fuera de servicio: el jefe de turno debe hacer seguimiento
+  const atrasadas = useMemo(() => flota.filter((m) => regresoVencido(m, ahora)), [flota, ahora])
 
   const visibles = useMemo(() => {
     const texto = busqueda.trim().toLowerCase()
@@ -81,6 +90,7 @@ function Flota() {
     const { maquinas, catalogos: c } = await cargar()
     setFlota(maquinas)
     setCatalogos(c)
+    setAhora(Date.now())
     setAccion(null)
     setAviso(mensaje)
   }
@@ -106,6 +116,15 @@ function Flota() {
           <button type="button" className={styles.cerrarAviso} onClick={() => setAviso(null)} aria-label="Cerrar aviso">
             ×
           </button>
+        </p>
+      )}
+
+      {atrasadas.length > 0 && (
+        <p className={styles.atrasadas} role="status">
+          <AlertTriangle size={16} />
+          {atrasadas.length === 1
+            ? `${atrasadas[0].nombre} pasó su regreso estimado y sigue sin volver a operar.`
+            : `${atrasadas.length} máquinas pasaron su regreso estimado y siguen sin volver: ${atrasadas.map((m) => m.nombre).join(', ')}.`}
         </p>
       )}
 
@@ -172,7 +191,7 @@ function Flota() {
             )}
             {visibles.map((m) => {
               const estado = estadoDe(m)
-              const fuera = estado.valor === 'BAJA'
+              const vencido = regresoVencido(m, ahora)
               return (
                 <tr key={m.idMaquina} className={styles.fila}>
                   <td className={styles.td}>
@@ -207,9 +226,16 @@ function Flota() {
                     {estado.valor !== 'ACTIVA' && m.motivoEstado && (
                       <span className={styles.secundario}>
                         {m.motivoEstado.motivo} · {formatoFecha.format(new Date(m.motivoEstado.fecha))}
-                        {m.motivoEstado.reemplazadaPor && ` · por ${m.motivoEstado.reemplazadaPor}`}
                       </span>
                     )}
+                    {m.regresoEstimado && conRegreso(m.estado) && (
+                      <span className={vencido ? styles.regresoVencido : styles.secundario}>
+                        {vencido ? 'Regreso vencido: ' : 'Vuelve: '}
+                        {formatoFechaHora.format(new Date(m.regresoEstimado))}
+                      </span>
+                    )}
+                    {m.respaldo && <span className={styles.secundario}>Cubierta por {m.respaldo.nombre}</span>}
+                    {m.cubreA && <span className={styles.respaldoDe}>Respaldo de {m.cubreA.nombre}</span>}
                   </td>
                   <td className={`${styles.td} ${styles.acciones}`}>
                     <div className={styles.botones}>
@@ -231,16 +257,26 @@ function Flota() {
                         <Activity size={15} />
                         <span className={styles.accionTexto}>Estado</span>
                       </button>
-                      {/* Solo se reemplaza una máquina que ya está fuera de servicio */}
-                      {fuera && (
+                      {reemplazable(m) && (
                         <button
                           type="button"
                           className={styles.accion}
                           onClick={() => setAccion({ tipo: 'reemplazar', maquina: m })}
-                          title="Reemplazar por otra máquina"
+                          title="Otra máquina toma su lugar mientras se repara"
                         >
                           <ArrowLeftRight size={15} />
                           <span className={styles.accionTexto}>Reemplazar</span>
+                        </button>
+                      )}
+                      {m.respaldo && (
+                        <button
+                          type="button"
+                          className={styles.accion}
+                          onClick={() => setAccion({ tipo: 'devolver', maquina: m })}
+                          title={`Vuelve a operar y ${m.respaldo.nombre} vuelve a su estado anterior`}
+                        >
+                          <Undo2 size={15} />
+                          <span className={styles.accionTexto}>Devolver</span>
                         </button>
                       )}
                     </div>

@@ -1,4 +1,18 @@
-import { Activity, AlarmClockOff, Ban, CircleCheck, CirclePlus, Clock, MapPin, Pencil, Play, RefreshCw, Square } from 'lucide-react'
+import {
+  Activity,
+  AlarmClockOff,
+  Ban,
+  CircleCheck,
+  CirclePlus,
+  Clock,
+  MapPin,
+  Pencil,
+  Play,
+  RefreshCw,
+  Square,
+  Undo2,
+  UserCheck,
+} from 'lucide-react'
 import { formatearFecha } from '../../pages/Historial/fechas.js'
 import { ESTADOS_MAQUINA } from '../../pages/Flota/estados.js'
 import styles from './HistorialEvento.module.css'
@@ -12,6 +26,7 @@ const PRESENTACION = {
   DESHABILITAR: { icono: Ban, verbo: 'deshabilitó', tono: 'peligro' },
   CAMBIAR_ESTADO: { icono: Activity, verbo: 'cambió el estado de', tono: 'primario' },
   REEMPLAZAR: { icono: RefreshCw, verbo: 'reemplazó', tono: 'aviso' },
+  DEVOLVER: { icono: Undo2, verbo: 'devolvió a operación', tono: 'exito' },
 }
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
@@ -39,6 +54,11 @@ function HistorialEvento({ evento }) {
   const Icono = horaTermino ? Square : presentacion.icono
   const tono = horaTermino ? 'peligro' : presentacion.tono
   const reemplazadaPor = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.entrante) : null
+  // Reemplazo: cómo quedó la saliente (los registros antiguos no lo traen). Devolución: el respaldo que sale
+  const estadoSaliente = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.despues?.estado) : null
+  const respaldoDevuelto = evento.tipo === 'DEVOLVER' ? texto(detalle?.respaldo) : null
+  // Turno cerrado por un jefe de turno en nombre del operador (falla de la máquina, mantención)
+  const cerradoPor = esTurno ? texto(detalle?.cerradoPor) : null
   // Cambio de estado: a cuál pasó (los registros antiguos de habilitar/deshabilitar no lo traen)
   const estadoNuevo =
     evento.tipo === 'CAMBIAR_ESTADO' || evento.tipo === 'HABILITAR' ? texto(detalle?.despues?.estado) : null
@@ -66,12 +86,25 @@ function HistorialEvento({ evento }) {
             </>
           )}
           {estadoNuevo && ` a ${etiquetaEstado(estadoNuevo).toLowerCase()}`}
+          {estadoSaliente && ` · queda ${etiquetaEstado(estadoSaliente).toLowerCase()}`}
+          {respaldoDevuelto && (
+            <>
+              {' · sale el respaldo '}
+              <strong className={styles.maquina}>{respaldoDevuelto}</strong>
+            </>
+          )}
         </p>
 
-        {(evento.motivo || cierreAutomatico) && (
+        {(evento.motivo || cierreAutomatico || cerradoPor) && (
           <p className={styles.etiquetas}>
             {evento.motivo && <span className={styles.motivo}>{evento.motivo}</span>}
-            {cierreAutomatico && (
+            {cerradoPor && (
+              <span className={styles.cierreAuto}>
+                <UserCheck size={12} /> Cerrado por {cerradoPor}
+                {texto(detalle?.motivoCierre) ? `: ${detalle.motivoCierre}` : ''}
+              </span>
+            )}
+            {cierreAutomatico && !cerradoPor && (
               <span className={styles.cierreAuto}>
                 <AlarmClockOff size={12} /> Cierre automático (superó la duración máxima)
               </span>

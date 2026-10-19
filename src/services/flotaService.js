@@ -38,12 +38,23 @@ export const crearMaquina = (datos) => enviar('POST', '/maquinas', datos)
 // Ficha completa + motivo. idOperador null deja la máquina sin operador
 export const editarMaquina = (idMaquina, datos) => enviar('PATCH', `/maquinas/${idMaquina}`, datos)
 
-// Habilitar / deshabilitar: el mismo PATCH enviando solo el estado
-export const cambiarEstadoMaquina = (idMaquina, estado, motivo, observacion) =>
-  enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion })
+// Habilitar / deshabilitar: el mismo PATCH enviando solo el estado. regresoEstimado (ISO) solo en mantenimiento
+// o fuera de servicio; undefined no lo toca
+export const cambiarEstadoMaquina = (idMaquina, estado, motivo, observacion, regresoEstimado) =>
+  enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion, regresoEstimado })
 
-// La entrante es de la flota (idMaquinaEntrante) o nueva (maquinaNueva). Sin idOperador, pasa el de la saliente
+// La entrante es de la flota (idMaquinaEntrante) o nueva (maquinaNueva). Sin idOperador, pasa el de la saliente.
+// estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO
 export const reemplazarMaquina = (idSaliente, datos) => enviar('POST', `/maquinas/${idSaliente}/reemplazo`, datos)
+
+// La original vuelve a operar con el operador de su respaldo, y el respaldo vuelve a su estado anterior
+export const devolverMaquina = (idMaquina, motivo, observacion) =>
+  enviar('POST', `/maquinas/${idMaquina}/devolucion`, { motivo, observacion })
+
+// Cierra el turno en curso de la máquina en nombre del operador (para sacarla de operación). El horómetro final
+// lo obtiene el jefe de turno en terreno o por radio
+export const cerrarTurnoDeMaquina = (idMaquina, horometroFinal, motivo) =>
+  enviar('POST', `/turnos/maquina/${idMaquina}/cierre`, { horometroFinal, motivo })
 
 export const listarOperadoresAsignables = () => apiJson('/maquinas/operadores')
 export const listarModelosMaquina = () => apiJson('/modelos-maquina')

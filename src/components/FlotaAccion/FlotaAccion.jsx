@@ -1,15 +1,23 @@
 import { useMemo, useState } from 'react'
-import { Activity, AlertCircle, ClipboardList, Info, Truck } from 'lucide-react'
+import { Activity, AlertCircle, AlertTriangle, ClipboardList, Info, Truck } from 'lucide-react'
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import SelectorEstado from '../SelectorEstado/SelectorEstado.jsx'
 import {
   cambiarEstadoMaquina,
+  cerrarTurnoDeMaquina,
   crearMaquina,
+  devolverMaquina,
   editarMaquina,
   reemplazarMaquina,
 } from '../../services/flotaService.js'
-import { MOTIVOS_EDICION, MOTIVOS_INCORPORACION, MOTIVOS_POR_ESTADO, MOTIVOS_REEMPLAZO } from '../../pages/Flota/motivos.js'
-import { ESTADOS_MAQUINA, estadoDe } from '../../pages/Flota/estados.js'
+import {
+  MOTIVOS_DEVOLUCION,
+  MOTIVOS_EDICION,
+  MOTIVOS_INCORPORACION,
+  MOTIVOS_POR_ESTADO,
+  MOTIVOS_REEMPLAZO,
+} from '../../pages/Flota/motivos.js'
+import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado } from '../../pages/Flota/estados.js'
 import styles from './FlotaAccion.module.css'
 
 const FICHA_VACIA = {
@@ -67,6 +75,74 @@ const huella = (f, operador, estado) =>
   ])
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
+
+// <input type="datetime-local"> trabaja en hora local sin zona: 'YYYY-MM-DDTHH:mm'
+const aLocal = (fecha) => {
+  const d = new Date(fecha)
+  const dos = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`
+}
+const aIso = (local) => (local ? new Date(local).toISOString() : null)
+
+// Respaldos posibles en un reemplazo (como en la app): no en mantenimiento ni cubriendo ya a otra. Primero los de
+// respaldo (en reserva o fuera de servicio), que quedan operativos al entrar
+const ESTADOS_RESPALDO = ['EN_RESERVA', 'BAJA', 'ACTIVA', 'BAJO_OBSERVACION']
+
+/** Fecha estimada de regreso de una máquina en mantenimiento o fuera de servicio (opcional). */
+function CampoRegreso({ valor, onCambio, nombre }) {
+  // Se fija al abrir el formulario: no hace falta que avance mientras se llena
+  const [minimo] = useState(() => aLocal(Date.now()))
+  return (
+    <label className={styles.campo}>
+      <span className={styles.label}>Regreso estimado (opcional)</span>
+      <input
+        className={styles.input}
+        type="datetime-local"
+        min={minimo}
+        value={valor}
+        onChange={(e) => onCambio(e.target.value)}
+      />
+      <span className={styles.ayuda}>
+        Cuándo se espera que {nombre} vuelva a operar. Si se cumple y sigue sin volver, la flota lo marca para seguimiento.
+      </span>
+    </label>
+  )
+}
+
+/**
+ * La máquina tiene un turno en curso: para sacarla de operación el jefe de turno lo cierra en nombre del operador,
+ * con el horómetro final que le dicta por radio. El cierre usa el mismo motivo de la acción.
+ */
+function CierreTurno({ maquina, horometro, onCambio }) {
+  return (
+    <div className={styles.cierreTurno}>
+      <p className={styles.cierreTurnoTexto}>
+        <AlertTriangle size={16} className={styles.avisoIcono} />
+        <span>
+          <strong>{maquina.nombre}</strong> tiene un turno en curso de <strong>{maquina.operadorActual}</strong>
+          {maquina.ubicacionActual ? ` en ${maquina.ubicacionActual}` : ''}. Para continuar, se cerrará ese turno: pídele
+          al operador el horómetro final por radio.
+        </span>
+      </p>
+      <label className={styles.campo}>
+        <span className={styles.label}>Horómetro final del turno (h) *</span>
+        <input
+          className={styles.input}
+          type="number"
+          inputMode="decimal"
+          min={maquina.horometroActual ?? 0}
+          step="0.1"
+          value={horometro}
+          onChange={(e) => onCambio(e.target.value)}
+          required
+        />
+        {maquina.horometroActual !== null && (
+          <span className={styles.ayuda}>Al iniciar el turno marcaba {formatoHoras.format(maquina.horometroActual)} h.</span>
+        )}
+      </label>
+    </div>
+  )
+}
 
 const etiquetaOperador = (op, idMaquina) =>
   `${op.nombre} · ${op.rut}${op.maquinaAsignada && op.maquinaAsignada.idMaquina !== idMaquina ? ` (hoy en ${op.maquinaAsignada.nombre})` : ''}`
@@ -196,7 +272,7 @@ function CampoOperador({ valor, onCambio, operadores, maquina, conMantener }) {
 
 /**
  * Formularios de gestión de la flota en un panel lateral. accion: { tipo, maquina? } con tipo
- * 'incorporar' | 'editar' | 'estado' | 'reemplazar'. Al guardar llama onGuardado(mensaje).
+ * 'incorporar' | 'editar' | 'estado' | 'reemplazar' | 'devolver'. Al guardar llama onGuardado(mensaje).
  */
 function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const { tipo, maquina } = accion
@@ -218,6 +294,27 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const [observacion, setObservacion] = useState('')
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  // Reemplazo: cómo queda la saliente. Si ya estaba fuera de servicio lo conserva; si no, va a mantenimiento
+  const [estadoSaliente, setEstadoSaliente] = useState(() => (maquina?.estado === 'BAJA' ? 'BAJA' : 'EN_MANTENIMIENTO'))
+  const regresoInicial = maquina?.regresoEstimado ? aLocal(maquina.regresoEstimado) : ''
+  const [regreso, setRegreso] = useState(tipo === 'editar' ? regresoInicial : '')
+  const [horometroCierre, setHorometroCierre] = useState('')
+  // Si la acción falla después de cerrar el turno, al reintentar no se vuelve a cerrar
+  const [turnoCerrado, setTurnoCerrado] = useState(false)
+
+  // Devolver: el respaldo que cubre a la máquina (sus datos vienen de la flota)
+  const respaldo = tipo === 'devolver' ? flota.find((m) => m.idMaquina === maquina.respaldo?.idMaquina) : null
+  // Estado al que queda la máquina tras la acción (para el regreso estimado y el cierre del turno)
+  const estadoDestino = { estado: nuevoEstado, editar: estadoEditado, reemplazar: estadoSaliente }[tipo] ?? null
+  const pideRegreso = estadoDestino !== null && conRegreso(estadoDestino)
+  // La máquina cuyo turno en curso hay que cerrar antes de sacarla de operación
+  const conTurno = tipo === 'devolver' ? respaldo : maquina
+  const sacaDeOperacion =
+    tipo === 'reemplazar' ||
+    tipo === 'devolver' ||
+    (tipo === 'estado' && nuevoEstado && !operaEnEstado(nuevoEstado)) ||
+    (cambiaEstado && !operaEnEstado(estadoEditado))
+  const pideCierre = Boolean(sacaDeOperacion && conTurno?.operadorActual && !turnoCerrado)
 
   const motivos = {
     incorporar: MOTIVOS_INCORPORACION,
@@ -225,6 +322,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     editar: cambiaEstado ? (MOTIVOS_POR_ESTADO[estadoEditado] ?? []) : MOTIVOS_EDICION,
     estado: MOTIVOS_POR_ESTADO[nuevoEstado] ?? [],
     reemplazar: MOTIVOS_REEMPLAZO,
+    devolver: MOTIVOS_DEVOLUCION,
   }[tipo]
 
   const titulo = {
@@ -232,11 +330,15 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     editar: `Editar ${maquina?.nombre}`,
     estado: `Cambiar estado de ${maquina?.nombre}`,
     reemplazar: `Reemplazar ${maquina?.nombre}`,
+    devolver: `Devolver ${maquina?.nombre} a operación`,
   }[tipo]
 
-  // Candidatas a entrar en un reemplazo: operativas, distintas de la saliente
+  // Candidatas a entrar en un reemplazo: pueden trabajar, no cubren ya a otra y no son la saliente
   const candidatas = useMemo(
-    () => flota.filter((m) => m.estado !== 'BAJA' && m.idMaquina !== maquina?.idMaquina),
+    () =>
+      flota
+        .filter((m) => ESTADOS_RESPALDO.includes(m.estado) && !m.cubreA && m.idMaquina !== maquina?.idMaquina)
+        .sort((a, b) => ESTADOS_RESPALDO.indexOf(a.estado) - ESTADOS_RESPALDO.indexOf(b.estado)),
     [flota, maquina],
   )
 
@@ -255,14 +357,30 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
       if (faltante) return setError(`Falta ${faltante[1]}.`)
       if (ficha.anio !== '' && String(ficha.anio).length !== 4) return setError('El año de fabricación debe tener 4 dígitos.')
       const original = huella(fichaDe(maquina), String(maquina.operadorAsignado?.idOperador ?? ''), estadoActual.valor)
-      if (huella(ficha, operador, estadoEditado) === original) return setError('No hay cambios que guardar.')
+      const cambiaRegreso = pideRegreso && regreso !== regresoInicial
+      if (huella(ficha, operador, estadoEditado) === original && !cambiaRegreso) return setError('No hay cambios que guardar.')
     }
     if (!motivo) return setError('Elige el motivo: queda registrado en la bitácora.')
+    if (pideRegreso && regreso && new Date(regreso).getTime() <= Date.now()) {
+      return setError('El regreso estimado debe ser una fecha futura.')
+    }
+    const horometro = Number(horometroCierre)
+    if (pideCierre && (horometroCierre === '' || !Number.isFinite(horometro))) {
+      return setError(`Ingresa el horómetro final del turno de ${conTurno.operadorActual}.`)
+    }
     const justificacion = { motivo, observacion: observacion.trim() || null }
     const idOperador = operador === '' ? null : Number(operador)
+    // undefined = no se envía (no cambia); '' = se borra
+    const regresoEstimado = pideRegreso ? aIso(regreso) : undefined
 
     setGuardando(true)
+    let cerroTurno = false
     try {
+      if (pideCierre) {
+        await cerrarTurnoDeMaquina(conTurno.idMaquina, horometro, motivo)
+        cerroTurno = true
+        setTurnoCerrado(true)
+      }
       if (tipo === 'incorporar') {
         const nueva = await crearMaquina({ ...datosFicha(ficha, true), idOperador, ...justificacion })
         await onGuardado(`${nueva.nombre} se incorporó a la flota.`)
@@ -271,6 +389,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           ...datosFicha(ficha, false),
           idOperador,
           ...(cambiaEstado ? { estado: estadoEditado } : {}),
+          ...(pideRegreso && regreso !== regresoInicial ? { regresoEstimado } : {}),
           ...justificacion,
         })
         const nombre = ficha.nombre.trim().toUpperCase()
@@ -280,8 +399,17 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             : `Se guardaron los cambios de ${nombre}.`,
         )
       } else if (tipo === 'estado') {
-        await cambiarEstadoMaquina(maquina.idMaquina, nuevoEstado, justificacion.motivo, justificacion.observacion)
+        await cambiarEstadoMaquina(
+          maquina.idMaquina,
+          nuevoEstado,
+          justificacion.motivo,
+          justificacion.observacion,
+          regresoEstimado ?? undefined,
+        )
         await onGuardado(`${maquina.nombre} quedó ${destino.etiqueta.toLowerCase()}.`)
+      } else if (tipo === 'devolver') {
+        const { respaldo: devuelto } = await devolverMaquina(maquina.idMaquina, justificacion.motivo, justificacion.observacion)
+        await onGuardado(`${maquina.nombre} volvió a operar; ${devuelto.nombre} quedó ${estadoDe(devuelto).etiqueta.toLowerCase()}.`)
       } else {
         if (entrante.origen === 'flota' && !entrante.idMaquina) {
           setGuardando(false)
@@ -293,13 +421,16 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             : { maquinaNueva: datosFicha(ficha, true) }),
           // Sin idOperador, el operador de la saliente pasa a la entrante
           ...(operador === 'mantener' ? {} : { idOperador }),
+          estadoSaliente,
+          ...(regresoEstimado ? { regresoEstimado } : {}),
           ...justificacion,
         }
         const { entrante: nueva } = await reemplazarMaquina(maquina.idMaquina, datos)
         await onGuardado(`${nueva.nombre} tomó el lugar de ${maquina.nombre}.`)
       }
     } catch (e) {
-      setError(e.message)
+      // El turno pudo quedar cerrado aunque la acción fallara: al reintentar ya no se pide el horómetro
+      setError(cerroTurno ? `El turno de ${conTurno.operadorActual} quedó cerrado, pero: ${e.message}` : e.message)
       setGuardando(false)
     }
   }
@@ -307,8 +438,9 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const textoConfirmar = {
     incorporar: 'Incorporar',
     editar: 'Guardar cambios',
-    estado: 'Cambiar estado',
-    reemplazar: 'Reemplazar',
+    estado: pideCierre ? 'Cerrar turno y cambiar estado' : 'Cambiar estado',
+    reemplazar: pideCierre ? 'Cerrar turno y reemplazar' : 'Reemplazar',
+    devolver: pideCierre ? 'Cerrar turno y devolver' : 'Devolver',
   }[tipo]
 
   return (
@@ -320,7 +452,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         texto: guardando ? 'Guardando…' : textoConfirmar,
         form: 'flota-accion',
         // Sacar una máquina de servicio va en ámbar, como en la app
-        variante: deshabilitar || tipo === 'reemplazar' || (cambiaEstado && estadoEditado === 'BAJA') ? 'ambar' : 'primario',
+        variante: deshabilitar || tipo === 'reemplazar' || pideCierre || (cambiaEstado && estadoEditado === 'BAJA') ? 'ambar' : 'primario',
         ocupado: guardando,
       }}
     >
@@ -343,20 +475,52 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             {nuevoEstado && (
               <p className={styles.aviso}>
                 <Info size={16} className={styles.avisoIcono} />
-                {deshabilitar
-                  ? 'La máquina dejará de estar disponible para iniciar turnos y podrá reemplazarse. No se puede si tiene un turno en curso.'
-                  : 'La máquina queda disponible para iniciar turnos.'}
+                {operaEnEstado(nuevoEstado)
+                  ? 'La máquina queda disponible para iniciar turnos.'
+                  : 'La máquina dejará de estar disponible para iniciar turnos. Si necesitas que otra la cubra, usa "Reemplazar".'}
               </p>
             )}
+            {pideRegreso && <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />}
           </>
+        )}
+
+        {tipo === 'devolver' && respaldo && (
+          <p className={styles.aviso}>
+            <Info size={16} className={styles.avisoIcono} />
+            {maquina.nombre} vuelve a operar
+            {respaldo.operadorAsignado ? ` con ${respaldo.operadorAsignado.nombre}` : ''}, y {respaldo.nombre} vuelve a
+            quedar {(ESTADOS_MAQUINA.find((e) => e.valor === maquina.respaldo.estadoAlDevolver)?.etiqueta ?? 'en reserva').toLowerCase()}.
+          </p>
         )}
 
         {tipo === 'reemplazar' && (
           <>
             <p className={styles.aviso}>
               <Info size={16} className={styles.avisoIcono} />
-              {maquina.nombre} está fuera de servicio: otra máquina tomará su lugar y su operador.
+              Otra máquina toma el lugar de {maquina.nombre} y su operador. Cuando {maquina.nombre} vuelva, usa
+              "Devolver" para dejar todo como estaba.
             </p>
+            <fieldset className={styles.fieldset}>
+              <legend className={styles.label}>Cómo queda {maquina.nombre}</legend>
+              <div className={styles.segmentado}>
+                {[
+                  ['EN_MANTENIMIENTO', 'En mantenimiento'],
+                  ['BAJA', 'Fuera de servicio'],
+                ].map(([valor, texto]) => (
+                  <label key={valor} className={`${styles.segmento} ${estadoSaliente === valor ? styles.segmentoActivo : ''}`}>
+                    <input
+                      type="radio"
+                      name="estadoSaliente"
+                      className={styles.radio}
+                      checked={estadoSaliente === valor}
+                      onChange={() => setEstadoSaliente(valor)}
+                    />
+                    {texto}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />
             <fieldset className={styles.fieldset}>
               <legend className={styles.label}>Máquina que entra</legend>
               <div className={styles.segmentado}>
@@ -387,6 +551,13 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
                   {candidatas.map((m) => (
                     <option key={m.idMaquina} value={m.idMaquina}>
                       {m.nombre} · {[m.tipoMaquina, m.modelo].filter(Boolean).join(' ')}
+                      {m.estado === 'EN_RESERVA'
+                        ? ' (en reserva)'
+                        : m.estado === 'BAJA'
+                          ? ' (fuera de servicio: queda operativa)'
+                          : m.operadorActual
+                            ? ` (en turno: ${m.operadorActual})`
+                            : ''}
                     </option>
                   ))}
                 </select>
@@ -419,11 +590,12 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
               {cambiaEstado && (
                 <p className={styles.aviso}>
                   <Info size={16} className={styles.avisoIcono} />
-                  {estadoEditado === 'BAJA'
-                    ? 'La máquina dejará de estar disponible para iniciar turnos y podrá reemplazarse. No se puede si tiene un turno en curso.'
-                    : 'La máquina queda disponible para iniciar turnos.'}
+                  {operaEnEstado(estadoEditado)
+                    ? 'La máquina queda disponible para iniciar turnos.'
+                    : 'La máquina dejará de estar disponible para iniciar turnos. Si necesitas que otra la cubra, usa "Reemplazar".'}
                 </p>
               )}
+              {pideRegreso && <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />}
             </section>
 
             <section className={styles.seccion}>
@@ -492,6 +664,8 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             <textarea className={styles.input} rows={3} maxLength={500} value={observacion} onChange={(e) => setObservacion(e.target.value)} />
           </label>
         </div>
+
+        {pideCierre && <CierreTurno maquina={conTurno} horometro={horometroCierre} onCambio={setHorometroCierre} />}
 
         {error && (
           <p className={styles.error} role="alert">
