@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import cmpLogo from '../../assets/CMP_logo.png'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
+import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import microsoftLogo from '../../assets/microsoft.svg'
 import ThemeToggle from '../../components/ThemeToggle/ThemeToggle.jsx'
 import { useTheme } from '../../hooks/useTheme.js'
@@ -91,7 +92,17 @@ function Login() {
   return (
     <div className={styles.login}>
       <aside className={styles.hero}>
-        <img src={cmpLogoDark} alt="CMP" className={styles.heroLogo} />
+        <div className={styles.heroTop}>
+          <img src={cmpLogoDark} alt="CMP" className={styles.heroLogo} />
+          {/* Logotipo del sistema: ícono + nombre, con el mismo peso visual que el logo de CMP */}
+          <span className={styles.heroSystem}>
+            <img src={geoPlantaLogo} alt="" className={styles.heroSystemLogo} width="256" height="249" />
+            <span className={styles.heroSystemText}>
+              <span className={styles.heroSystemName}>GeoPlanta</span>
+              <span className={styles.heroSystemTagline}>Mina Los Colorados</span>
+            </span>
+          </span>
+        </div>
 
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Gestión de Riesgo en los Procesos</h1>
@@ -117,6 +128,11 @@ function Login() {
               className={styles.mobileLogo}
             />
             <ThemeToggle />
+          </span>
+          {/* En teléfonos el panel de la foto no se muestra: el logotipo de GeoPlanta va en el header, a la derecha */}
+          <span className={styles.headerSystem}>
+            <img src={geoPlantaLogo} alt="" className={styles.headerSystemLogo} width="256" height="249" />
+            <span className={styles.headerSystemName}>GeoPlanta</span>
           </span>
         </header>
 
