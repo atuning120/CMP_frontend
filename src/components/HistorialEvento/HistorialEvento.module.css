@@ -111,7 +111,10 @@
     color: var(--text-tertiary);
   }
 
-  @media (max-width: 640px) {
+}
+
+@media (max-width: 640px) {
+  .historialEvento {
     flex-wrap: wrap;
 
     .fecha {

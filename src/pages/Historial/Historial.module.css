@@ -7,10 +7,6 @@
   padding: 32px 24px 48px;
   text-align: left;
 
-  @media (max-width: 900px) {
-    padding: 20px 16px 32px;
-  }
-
   .header {
     display: flex;
     flex-wrap: wrap;
@@ -283,6 +279,12 @@
   }
 }
 
+@media (max-width: 900px) {
+  .historial {
+    padding: 20px 16px 32px;
+  }
+}
+
 /* Teléfono: tipo de evento a todo el ancho y rangos en una fila deslizable */
 @media (max-width: 640px) {
   .historial {
@@ -326,6 +328,7 @@
 /* Pantallas táctiles: filtros y segmentos más altos para el dedo */
 @media (pointer: coarse) {
   .historial {
+
     .filtro,
     .segmento {
       height: 40px;

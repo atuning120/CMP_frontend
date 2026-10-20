@@ -18,12 +18,6 @@
     animation: aparecer 0.18s ease-out;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    &[open] {
-      animation: none;
-    }
-  }
-
   .tarjeta {
     padding: 22px 22px 18px;
   }
@@ -58,11 +52,6 @@
     justify-content: flex-end;
     gap: 8px;
     margin-top: 22px;
-
-    /* En teléfono los botones ocupan el ancho y son fáciles de tocar */
-    @media (max-width: 640px) {
-      flex-direction: column-reverse;
-    }
   }
 
   .secundario,
@@ -82,10 +71,6 @@
     &:focus-visible {
       outline: none;
       box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-
-    @media (max-width: 640px) {
-      height: 44px;
     }
   }
 
@@ -113,5 +98,27 @@
   from {
     transform: translateY(8px) scale(0.98);
     opacity: 0;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .dialogoConfirmacion {
+    &[open] {
+      animation: none;
+    }
+  }
+}
+
+/* En teléfono los botones ocupan el ancho y son fáciles de tocar */
+@media (max-width: 640px) {
+  .dialogoCOnfirmacion {
+    .pie {
+      flex-direction: column-reverse;
+    }
+    
+    .peligro {
+      height: 44px;
+    }
   }
 }
