@@ -352,8 +352,12 @@
     color: var(--on-primary);
   }
 
-  /* Teléfono: tarjeta compacta, con las acciones en una fila deslizable en vez de un menú vertical */
-  @media (max-width: 640px) {
+}
+
+/* Teléfono: tarjeta compacta, con las acciones en una fila deslizable en vez de un menú vertical */
+@media (max-width: 640px) {
+  .geocercaDetalle {
+
     gap: 8px;
     padding: 10px 12px;
 
@@ -391,7 +395,7 @@
     }
 
     /* Botones del pie a todo el ancho y de 44 px de alto, fáciles de tocar con el pulgar */
-    .pie > * {
+    .pie>* {
       flex: 1;
       height: 44px;
     }

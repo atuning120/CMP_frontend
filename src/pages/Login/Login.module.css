@@ -35,9 +35,52 @@
       background: var(--hero-overlay);
     }
 
+    /* CMP a la izquierda y el logo del sistema (GeoPlanta) a la derecha */
+    .heroTop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
     .heroLogo {
       width: 140px;
       height: auto;
+    }
+
+    .heroSystem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .heroSystemLogo {
+      width: 84px;
+      height: auto;
+    }
+
+    .heroSystemText {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .heroSystemName {
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--on-hero);
+    }
+
+    /* Bajada en versalitas, como la del logo de CMP */
+    .heroSystemTagline {
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-hero-muted);
     }
 
     .heroContent {
@@ -126,6 +169,26 @@
       max-width: 400px;
       margin: auto 0;
       padding: 32px 0;
+    }
+
+    /* Logotipo del sistema (GeoPlanta) en el header: solo en teléfonos, donde no se ve el panel de la foto */
+    .headerSystem {
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .headerSystemLogo {
+      width: 44px;
+      height: auto;
+    }
+
+    .headerSystemName {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      color: var(--text-h);
     }
 
     .title {
@@ -443,11 +506,25 @@
         display: block;
       }
 
+      /* Se ajusta al ancho para no chocar con el logo de CMP y el botón de tema en teléfonos angostos */
+      .headerSystem {
+        display: flex;
+      }
+
+      .headerSystemLogo {
+        width: clamp(36px, calc(36vw - 94px), 54px);
+      }
+
+      .headerSystemName {
+        font-size: clamp(18px, calc(15vw - 34px), 28px);
+      }
+
       .panelBrand {
         order: 0;
       }
 
       .panelHeader {
+        gap: 12px;
         padding: 16px;
         border-bottom: 1px solid var(--border);
         background: var(--page-bg);
@@ -476,6 +553,16 @@
 
       .heroTitle {
         font-size: 32px;
+      }
+    }
+  }
+}
+/* Teléfonos muy angostos: no cabe el nombre junto al logo de CMP y el botón de tema; queda solo el ícono */
+@media (max-width: 359px) {
+  .login {
+    .panel {
+      .headerSystemName {
+        display: none;
       }
     }
   }

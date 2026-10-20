@@ -13,13 +13,6 @@
     border-color 0.15s ease-out,
     transform 0.1s ease-out;
 
-  /* Solo con mouse: en pantallas táctiles el hover queda pegado tras el toque */
-  @media (hover: hover) {
-    &:hover {
-      border-color: var(--input-border-hover);
-    }
-  }
-
   /* Respuesta al toque o clic */
   &:active {
     transform: scale(0.92);
@@ -42,15 +35,24 @@
     border-color: var(--hero-rule);
     background: none;
 
-    @media (hover: hover) {
-      &:hover {
-        border-color: var(--on-hero-muted);
-      }
-    }
-
     .moon,
     .sun {
       color: var(--on-hero);
+    }
+  }
+}
+
+/* Solo con mouse: en pantallas táctiles el hover queda pegado tras el toque */
+@media (hover: hover) {
+  .themeToggle {
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &.marca {
+      &:hover {
+        border-color: var(--on-hero-muted);
+      }
     }
   }
 }

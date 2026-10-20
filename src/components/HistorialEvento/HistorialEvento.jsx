@@ -1,6 +1,7 @@
 import {
   Activity,
   AlarmClockOff,
+  ArrowLeftRight,
   Ban,
   CircleCheck,
   CirclePlus,
@@ -20,6 +21,8 @@ import styles from './HistorialEvento.module.css'
 // Igual que HistorialEventoCard de la app móvil
 const PRESENTACION = {
   INICIO_TURNO: { icono: Play, verbo: 'inició turno en', tono: 'exito' },
+  FIN_TURNO: { icono: Square, verbo: 'cerró turno en', tono: 'peligro' },
+  CAMBIO_UBICACION: { icono: ArrowLeftRight, verbo: 'trasladó', tono: 'primario' },
   INCORPORAR: { icono: CirclePlus, verbo: 'incorporó', tono: 'primario' },
   EDITAR: { icono: Pencil, verbo: 'editó', tono: 'aviso' },
   HABILITAR: { icono: CircleCheck, verbo: 'habilitó', tono: 'exito' },
@@ -48,26 +51,40 @@ function HistorialEvento({ evento }) {
   if (!presentacion) return null
 
   const { detalle } = evento
-  const esTurno = evento.tipo === 'INICIO_TURNO'
-  // Un turno ya cerrado se marca en rojo en la misma fila de su inicio
-  const horaTermino = esTurno ? texto(detalle?.horaTermino) : null
-  const Icono = horaTermino ? Square : presentacion.icono
-  const tono = horaTermino ? 'peligro' : presentacion.tono
+  // El inicio y el cierre del turno son eventos separados, cada uno en su fecha
+  const esTurno = evento.tipo === 'INICIO_TURNO' || evento.tipo === 'FIN_TURNO'
+  const esCierre = evento.tipo === 'FIN_TURNO'
+  const Icono = presentacion.icono
+  const tono = presentacion.tono
   const reemplazadaPor = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.entrante) : null
   // Reemplazo: cómo quedó la saliente (los registros antiguos no lo traen). Devolución: el respaldo que sale
   const estadoSaliente = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.despues?.estado) : null
   const respaldoDevuelto = evento.tipo === 'DEVOLVER' ? texto(detalle?.respaldo) : null
   // Turno cerrado por un jefe de turno en nombre del operador (falla de la máquina, mantención)
-  const cerradoPor = esTurno ? texto(detalle?.cerradoPor) : null
+  const cerradoPor = esCierre ? texto(detalle?.cerradoPor) : null
   // Cambio de estado: a cuál pasó (los registros antiguos de habilitar/deshabilitar no lo traen)
   const estadoNuevo =
     evento.tipo === 'CAMBIAR_ESTADO' || evento.tipo === 'HABILITAR' ? texto(detalle?.despues?.estado) : null
   // El sistema lo cerró al pasar la duración máxima (probablemente el operador olvidó finalizarlo).
   // Sin número de horas: los turnos antiguos se cerraban a las 12 h y los actuales a las 13 h
-  const cierreAutomatico = esTurno && detalle?.estadoTurno === 'CERRADO_AUTO'
-  // Inicio de turno: dónde y con qué horómetro partió
+  const cierreAutomatico = esCierre && detalle?.estadoTurno === 'CERRADO_AUTO'
+  // Inicio: dónde y con qué horómetro partió. Cierre: dónde terminó y cuánto avanzó el horómetro.
+  // Cambio de área/zona: desde dónde y a dónde fue
   const ubicacion = [texto(detalle?.area), texto(detalle?.zona)].filter(Boolean).join(' · ')
-  const horometro = esTurno ? numero(detalle?.horometroInicial) : null
+  const horometroInicial = esTurno ? numero(detalle?.horometroInicial) : null
+  const horometroFinal = esCierre ? numero(detalle?.horometroFinal) : null
+  let horometro = horometroInicial !== null ? `${formatoHoras.format(horometroInicial)} hrs` : null
+  if (esCierre) {
+    horometro =
+      horometroFinal === null
+        ? 'Sin horómetro final'
+        : `${horometroInicial !== null ? `${formatoHoras.format(horometroInicial)} → ` : ''}${formatoHoras.format(horometroFinal)} hrs`
+  }
+  const esCambioUbicacion = evento.tipo === 'CAMBIO_UBICACION'
+  const ubicacionAnterior = esCambioUbicacion
+    ? [texto(detalle?.areaAnterior), texto(detalle?.zonaAnterior)].filter(Boolean).join(' · ')
+    : ''
+  const traslado = esCambioUbicacion ? [ubicacionAnterior, ubicacion].filter(Boolean).join(' → ') : ''
 
   return (
     <li className={`${styles.historialEvento} ${styles[tono]}`}>
@@ -77,8 +94,23 @@ function HistorialEvento({ evento }) {
 
       <div className={styles.cuerpo}>
         <p className={styles.titulo}>
-          <strong className={styles.actor}>{evento.actor}</strong> {presentacion.verbo}{' '}
-          <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+          {/* El cierre no siempre lo hace el operador: lo puede cerrar su jefe de turno o el sistema */}
+          {cierreAutomatico && !cerradoPor ? (
+            <>
+              El turno de <strong className={styles.actor}>{evento.actor}</strong> en{' '}
+              <strong className={styles.maquina}>{evento.maquina.nombre}</strong> se cerró automáticamente
+            </>
+          ) : cerradoPor ? (
+            <>
+              <strong className={styles.actor}>{cerradoPor}</strong> cerró el turno de{' '}
+              <strong className={styles.actor}>{evento.actor}</strong> en <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+            </>
+          ) : (
+            <>
+              <strong className={styles.actor}>{evento.actor}</strong> {presentacion.verbo}{' '}
+              <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+            </>
+          )}
           {reemplazadaPor && (
             <>
               {' por '}
@@ -100,19 +132,27 @@ function HistorialEvento({ evento }) {
             {evento.motivo && <span className={styles.motivo}>{evento.motivo}</span>}
             {cerradoPor && (
               <span className={styles.cierreAuto}>
-                <UserCheck size={12} /> Cerrado por {cerradoPor}
-                {texto(detalle?.motivoCierre) ? `: ${detalle.motivoCierre}` : ''}
+                <UserCheck size={12} />{' '}
+                {texto(detalle?.motivoCierre) ? `Motivo: ${detalle.motivoCierre}` : 'Cerrado por el jefe de turno'}
               </span>
             )}
             {cierreAutomatico && !cerradoPor && (
               <span className={styles.cierreAuto}>
-                <AlarmClockOff size={12} /> Cierre automático (superó la duración máxima)
+                <AlarmClockOff size={12} /> Superó la duración máxima del turno
               </span>
             )}
           </p>
         )}
 
         {evento.observacion && <p className={styles.observacion}>{evento.observacion}</p>}
+
+        {traslado && (
+          <p className={styles.meta}>
+            <span className={styles.metaItem}>
+              <MapPin size={13} /> {traslado}
+            </span>
+          </p>
+        )}
 
         {esTurno && (ubicacion || horometro !== null) && (
           <p className={styles.meta}>
@@ -123,7 +163,7 @@ function HistorialEvento({ evento }) {
             )}
             {horometro !== null && (
               <span className={styles.metaItem}>
-                <Clock size={13} /> {formatoHoras.format(horometro)} hrs
+                <Clock size={13} /> {horometro}
               </span>
             )}
           </p>
@@ -131,7 +171,7 @@ function HistorialEvento({ evento }) {
       </div>
 
       <time className={styles.fecha} dateTime={evento.fecha} title={new Date(evento.fecha).toLocaleString('es-CL')}>
-        {horaTermino ? `Inicio ${formatearFecha(evento.fecha)} · Fin ${formatearFecha(horaTermino)}` : formatearFecha(evento.fecha)}
+        {formatearFecha(evento.fecha)}
       </time>
     </li>
   )

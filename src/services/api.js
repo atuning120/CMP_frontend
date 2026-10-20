@@ -42,17 +42,18 @@ export class ApiError extends Error {
 }
 
 /**
- * Llamada autenticada que devuelve el JSON (o null si no hay cuerpo). Si el token ya no sirve (401)
+ * Llamada autenticada que devuelve la respuesta ya validada. Si el token ya no sirve (401)
  * cierra la sesión, y RequireAuth lleva al login. Lanza ApiError con el mensaje del Backend.
  */
-export async function apiJson(path, init = {}) {
+async function apiAutenticado(path, init, timeoutMs) {
   const sesion = getSesion()
   let response
   try {
-    response = await apiFetch(path, {
-      ...init,
-      headers: { ...(sesion ? { Authorization: `Bearer ${sesion.accessToken}` } : {}), ...init.headers },
-    })
+    response = await apiFetch(
+      path,
+      { ...init, headers: { ...(sesion ? { Authorization: `Bearer ${sesion.accessToken}` } : {}), ...init.headers } },
+      timeoutMs,
+    )
   } catch {
     throw new ApiError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.', 0)
   }
@@ -61,9 +62,22 @@ export async function apiJson(path, init = {}) {
     cerrarSesion()
     throw new ApiError('Tu sesión expiró. Vuelve a iniciar sesión.', 401)
   }
-  const data = response.status === 204 ? null : await response.json().catch(() => null)
   if (!response.ok) {
+    const data = await response.json().catch(() => null)
     throw new ApiError(data?.message ?? 'El servidor no pudo procesar la solicitud.', response.status, data?.code)
   }
-  return data
+  return response
+}
+
+// El JSON de la respuesta (o null si no hay cuerpo)
+export async function apiJson(path, init = {}) {
+  const response = await apiAutenticado(path, init)
+  return response.status === 204 ? null : await response.json().catch(() => null)
+}
+
+// Un archivo que arma el Backend, como el Excel del historial: { archivo (Blob), nombre (de Content-Disposition o null) }
+export async function apiArchivo(path, init = {}, timeoutMs = TIMEOUT_MS) {
+  const response = await apiAutenticado(path, init, timeoutMs)
+  const nombre = response.headers.get('Content-Disposition')?.match(/filename="([^"]+)"/)?.[1] ?? null
+  return { archivo: await response.blob(), nombre }
 }

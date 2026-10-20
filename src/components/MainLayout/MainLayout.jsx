@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LogOut } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
+import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import { puedeGestionarFlota } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
 import { cerrarSesion, esAdmin, useSesion } from '../../services/session.js'
@@ -43,8 +44,11 @@ function MainLayout() {
         <div className={styles.brand}>
           <img src={cmpLogoDark} alt="CMP" className={styles.logo} />
           <span className={styles.product}>
-            <span className={styles.productName}>Motor Maps</span>
-            <span className={styles.productSub}>Monitoreo de flota · Mina Los Colorados</span>
+            <img src={geoPlantaLogo} alt="GeoPlanta" className={styles.productLogo} width="256" height="249" />
+            <span className={styles.productText}>
+              <span className={styles.productName}>GeoPlanta</span>
+              <span className={styles.productSub}>Flota · Turnos · Geocercas / Mina Los Colorados</span>
+            </span>
           </span>
         </div>
 

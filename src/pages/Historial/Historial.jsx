@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarRange, History, Layers, Play, RefreshCw, Truck } from 'lucide-react'
+import { AlertCircle, CalendarRange, FileSpreadsheet, History, Layers, Play, RefreshCw, Truck } from 'lucide-react'
 import HistorialEvento from '../../components/HistorialEvento/HistorialEvento.jsx'
-import { listarHistorial } from '../../services/historialService.js'
+import { descargarHistorialExcel, listarHistorial } from '../../services/historialService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from './fechas.js'
 import styles from './Historial.module.css'
 
@@ -15,7 +15,7 @@ const RESULTADO_VACIO = { clave: null, eventos: [], hayMas: false, error: null, 
 
 /**
  * Historial (JEFE_TURNO y ADMIN): la misma pestaña que el jefe de turno tiene en la app móvil.
- * Inicios de turno de los operadores y acciones sobre la flota, agrupados por día y paginados
+ * Inicios y cierres de turno, cambios de área/zona de los operadores y acciones sobre la flota, agrupados por día y paginados
  * del más reciente al más antiguo (la página siguiente se pide al llegar al final).
  */
 function Historial() {
@@ -25,6 +25,8 @@ function Historial() {
   const [recargas, setRecargas] = useState(0)
   const [resultado, setResultado] = useState(RESULTADO_VACIO)
   const [cargandoMas, setCargandoMas] = useState(false)
+  const [exportando, setExportando] = useState(false)
+  const [errorExcel, setErrorExcel] = useState(null)
   // Muchos avisos del observer seguidos: el estado no alcanza a actualizarse entre uno y otro
   const cargandoMasRef = useRef(false)
   const centinelaRef = useRef(null)
@@ -96,6 +98,19 @@ function Historial() {
 
   const dias = useMemo(() => agruparPorDia(eventos), [eventos])
 
+  // El Backend arma el Excel con todo el rango y tipo elegidos, no solo las páginas ya cargadas
+  const exportarExcel = async () => {
+    setExportando(true)
+    setErrorExcel(null)
+    try {
+      await descargarHistorialExcel(tipo, rango)
+    } catch (e) {
+      setErrorExcel(e.message)
+    } finally {
+      setExportando(false)
+    }
+  }
+
   return (
     <section className={styles.historial}>
       <header className={styles.header}>
@@ -104,18 +119,38 @@ function Historial() {
             <History size={22} className={styles.titleIcon} />
             Historial
           </h1>
-          <p className={styles.subtitle}>Inicios de turno de los operadores y acciones sobre la flota, del más reciente al más antiguo.</p>
+          <p className={styles.subtitle}>Inicios y cierres de turno, cambios de área/zona de los operadores y acciones sobre la flota, del más reciente al más antiguo.</p>
         </div>
-        <button
-          type="button"
-          className={styles.recargar}
-          onClick={() => setRecargas((n) => n + 1)}
-          disabled={cargando}
-          title="Recargar"
-        >
-          <RefreshCw size={16} /> Recargar
-        </button>
+        <div className={styles.acciones}>
+          <button
+            type="button"
+            className={styles.boton}
+            onClick={exportarExcel}
+            disabled={!rango || exportando || (vigente && eventos.length === 0)}
+            title="Descargar el historial del rango y tipo elegidos en Excel"
+          >
+            <FileSpreadsheet size={16} /> {exportando ? 'Generando…' : 'Exportar Excel'}
+          </button>
+          <button
+            type="button"
+            className={styles.boton}
+            onClick={() => setRecargas((n) => n + 1)}
+            disabled={cargando}
+            title="Recargar"
+          >
+            <RefreshCw size={16} /> Recargar
+          </button>
+        </div>
       </header>
+
+      {errorExcel && (
+        <p className={styles.error} role="alert">
+          <AlertCircle size={16} /> No se pudo generar el Excel: {errorExcel}
+          <button type="button" className={styles.reintentar} onClick={() => setErrorExcel(null)}>
+            Cerrar
+          </button>
+        </p>
+      )}
 
       <div className={styles.toolbar}>
         <div className={styles.grupo} role="tablist" aria-label="Tipo de evento">

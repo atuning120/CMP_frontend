@@ -1,7 +1,7 @@
-import { apiJson } from './api.js'
+import { apiArchivo, apiJson } from './api.js'
 
-// Historial del jefe de turno (GET /historial): acciones sobre la flota e inicios de turno de los
-// operadores, del más reciente al más antiguo. Mismos roles que exige el Backend
+// Historial del jefe de turno (GET /historial): acciones sobre la flota, inicios y cierres de turno y cambios de área/zona
+// de los operadores, del más reciente al más antiguo. Mismos roles que exige el Backend
 export const ROLES_HISTORIAL = ['JEFE_TURNO', 'ADMIN']
 
 export const puedeVerHistorial = (sesion) => ROLES_HISTORIAL.includes(sesion?.rol)
@@ -19,4 +19,24 @@ export function listarHistorial(tipo, rango, ultimo) {
     params.set('antesId', ultimo.id)
   }
   return apiJson(`/historial?${params}`)
+}
+
+// Un rango completo de 90 días puede tardar más que una página
+const TIMEOUT_EXCEL_MS = 60000
+
+/**
+ * Excel del historial (GET /historial/excel): todo el rango y tipo de la pantalla, sin paginar, armado
+ * por el Backend. Las fechas del archivo van en la zona horaria del navegador. Descarga el archivo.
+ */
+export async function descargarHistorialExcel(tipo, rango) {
+  const params = new URLSearchParams({ tipo, desde: rango.desde })
+  if (rango.hasta) params.set('hasta', rango.hasta)
+  params.set('zonaHoraria', Intl.DateTimeFormat().resolvedOptions().timeZone)
+  const { archivo, nombre } = await apiArchivo(`/historial/excel?${params}`, {}, TIMEOUT_EXCEL_MS)
+
+  const enlace = document.createElement('a')
+  enlace.href = URL.createObjectURL(archivo)
+  enlace.download = nombre ?? `historial_${tipo.toLowerCase()}.xlsx`
+  enlace.click()
+  setTimeout(() => URL.revokeObjectURL(enlace.href), 1000)
 }

@@ -31,11 +31,23 @@
     height: auto;
   }
 
+  /* Logotipo del sistema: ícono de GeoPlanta + nombre y subtítulo */
   .product {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
     padding-left: 14px;
     border-left: 1px solid var(--hero-rule);
+  }
+
+  .productLogo {
+    width: 50px;
+    height: auto;
+  }
+
+  .productText {
+    display: flex;
+    flex-direction: column;
     line-height: 1.25;
   }
 
@@ -47,6 +59,7 @@
   .productSub {
     font-size: 12px;
     color: var(--on-hero-muted);
+    white-space: nowrap;
   }
 
   .nav {
@@ -156,7 +169,25 @@
   }
 }
 
-/* Tablet: sin el subtítulo del producto ni el correo, el header cabe en una fila */
+/* Escritorio angosto: el subtítulo del producto no cabe en una línea junto a las pestañas */
+@media (max-width: 1200px) {
+  .layout {
+    .productSub {
+      display: none;
+    }
+  }
+}
+
+/* Sin el correo (queda el avatar con las iniciales): con él, la cuenta se sale de la pantalla bajo 1000 px */
+@media (max-width: 1000px) {
+  .layout {
+    .userText {
+      display: none;
+    }
+  }
+}
+
+/* Tablet: sin el nombre del producto ni el correo, el header cabe en una fila; queda el ícono de GeoPlanta */
 @media (max-width: 900px) {
   .layout {
     .header {
@@ -167,6 +198,23 @@
       display: none;
     }
 
+    .productText {
+      display: none;
+    }
+
+    .product {
+      padding-left: 12px;
+    }
+
+    .productLogo {
+      width: 42px;
+    }
+  }
+}
+
+/* Tablet angosta: las pestañas siguen en la misma fila y no queda espacio para el ícono de GeoPlanta */
+@media (min-width: 641px) and (max-width: 720px) {
+  .layout {
     .product {
       display: none;
     }
