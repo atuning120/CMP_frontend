@@ -93,7 +93,6 @@ function Login() {
     <div className={styles.login}>
       <aside className={styles.hero}>
         <div className={styles.heroTop}>
-          <img src={cmpLogoDark} alt="CMP" className={styles.heroLogo} />
           {/* Logotipo del sistema: ícono + nombre, con el mismo peso visual que el logo de CMP */}
           <span className={styles.heroSystem}>
             <img src={geoPlantaLogo} alt="" className={styles.heroSystemLogo} width="256" height="249" />
@@ -102,6 +101,7 @@ function Login() {
               <span className={styles.heroSystemTagline}>Mina Los Colorados</span>
             </span>
           </span>
+          <img src={cmpLogoDark} alt="CMP" className={styles.heroLogo} />
         </div>
 
         <div className={styles.heroContent}>
