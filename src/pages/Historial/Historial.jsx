@@ -15,7 +15,7 @@ const RESULTADO_VACIO = { clave: null, eventos: [], hayMas: false, error: null, 
 
 /**
  * Historial (JEFE_TURNO y ADMIN): la misma pestaña que el jefe de turno tiene en la app móvil.
- * Inicios de turno de los operadores y acciones sobre la flota, agrupados por día y paginados
+ * Inicios y cierres de turno, cambios de área/zona de los operadores y acciones sobre la flota, agrupados por día y paginados
  * del más reciente al más antiguo (la página siguiente se pide al llegar al final).
  */
 function Historial() {
@@ -119,7 +119,7 @@ function Historial() {
             <History size={22} className={styles.titleIcon} />
             Historial
           </h1>
-          <p className={styles.subtitle}>Inicios de turno de los operadores y acciones sobre la flota, del más reciente al más antiguo.</p>
+          <p className={styles.subtitle}>Inicios y cierres de turno, cambios de área/zona de los operadores y acciones sobre la flota, del más reciente al más antiguo.</p>
         </div>
         <div className={styles.acciones}>
           <button

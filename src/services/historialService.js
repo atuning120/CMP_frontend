@@ -1,7 +1,7 @@
 import { apiArchivo, apiJson } from './api.js'
 
-// Historial del jefe de turno (GET /historial): acciones sobre la flota e inicios de turno de los
-// operadores, del más reciente al más antiguo. Mismos roles que exige el Backend
+// Historial del jefe de turno (GET /historial): acciones sobre la flota, inicios y cierres de turno y cambios de área/zona
+// de los operadores, del más reciente al más antiguo. Mismos roles que exige el Backend
 export const ROLES_HISTORIAL = ['JEFE_TURNO', 'ADMIN']
 
 export const puedeVerHistorial = (sesion) => ROLES_HISTORIAL.includes(sesion?.rol)
