@@ -5,7 +5,8 @@ import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import { puedeGestionarFlota } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
-import { cerrarSesion, esAdmin, useSesion } from '../../services/session.js'
+import { salir } from '../../services/authService.js'
+import { esAdmin, useSesion } from '../../services/session.js'
 import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
@@ -34,7 +35,7 @@ function MainLayout() {
   const [confirmandoSalida, setConfirmandoSalida] = useState(false)
 
   const handleLogout = () => {
-    cerrarSesion()
+    salir()
     navigate('/login', { replace: true })
   }
 

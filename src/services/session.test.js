@@ -24,6 +24,27 @@ describe('getSesion', () => {
     expect(getSesion()).toBeNull()
   })
 
+  it('con el access token vencido sigue abierta mientras el refresh token sea válido', () => {
+    const sesion = {
+      accessToken: jwt({ sub: 7, rol: 'ADMIN', exp: ahora() - 1 }),
+      refreshToken: 'r',
+      refreshTokenExpiraEn: new Date(Date.now() + 60_000).toISOString(),
+      rol: 'ADMIN',
+    }
+    conSesionGuardada(sesion)
+    expect(getSesion()).toEqual(sesion)
+  })
+
+  it('con ambos tokens vencidos la sesión queda cerrada', () => {
+    conSesionGuardada({
+      accessToken: jwt({ sub: 7, rol: 'ADMIN', exp: ahora() - 1 }),
+      refreshToken: 'r',
+      refreshTokenExpiraEn: new Date(Date.now() - 1).toISOString(),
+      rol: 'ADMIN',
+    })
+    expect(getSesion()).toBeNull()
+  })
+
   it('un token ilegible cuenta como vencido', () => {
     conSesionGuardada({ accessToken: 'no-es-un-jwt', rol: 'ADMIN' })
     expect(getSesion()).toBeNull()

@@ -1,19 +1,28 @@
 import { useSyncExternalStore } from 'react'
 
-// Sesión del panel web: { accessToken, rol, email }. El rol solo decide qué vistas mostrar;
-// cada endpoint del Backend vuelve a validar los permisos con el JWT.
+// Sesión del panel web: { accessToken, refreshToken, refreshTokenExpiraEn, rol, email }. El rol solo decide qué
+// vistas mostrar; cada endpoint del Backend vuelve a validar los permisos con el JWT.
 const STORAGE_KEY = 'cmp.sesion'
 const listeners = new Set()
 
-// Los JWT del Backend expiran (1 h por defecto) y el panel web aún no tiene refresh token
-const tokenVencido = (token) => {
+// Los JWT del Backend expiran (1 h por defecto); el refresh token (30 días) permite renovarlos sin volver al login.
+// margenMs: se renueva un poco antes de que venza, para que no expire en el camino
+const tokenVencido = (token, margenMs = 0) => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()
+    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now() + margenMs
   } catch {
     return true
   }
 }
+
+const MARGEN_RENOVACION_MS = 30 * 1000
+
+export const accessTokenPorVencer = (sesion) => tokenVencido(sesion.accessToken, MARGEN_RENOVACION_MS)
+
+// Sesiones guardadas antes del refresh token no lo traen: con el access token vencido quedan cerradas
+const puedeRenovarse = (sesion) =>
+  typeof sesion.refreshToken === 'string' && Date.parse(sesion.refreshTokenExpiraEn) > Date.now()
 
 const leer = () => {
   try {
@@ -37,7 +46,7 @@ export const getSesion = () => {
       cacheSesion = null
     }
   }
-  if (cacheSesion && tokenVencido(cacheSesion.accessToken)) return null
+  if (cacheSesion && tokenVencido(cacheSesion.accessToken) && !puedeRenovarse(cacheSesion)) return null
   return cacheSesion
 }
 
@@ -50,6 +59,12 @@ export const guardarSesion = (sesion) => {
     // Sin localStorage la sesión no sobrevive a una recarga
   }
   notificar()
+}
+
+// Tokens nuevos tras renovar la sesión (el rol puede haber cambiado). Si mientras tanto se cerró, no la revive
+export const actualizarTokens = ({ accessToken, refreshToken, refreshTokenExpiraEn, rol }) => {
+  const sesion = getSesion()
+  if (sesion) guardarSesion({ ...sesion, accessToken, refreshToken, refreshTokenExpiraEn, rol })
 }
 
 export const cerrarSesion = () => {

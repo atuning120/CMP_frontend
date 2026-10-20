@@ -1,5 +1,5 @@
 import { apiFetch } from './api.js'
-import { guardarSesion } from './session.js'
+import { cerrarSesion, getSesion, guardarSesion } from './session.js'
 
 // Mensajes para el usuario según el código de error del Backend; nunca se muestra el texto crudo
 const MENSAJES_ERROR = {
@@ -34,8 +34,20 @@ export async function loginConCredenciales(email, password) {
     )
   }
 
-  const { accessToken, rol } = await response.json()
-  const sesion = { accessToken, rol, email: email.trim() }
+  const { accessToken, refreshToken, refreshTokenExpiraEn, rol } = await response.json()
+  const sesion = { accessToken, refreshToken, refreshTokenExpiraEn, rol, email: email.trim() }
   guardarSesion(sesion)
   return sesion
+}
+
+/**
+ * Cierra la sesión en este navegador y revoca su refresh token en el Backend (POST /auth/logout).
+ * No espera la respuesta: sin conexión la sesión igual se cierra aquí y el token vence solo.
+ */
+export function salir() {
+  const refreshToken = getSesion()?.refreshToken
+  if (refreshToken) {
+    apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }), keepalive: true }).catch(() => {})
+  }
+  cerrarSesion()
 }
