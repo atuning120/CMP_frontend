@@ -33,7 +33,13 @@
     color: var(--text);
   }
 
-  .recargar,
+  .acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .boton,
   .cargarMas {
     display: inline-flex;
     align-items: center;
