@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlertCircle, CalendarRange, FileSpreadsheet, History, Layers, Play, RefreshCw, Truck } from 'lucide-react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { AlertCircle, CalendarRange, FileSpreadsheet, History, Layers, Play, RefreshCw, Search, Truck } from 'lucide-react'
 import HistorialEvento from '../../components/HistorialEvento/HistorialEvento.jsx'
+import { textoEvento } from '../../components/HistorialEvento/describirEvento.js'
 import { descargarHistorialExcel, listarHistorial } from '../../services/historialService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from './fechas.js'
 import styles from './Historial.module.css'
@@ -12,6 +13,23 @@ const TIPOS = [
 ]
 
 const RESULTADO_VACIO = { clave: null, eventos: [], hayMas: false, error: null, errorMas: null }
+
+// Mientras se busca se piden páginas más grandes: el filtro recorre el rango entero y no solo lo que se ve
+const LIMITE_BUSCANDO = 50
+
+// Sin tildes ni mayúsculas en ambos lados: "nunez" encuentra a "Nuñez"
+const normalizar = (valor) => valor.normalize('NFD').replace(/\p{M}/gu, '')
+
+// La búsqueda es una expresión regular de JavaScript; texto común (sin símbolos) funciona igual
+const compilarBusqueda = (busqueda) => {
+  const patron = busqueda.trim()
+  if (!patron) return { regex: null }
+  try {
+    return { regex: new RegExp(normalizar(patron), 'i') }
+  } catch (e) {
+    return { regex: null, errorBusqueda: e.message }
+  }
+}
 
 /**
  * Historial (JEFE_TURNO y ADMIN): la misma pestaña que el jefe de turno tiene en la app móvil.
@@ -27,6 +45,9 @@ function Historial() {
   const [cargandoMas, setCargandoMas] = useState(false)
   const [exportando, setExportando] = useState(false)
   const [errorExcel, setErrorExcel] = useState(null)
+  const [busqueda, setBusqueda] = useState('')
+  // Con muchos eventos cargados, filtrar no debe trabar la escritura
+  const busquedaDiferida = useDeferredValue(busqueda)
   // Muchos avisos del observer seguidos: el estado no alcanza a actualizarse entre uno y otro
   const cargandoMasRef = useRef(false)
   const centinelaRef = useRef(null)
@@ -56,13 +77,18 @@ function Historial() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clave])
 
+  const { regex, errorBusqueda } = useMemo(() => compilarBusqueda(busquedaDiferida), [busquedaDiferida])
+  const textos = useMemo(() => new Map(eventos.map((e) => [e.id, normalizar(textoEvento(e))])), [eventos])
+  // Si no hay coincidencias a la vista, el centinela del final queda visible y se siguen pidiendo páginas
+  const filtrados = useMemo(() => (regex ? eventos.filter((e) => regex.test(textos.get(e.id))) : eventos), [eventos, textos, regex])
+
   const cargarMas = useCallback(async () => {
     const ultimo = eventos[eventos.length - 1]
     if (!ultimo || !hayMas || cargando || cargandoMasRef.current || resultado.errorMas) return
     cargandoMasRef.current = true
     setCargandoMas(true)
     try {
-      const p = await listarHistorial(tipo, rango, ultimo)
+      const p = await listarHistorial(tipo, rango, ultimo, regex ? LIMITE_BUSCANDO : undefined)
       setResultado((r) =>
         r.clave !== clave
           ? r
@@ -74,7 +100,7 @@ function Historial() {
       cargandoMasRef.current = false
       setCargandoMas(false)
     }
-  }, [eventos, hayMas, cargando, resultado.errorMas, tipo, rango, clave])
+  }, [eventos, hayMas, cargando, resultado.errorMas, tipo, rango, clave, regex])
 
   // Scroll infinito: se vuelve a observar tras cada página, por si el final sigue a la vista
   const cargarMasRef = useRef(cargarMas)
@@ -89,14 +115,14 @@ function Historial() {
     })
     observer.observe(centinela)
     return () => observer.disconnect()
-  }, [eventos.length, hayMas, cargando, cargandoMas, resultado.errorMas])
+  }, [eventos.length, filtrados.length, hayMas, cargando, cargandoMas, resultado.errorMas])
 
   const reintentarMas = () => {
     setResultado((r) => ({ ...r, errorMas: null }))
     // Tras quitar el error, el observer vuelve a pedir la página
   }
 
-  const dias = useMemo(() => agruparPorDia(eventos), [eventos])
+  const dias = useMemo(() => agruparPorDia(filtrados), [filtrados])
 
   // El Backend arma el Excel con todo el rango y tipo elegidos, no solo las páginas ya cargadas
   const exportarExcel = async () => {
@@ -127,7 +153,7 @@ function Historial() {
             className={styles.boton}
             onClick={exportarExcel}
             disabled={!rango || exportando || (vigente && eventos.length === 0)}
-            title="Descargar el historial del rango y tipo elegidos en Excel"
+            title="Descargar el historial del rango y tipo elegidos en Excel (no aplica la búsqueda)"
           >
             <FileSpreadsheet size={16} /> {exportando ? 'Generando…' : 'Exportar Excel'}
           </button>
@@ -151,6 +177,28 @@ function Historial() {
           </button>
         </p>
       )}
+
+      <div className={styles.busqueda}>
+        <label className={styles.search}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Buscar operador, máquina, área, motivo…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            aria-label="Buscar en el historial"
+            aria-invalid={Boolean(errorBusqueda)}
+            aria-describedby="historial-busqueda-ayuda"
+            spellCheck={false}
+          />
+        </label>
+        <p id="historial-busqueda-ayuda" className={errorBusqueda ? styles.ayudaError : styles.ayuda}>
+          {errorBusqueda
+            ? `Expresión regular no válida: ${errorBusqueda}`
+            : ''}
+        </p>
+      </div>
 
       <div className={styles.toolbar}>
         <div className={styles.grupo} role="tablist" aria-label="Tipo de evento">
@@ -185,7 +233,11 @@ function Historial() {
         </div>
 
         <span className={styles.conteo}>
-          {cargando ? 'Cargando…' : `${eventos.length}${hayMas ? '+' : ''} eventos`}
+          {cargando
+            ? 'Cargando…'
+            : regex
+              ? `${filtrados.length}${hayMas ? '+' : ''} de ${eventos.length}${hayMas ? '+' : ''} eventos`
+              : `${eventos.length}${hayMas ? '+' : ''} eventos`}
         </span>
       </div>
 
@@ -229,6 +281,9 @@ function Historial() {
         {cargando && <p className={styles.vacio}>Cargando historial…</p>}
         {vigente && !resultado.error && eventos.length === 0 && (
           <p className={styles.vacio}>No hay eventos en este rango de fechas.</p>
+        )}
+        {regex && eventos.length > 0 && filtrados.length === 0 && !hayMas && (
+          <p className={styles.vacio}>Ningún evento de este rango coincide con la búsqueda.</p>
         )}
 
         {dias.map((dia) => (

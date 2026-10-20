@@ -75,7 +75,14 @@ export async function loginConMicrosoft() {
     throw new AuthError(MENSAJES_ERROR[data?.code] ?? 'El servidor no pudo procesar el inicio de sesión.')
   }
 
-  const sesion = { accessToken: data.accessToken, rol: data.rol, email: data.email, nombre: data.nombre }
+  const sesion = {
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    refreshTokenExpiraEn: data.refreshTokenExpiraEn,
+    rol: data.rol,
+    email: data.email,
+    nombre: data.nombre,
+  }
   guardarSesion(sesion)
   return { ...sesion, nuevo: data.nuevo }
 }

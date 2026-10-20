@@ -10,10 +10,12 @@ export const puedeVerHistorial = (sesion) => ROLES_HISTORIAL.includes(sesion?.ro
  * Una página de eventos: { eventos, hayMas }.
  * tipo: 'TODO' | 'TURNOS' | 'FLOTA'. rango: { desde, hasta } en ISO; hasta es exclusiva y null es "hasta ahora".
  * ultimo: el último evento recibido (cursor fecha + id, para no perder eventos con la misma fecha).
+ * limite: eventos por página (el Backend usa 30 por defecto y acepta hasta 50).
  */
-export function listarHistorial(tipo, rango, ultimo) {
+export function listarHistorial(tipo, rango, ultimo, limite) {
   const params = new URLSearchParams({ tipo, desde: rango.desde })
   if (rango.hasta) params.set('hasta', rango.hasta)
+  if (limite) params.set('limite', limite)
   if (ultimo) {
     params.set('antes', ultimo.fecha)
     params.set('antesId', ultimo.id)

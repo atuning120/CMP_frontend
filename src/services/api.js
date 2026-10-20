@@ -1,4 +1,4 @@
-import { cerrarSesion, getSesion } from './session.js'
+import { accessTokenPorVencer, actualizarTokens, cerrarSesion, getSesion } from './session.js'
 
 // URL del Backend desde las variables de entorno de Vite (gitignoradas):
 // .env.development para `pnpm dev` (Backend local) y .env.production para `pnpm build` (Azure).
@@ -41,26 +41,68 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Llamada autenticada que devuelve la respuesta ya validada. Si el token ya no sirve (401)
- * cierra la sesión, y RequireAuth lleva al login. Lanza ApiError con el mensaje del Backend.
- */
-async function apiAutenticado(path, init, timeoutMs) {
-  const sesion = getSesion()
+const errorConexion = () => new ApiError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.', 0)
+
+const sesionExpirada = () => {
+  cerrarSesion()
+  return new ApiError('Tu sesión expiró. Vuelve a iniciar sesión.', 401)
+}
+
+// true si se renovó; false si el Backend ya no acepta el refresh token (vencido, revocado o sin acceso web)
+async function renovar() {
+  const refreshToken = getSesion()?.refreshToken
+  if (!refreshToken) return false
   let response
   try {
-    response = await apiFetch(
+    response = await apiFetch('/auth/refresh/web', { method: 'POST', body: JSON.stringify({ refreshToken }) })
+  } catch {
+    throw errorConexion()
+  }
+  if (response.status === 401) return false
+  if (!response.ok) throw new ApiError('El servidor no pudo renovar la sesión. Intenta nuevamente.', response.status)
+  actualizarTokens(await response.json())
+  return true
+}
+
+// Una sola renovación a la vez: las peticiones que encuentran el token vencido esperan la misma.
+// El refresh token rota en cada uso, así que dos renovaciones en paralelo gastarían el mismo
+let renovacionEnCurso = null
+export function renovarSesion() {
+  renovacionEnCurso ??= renovar().finally(() => {
+    renovacionEnCurso = null
+  })
+  return renovacionEnCurso
+}
+
+async function llamar(path, init, timeoutMs, accessToken) {
+  try {
+    return await apiFetch(
       path,
-      { ...init, headers: { ...(sesion ? { Authorization: `Bearer ${sesion.accessToken}` } : {}), ...init.headers } },
+      { ...init, headers: { ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}), ...init.headers } },
       timeoutMs,
     )
   } catch {
-    throw new ApiError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.', 0)
+    throw errorConexion()
   }
+}
 
+/**
+ * Llamada autenticada que devuelve la respuesta ya validada. Con el access token vencido (o rechazado con 401)
+ * renueva la sesión y reintenta una vez; si ya no se puede renovar cierra la sesión, y RequireAuth lleva al login.
+ * Lanza ApiError con el mensaje del Backend.
+ */
+async function apiAutenticado(path, init, timeoutMs) {
+  const sesion = getSesion()
+  if (sesion?.refreshToken && accessTokenPorVencer(sesion) && !(await renovarSesion())) throw sesionExpirada()
+
+  const tokenUsado = getSesion()?.accessToken
+  let response = await llamar(path, init, timeoutMs, tokenUsado)
   if (response.status === 401) {
-    cerrarSesion()
-    throw new ApiError('Tu sesión expiró. Vuelve a iniciar sesión.', 401)
+    // Otra pestaña o petición pudo renovarla mientras tanto: entonces basta reintentar con el token nuevo
+    const renovada = getSesion()?.accessToken !== tokenUsado || (await renovarSesion())
+    if (!renovada) throw sesionExpirada()
+    response = await llamar(path, init, timeoutMs, getSesion()?.accessToken)
+    if (response.status === 401) throw sesionExpirada()
   }
   if (!response.ok) {
     const data = await response.json().catch(() => null)
