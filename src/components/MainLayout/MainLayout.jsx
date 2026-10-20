@@ -43,8 +43,8 @@ function MainLayout() {
         <div className={styles.brand}>
           <img src={cmpLogoDark} alt="CMP" className={styles.logo} />
           <span className={styles.product}>
-            <span className={styles.productName}>Motor Maps</span>
-            <span className={styles.productSub}>Monitoreo de flota · Mina Los Colorados</span>
+            <span className={styles.productName}>GeoPlanta</span>
+            <span className={styles.productSub}>Flota · Turnos · Geocercas / Mina Los Colorados</span>
           </span>
         </div>
 

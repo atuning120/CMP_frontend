@@ -94,8 +94,23 @@ function HistorialEvento({ evento }) {
 
       <div className={styles.cuerpo}>
         <p className={styles.titulo}>
-          <strong className={styles.actor}>{evento.actor}</strong> {presentacion.verbo}{' '}
-          <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+          {/* El cierre no siempre lo hace el operador: lo puede cerrar su jefe de turno o el sistema */}
+          {cierreAutomatico && !cerradoPor ? (
+            <>
+              El turno de <strong className={styles.actor}>{evento.actor}</strong> en{' '}
+              <strong className={styles.maquina}>{evento.maquina.nombre}</strong> se cerró automáticamente
+            </>
+          ) : cerradoPor ? (
+            <>
+              <strong className={styles.actor}>{cerradoPor}</strong> cerró el turno de{' '}
+              <strong className={styles.actor}>{evento.actor}</strong> en <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+            </>
+          ) : (
+            <>
+              <strong className={styles.actor}>{evento.actor}</strong> {presentacion.verbo}{' '}
+              <strong className={styles.maquina}>{evento.maquina.nombre}</strong>
+            </>
+          )}
           {reemplazadaPor && (
             <>
               {' por '}
@@ -117,13 +132,13 @@ function HistorialEvento({ evento }) {
             {evento.motivo && <span className={styles.motivo}>{evento.motivo}</span>}
             {cerradoPor && (
               <span className={styles.cierreAuto}>
-                <UserCheck size={12} /> Cerrado por {cerradoPor}
-                {texto(detalle?.motivoCierre) ? `: ${detalle.motivoCierre}` : ''}
+                <UserCheck size={12} />{' '}
+                {texto(detalle?.motivoCierre) ? `Motivo: ${detalle.motivoCierre}` : 'Cerrado por el jefe de turno'}
               </span>
             )}
             {cierreAutomatico && !cerradoPor && (
               <span className={styles.cierreAuto}>
-                <AlarmClockOff size={12} /> Cierre automático (superó la duración máxima)
+                <AlarmClockOff size={12} /> Superó la duración máxima del turno
               </span>
             )}
           </p>
