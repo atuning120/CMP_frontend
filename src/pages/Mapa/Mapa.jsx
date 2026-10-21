@@ -7,7 +7,8 @@ import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
 import { obtenerMapa, reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
-import { ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
+import { obtenerUltimasPosiciones, suscribirPosiciones } from '../../services/trackingService.js'
+import { actualizarGps, ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
 import styles from './Mapa.module.css'
 
 // La flota cambia con los turnos: se refresca cada minuto mientras la página está abierta
@@ -24,6 +25,12 @@ const leerContraido = () => {
 }
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
+// "hace 3 min" desde la fecha de una posición GPS
+const haceCuanto = (fechaHora, ahora) => {
+  const minutos = Math.floor((ahora - Date.parse(fechaHora)) / 60_000)
+  return minutos < 1 ? 'hace menos de 1 min' : `hace ${minutos} min`
+}
+
 function Mapa() {
   const sesion = useSesion()
   const admin = esAdmin(sesion)
@@ -31,6 +38,10 @@ function Mapa() {
   const seccionMapaRef = useRef(null)
   const [geocercas, setGeocercas] = useState({ areas: [], zonas: [] })
   const [flota, setFlota] = useState([])
+  // Última posición GPS de cada máquina (idMaquina -> posición): se carga al abrir y llega por WebSocket
+  const [gps, setGps] = useState(() => new Map())
+  // Hora de referencia para descartar posiciones GPS viejas; avanza con el refresco de la flota
+  const [ahora, setAhora] = useState(() => Date.now())
   const [conAlerta, setConAlerta] = useState(() => new Set())
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -66,10 +77,31 @@ function Mapa() {
       }
     }
     cargarTodo()
-    const intervalo = setInterval(() => cargarFlota().catch(() => {}), REFRESCO_FLOTA_MS)
+    const intervalo = setInterval(() => {
+      setAhora(Date.now())
+      cargarFlota().catch(() => {})
+    }, REFRESCO_FLOTA_MS)
     return () => {
       vigente = false
       clearInterval(intervalo)
+    }
+  }, [])
+
+  // Posiciones GPS: las últimas al abrir (y al recuperar la conexión), luego en tiempo real por WebSocket.
+  // Si el tracking falla el mapa sigue funcionando con la zona de cada turno
+  useEffect(() => {
+    let vigente = true
+    const agregar = (posiciones) => {
+      if (!vigente) return
+      setGps((actual) => actualizarGps(actual, posiciones))
+      setAhora(Date.now())
+    }
+    const cargarUltimas = () => obtenerUltimasPosiciones().then(agregar).catch(() => {})
+    cargarUltimas()
+    const desuscribir = suscribirPosiciones({ alRecibir: agregar, alReconectar: cargarUltimas })
+    return () => {
+      vigente = false
+      desuscribir()
     }
   }, [])
 
@@ -77,7 +109,7 @@ function Mapa() {
   const nombreArea = useMemo(() => new Map(areas.map((a) => [a.idArea, a.nombre])), [areas])
 
   // Máquinas con su estado, el texto de ubicación y si tienen punto en el mapa
-  const posiciones = useMemo(() => posicionarMaquinas(flota, areas, zonas), [flota, areas, zonas])
+  const posiciones = useMemo(() => posicionarMaquinas(flota, areas, zonas, gps, ahora), [flota, areas, zonas, gps, ahora])
   const items = useMemo(() => {
     const enMapa = new Set(posiciones.map((p) => p.maquina.idMaquina))
     return flota.map((maquina) => {
@@ -197,6 +229,12 @@ function Mapa() {
             <span>Operador: {maquina.operadorActual}</span>
             <span>{ubicacion}</span>
             {maquina.horometroActual !== null && <span>Horómetro: {formatoHoras.format(maquina.horometroActual)} h</span>}
+            {posicion.gps && (
+              <span>
+                GPS {haceCuanto(posicion.gps.fechaHora, ahora)}
+                {posicion.gps.velocidad !== null && ` · ${formatoHoras.format(posicion.gps.velocidad)} km/h`}
+              </span>
+            )}
             <span className={`${styles.tarjetaEstado} ${styles[estado]}`}>{ETIQUETA_ESTADO[estado]}</span>
           </div>
         ),
@@ -224,7 +262,7 @@ function Mapa() {
         </div>
       ),
     }
-  }, [seleccion, editando, marcadores, items, areas, zonas, modo, nombreArea])
+  }, [seleccion, editando, marcadores, items, areas, zonas, modo, nombreArea, ahora])
 
   const overlay = (
     <>
