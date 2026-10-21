@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, Check, Info, LoaderCircle, Search, Users } from 'lucide-react'
+import { CLAVES, errorSinDatos, useUsuarios } from '../../hooks/consultas.js'
 import { idUsuarioSesion, useSesion } from '../../services/session.js'
-import { cambiarRol, ETIQUETA_ROL, listarUsuarios, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
+import { cambiarRol, ETIQUETA_ROL, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
 import styles from './Admin.module.css'
 
 const FILTROS = [
@@ -16,6 +18,8 @@ const PROVEEDOR = { MICROSOFT: 'Microsoft', CREDENCIALES: 'Contraseña', GOOGLE:
 
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
 
+const SIN_USUARIOS = []
+
 /**
  * Administración de usuarios (solo ADMIN). Quien entra por primera vez con Microsoft queda como Visor
  * hasta que un administrador le asigna otro rol aquí.
@@ -23,24 +27,15 @@ const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '
 function Admin() {
   const sesion = useSesion()
   const miId = idUsuarioSesion(sesion)
-  const [usuarios, setUsuarios] = useState([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
+  const queryClient = useQueryClient()
+  const usuariosQuery = useUsuarios()
+  const usuarios = usuariosQuery.data ?? SIN_USUARIOS
+  const cargando = usuariosQuery.isPending
+  const error = errorSinDatos(usuariosQuery)
   const [filtro, setFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
   // Estado del guardado por fila: { [idUsuario]: 'guardando' | 'guardado' | mensaje de error }
   const [estadoFila, setEstadoFila] = useState({})
-
-  useEffect(() => {
-    let vigente = true
-    listarUsuarios()
-      .then((lista) => vigente && setUsuarios(lista))
-      .catch((e) => vigente && setError(e.message))
-      .finally(() => vigente && setCargando(false))
-    return () => {
-      vigente = false
-    }
-  }, [])
 
   const conteos = useMemo(() => {
     const c = { todos: usuarios.length }
@@ -61,7 +56,9 @@ function Admin() {
     setEstadoFila((e) => ({ ...e, [usuario.idUsuario]: 'guardando' }))
     try {
       const actualizado = await cambiarRol(usuario.idUsuario, rol)
-      setUsuarios((lista) => lista.map((u) => (u.idUsuario === actualizado.idUsuario ? actualizado : u)))
+      queryClient.setQueryData(CLAVES.usuarios, (lista) =>
+        lista?.map((u) => (u.idUsuario === actualizado.idUsuario ? actualizado : u)),
+      )
       setEstadoFila((e) => ({ ...e, [usuario.idUsuario]: 'guardado' }))
     } catch (e) {
       setEstadoFila((prev) => ({ ...prev, [usuario.idUsuario]: e.message }))

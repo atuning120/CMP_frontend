@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Activity, AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
-import {
-  listarMarcasMaquina,
-  listarModelosMaquina,
-  listarOperadoresAsignables,
-  listarTiposMaquina,
-  obtenerFlota,
-} from '../../services/flotaService.js'
+import { CLAVES, errorSinDatos, useCatalogos, useFlota } from '../../hooks/consultas.js'
 import { conRegreso, ESTADOS_MAQUINA, estadoDe, regresoVencido, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
 
@@ -25,6 +20,7 @@ const formatoFechaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', mont
 // Se reemplaza una máquina que opera o que salió de operación por una falla; una en reserva no tiene a quién cubrir
 const reemplazable = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubreA
 
+const SIN_MAQUINAS = []
 const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
 
 /**
@@ -32,44 +28,20 @@ const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
  * móvil. Cada acción pide un motivo y queda en la bitácora.
  */
 function Flota() {
-  const [flota, setFlota] = useState([])
-  const [catalogos, setCatalogos] = useState(CATALOGOS_VACIOS)
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
+  const queryClient = useQueryClient()
+  // Flota (compartida con el mapa) y catálogos de los formularios (tipos, marcas, modelos y operadores asignables)
+  const flotaQuery = useFlota()
+  const catalogosQuery = useCatalogos()
+  const flota = flotaQuery.data ?? SIN_MAQUINAS
+  const catalogos = catalogosQuery.data ?? CATALOGOS_VACIOS
+  const cargando = flotaQuery.isPending || catalogosQuery.isPending
+  const error = errorSinDatos(flotaQuery) ?? errorSinDatos(catalogosQuery)
+  // Momento de la última carga de la flota: para marcar los regresos vencidos (no hace falta que avance en vivo)
+  const ahora = flotaQuery.dataUpdatedAt
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
   const [accion, setAccion] = useState(null)
   const [aviso, setAviso] = useState(null)
-  // Momento de la última carga de la flota: para marcar los regresos vencidos (no hace falta que avance en vivo)
-  const [ahora, setAhora] = useState(() => Date.now())
-
-  // Flota y catálogos de los formularios (tipos, marcas, modelos y operadores asignables)
-  const cargar = useCallback(async () => {
-    const [maquinas, tipos, marcas, modelos, operadores] = await Promise.all([
-      obtenerFlota(),
-      listarTiposMaquina(),
-      listarMarcasMaquina(),
-      listarModelosMaquina(),
-      listarOperadoresAsignables(),
-    ])
-    return { maquinas, catalogos: { tipos, marcas, modelos, operadores } }
-  }, [])
-
-  useEffect(() => {
-    let vigente = true
-    cargar()
-      .then(({ maquinas, catalogos: c }) => {
-        if (!vigente) return
-        setFlota(maquinas)
-        setCatalogos(c)
-        setAhora(Date.now())
-      })
-      .catch((e) => vigente && setError(e.message))
-      .finally(() => vigente && setCargando(false))
-    return () => {
-      vigente = false
-    }
-  }, [cargar])
 
   const conteos = useMemo(() => Object.fromEntries(FILTROS.map((f) => [f.id, flota.filter(f.incluye).length])), [flota])
   // Ya pasó su regreso estimado y sigue en mantenimiento o fuera de servicio: el jefe de turno debe hacer seguimiento
@@ -86,11 +58,12 @@ function Flota() {
     })
   }, [flota, filtro, busqueda])
 
+  // La acción ya quedó hecha: si la recarga falla, la tabla se pone al día en el próximo refresco (y no invita a
+  // repetirla). Las alertas también cambian al cerrar un turno
   const alGuardar = async (mensaje) => {
-    const { maquinas, catalogos: c } = await cargar()
-    setFlota(maquinas)
-    setCatalogos(c)
-    setAhora(Date.now())
+    await Promise.all(
+      [CLAVES.flota, CLAVES.catalogos, CLAVES.alertas].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    )
     setAccion(null)
     setAviso(mensaje)
   }
