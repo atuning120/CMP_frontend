@@ -76,7 +76,7 @@ export const cerrarSesion = () => {
   notificar()
 }
 
-const subscribe = (listener) => {
+export const suscribirSesion = (listener) => {
   listeners.add(listener)
   // Cerrar sesión en otra pestaña también la cierra aquí
   const onStorage = (event) => event.key === STORAGE_KEY && listener()
@@ -88,7 +88,7 @@ const subscribe = (listener) => {
 }
 
 export function useSesion() {
-  return useSyncExternalStore(subscribe, getSesion)
+  return useSyncExternalStore(suscribirSesion, getSesion)
 }
 
 export const esAdmin = (sesion) => sesion?.rol === 'ADMIN'

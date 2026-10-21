@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Truck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
-import { obtenerFlota, obtenerMaquinasConAlerta, puedeVerAlertas } from '../../services/flotaService.js'
-import { obtenerMapa, reordenarAreas } from '../../services/geocercasService.js'
+import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
+import { puedeVerAlertas } from '../../services/flotaService.js'
+import { reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { obtenerUltimasPosiciones, suscribirPosiciones } from '../../services/trackingService.js'
 import { actualizarGps, ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
@@ -25,6 +27,12 @@ const leerContraido = () => {
 }
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
+// Mientras no llega cada respuesta (referencias estables para los useMemo)
+const SIN_GEOCERCAS = { areas: [], zonas: [] }
+const SIN_MAQUINAS = []
+const SIN_ALERTAS = new Set()
+const SIN_GPS = new Map()
+
 // "hace 3 min" desde la fecha de una posición GPS
 const haceCuanto = (fechaHora, ahora) => {
   const minutos = Math.floor((ahora - Date.parse(fechaHora)) / 60_000)
@@ -36,15 +44,31 @@ function Mapa() {
   const admin = esAdmin(sesion)
   const mapaRef = useRef(null)
   const seccionMapaRef = useRef(null)
-  const [geocercas, setGeocercas] = useState({ areas: [], zonas: [] })
-  const [flota, setFlota] = useState([])
-  // Última posición GPS de cada máquina (idMaquina -> posición): se carga al abrir y llega por WebSocket
-  const [gps, setGps] = useState(() => new Map())
-  // Hora de referencia para descartar posiciones GPS viejas; avanza con el refresco de la flota
+  const queryClient = useQueryClient()
+  // Al volver al mapa se dibuja lo último recibido (caché) mientras se actualiza en segundo plano
+  const geocercasQuery = useGeocercas()
+  const flotaQuery = useFlota({ refetchInterval: REFRESCO_FLOTA_MS })
+  const alertasQuery = useMaquinasConAlerta({ refetchInterval: REFRESCO_FLOTA_MS })
+  // Última posición GPS de cada máquina (idMaquina -> posición): las de /tracking/ultimas al abrir (y al recuperar la
+  // conexión) se suman a las que llegan por WebSocket. Si el tracking falla el mapa sigue con la zona de cada turno
+  const gpsQuery = useQuery({
+    queryKey: CLAVES.gps,
+    queryFn: async () => {
+      const posiciones = await obtenerUltimasPosiciones()
+      return actualizarGps(queryClient.getQueryData(CLAVES.gps) ?? SIN_GPS, posiciones)
+    },
+    // Sin el WebSocket (fuera del mapa) se pierden posiciones: al volver siempre se piden las últimas
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  })
+  const geocercas = geocercasQuery.data ?? SIN_GEOCERCAS
+  const flota = flotaQuery.data ?? SIN_MAQUINAS
+  const conAlerta = alertasQuery.data ?? SIN_ALERTAS
+  const gps = gpsQuery.data ?? SIN_GPS
+  const cargando = geocercasQuery.isPending || flotaQuery.isPending
+  const error = errorSinDatos(geocercasQuery) ?? errorSinDatos(flotaQuery)
+  // Hora de referencia para descartar posiciones GPS viejas; avanza cada minuto y con cada posición nueva
   const [ahora, setAhora] = useState(() => Date.now())
-  const [conAlerta, setConAlerta] = useState(() => new Set())
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState(null)
   const [modo, setModo] = useState('flota')
   const [contraido, setContraido] = useState(leerContraido)
   const [seleccion, setSeleccion] = useState(null)
@@ -53,57 +77,28 @@ function Mapa() {
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
 
-  const cargarGeocercas = useCallback(async () => setGeocercas(await obtenerMapa()), [])
-
-  // Carga inicial y refresco periódico de la flota
   useEffect(() => {
-    let vigente = true
-    const cargarFlota = async () => {
-      const [maquinas, alertas] = await Promise.all([obtenerFlota(), obtenerMaquinasConAlerta()])
-      if (!vigente) return
-      setFlota(maquinas)
-      setConAlerta(alertas)
-    }
-    const cargarTodo = async () => {
-      try {
-        const [mapa] = await Promise.all([obtenerMapa(), cargarFlota()])
-        if (!vigente) return
-        setGeocercas(mapa)
-        setError(null)
-      } catch (e) {
-        if (vigente) setError(e.message)
-      } finally {
-        if (vigente) setCargando(false)
-      }
-    }
-    cargarTodo()
-    const intervalo = setInterval(() => {
-      setAhora(Date.now())
-      cargarFlota().catch(() => {})
-    }, REFRESCO_FLOTA_MS)
-    return () => {
-      vigente = false
-      clearInterval(intervalo)
-    }
+    const intervalo = setInterval(() => setAhora(Date.now()), REFRESCO_FLOTA_MS)
+    return () => clearInterval(intervalo)
   }, [])
 
-  // Posiciones GPS: las últimas al abrir (y al recuperar la conexión), luego en tiempo real por WebSocket.
-  // Si el tracking falla el mapa sigue funcionando con la zona de cada turno
+  // Posiciones GPS en tiempo real por WebSocket
   useEffect(() => {
     let vigente = true
     const agregar = (posiciones) => {
       if (!vigente) return
-      setGps((actual) => actualizarGps(actual, posiciones))
+      queryClient.setQueryData(CLAVES.gps, (actual) => actualizarGps(actual ?? SIN_GPS, posiciones))
       setAhora(Date.now())
     }
-    const cargarUltimas = () => obtenerUltimasPosiciones().then(agregar).catch(() => {})
-    cargarUltimas()
-    const desuscribir = suscribirPosiciones({ alRecibir: agregar, alReconectar: cargarUltimas })
+    const desuscribir = suscribirPosiciones({
+      alRecibir: agregar,
+      alReconectar: () => queryClient.invalidateQueries({ queryKey: CLAVES.gps }),
+    })
     return () => {
       vigente = false
       desuscribir()
     }
-  }, [])
+  }, [queryClient])
 
   const { areas, zonas } = geocercas
   const nombreArea = useMemo(() => new Map(areas.map((a) => [a.idArea, a.nombre])), [areas])
@@ -189,26 +184,29 @@ function Mapa() {
   // El listado cambia de inmediato; si el Backend rechaza el orden se recarga el vigente
   const alReordenar = useCallback(
     async (idsAreas) => {
-      setGeocercas((g) => {
+      // Una recarga en curso pisaría el orden nuevo con el anterior
+      await queryClient.cancelQueries({ queryKey: CLAVES.geocercas })
+      queryClient.setQueryData(CLAVES.geocercas, (g) => {
         const porId = new Map(g.areas.map((a) => [a.idArea, a]))
         return { ...g, areas: idsAreas.map((id) => porId.get(id)) }
       })
       try {
         await reordenarAreas(idsAreas)
       } catch (e) {
-        await cargarGeocercas().catch(() => {})
+        await queryClient.invalidateQueries({ queryKey: CLAVES.geocercas })
         throw e
       }
     },
-    [cargarGeocercas],
+    [queryClient],
   )
 
+  // La geocerca ya quedó guardada: si la recarga falla se verá en el próximo refresco
   const alGuardar = useCallback(
     async (nuevaSeleccion) => {
-      await cargarGeocercas()
+      await queryClient.invalidateQueries({ queryKey: CLAVES.geocercas })
       setSeleccion(nuevaSeleccion)
     },
-    [cargarGeocercas],
+    [queryClient],
   )
 
   // Tarjeta flotante sobre la máquina, zona o área seleccionada
