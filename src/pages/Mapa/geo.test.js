@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { aUtm, estadoMaquina, fueraDeFaena, malUbicado, posicionarMaquinas, puntoInterior } from './geo.js'
+import { actualizarGps, aUtm, estadoMaquina, fueraDeFaena, malUbicado, posicionarMaquinas, puntoInterior } from './geo.js'
 
 const cuadrado = (lon, lat, lado = 0.002) => ({
   type: 'Polygon',
@@ -119,5 +119,40 @@ describe('posicionarMaquinas', () => {
     const enZona = (idMaquina) => maquina({ idMaquina, operadorActual: 'Op', idAreaActual: 10, idZonaActual: 20 })
     const posiciones = posicionarMaquinas([enZona(1), enZona(2), enZona(3)], [area], [zona])
     expect(posiciones.map((p) => p.indice)).toEqual([0, 1, 2])
+  })
+
+  describe('con GPS', () => {
+    const AHORA = Date.parse('2026-10-21T13:00:00Z')
+    const gps = (fechaHora) => new Map([[1, { idMaquina: 1, fechaHora, latitud: -28.31, longitud: -70.82 }]])
+
+    it('usa la posición GPS reciente, aunque la máquina no tenga turno', () => {
+      const [p] = posicionarMaquinas([maquina()], [area], [zona], gps('2026-10-21T12:58:00Z'), AHORA)
+      expect(p.lngLat).toEqual([-70.82, -28.31])
+      expect(p.gps).toEqual(expect.objectContaining({ idMaquina: 1 }))
+    })
+
+    it('con una posición GPS antigua vuelve a la zona del turno', () => {
+      const conTurno = maquina({ operadorActual: 'Ana', idAreaActual: 10, idZonaActual: 20 })
+      const [p] = posicionarMaquinas([conTurno], [area], [zona], gps('2026-10-21T12:30:00Z'), AHORA)
+      expect(p.lngLat).toEqual(puntoInterior(zona.poligono))
+      expect(p.gps).toBeNull()
+    })
+  })
+})
+
+describe('actualizarGps', () => {
+  const posicion = (idMaquina, fechaHora) => ({ idMaquina, fechaHora, latitud: -28.3, longitud: -70.8 })
+
+  it('se queda con la posición más reciente de cada máquina', () => {
+    const inicial = new Map([[1, posicion(1, '2026-10-21T13:00:00Z')]])
+    const siguiente = actualizarGps(inicial, [posicion(1, '2026-10-21T12:50:00Z'), posicion(2, '2026-10-21T12:55:00Z')])
+    expect(siguiente.get(1).fechaHora).toBe('2026-10-21T13:00:00Z')
+    expect(siguiente.get(2).fechaHora).toBe('2026-10-21T12:55:00Z')
+    expect(inicial.has(2)).toBe(false)
+  })
+
+  it('devuelve el mismo Map si nada cambió', () => {
+    const inicial = new Map([[1, posicion(1, '2026-10-21T13:00:00Z')]])
+    expect(actualizarGps(inicial, [posicion(1, '2026-10-21T12:00:00Z')])).toBe(inicial)
   })
 })

@@ -91,15 +91,27 @@ export const ETIQUETA_ESTADO = {
   fuera: 'Fuera de servicio',
 }
 
+// Una posición GPS más antigua que esto ya no dice dónde está la máquina (la app manda cada 2 min, el LL301 cada 30 s)
+export const GPS_VIGENTE_MS = 15 * 60 * 1000
+
+export const gpsVigente = (posicion, ahora) =>
+  Boolean(posicion) && ahora - Date.parse(posicion.fechaHora) <= GPS_VIGENTE_MS
+
 /**
- * Posición de cada máquina en el mapa. Aún no hay GPS en línea: se ubica en un punto interior de la
- * zona (o del área) de su turno en curso. Sin turno o sin polígono, no aparece en el mapa.
+ * Posición de cada máquina en el mapa. Con una posición GPS reciente va en ese punto (tenga o no turno).
+ * Si no, se ubica en un punto interior de la zona (o del área) de su turno en curso; sin turno o sin
+ * polígono, no aparece en el mapa.
+ * gps: Map idMaquina -> { fechaHora, latitud, longitud, velocidad, ... }
  */
-export function posicionarMaquinas(maquinas, areas, zonas) {
+export function posicionarMaquinas(maquinas, areas, zonas, gps = new Map(), ahora = Date.now()) {
   const poligonoZona = new Map(zonas.map((z) => [z.idZona, z.poligono]))
   const poligonoArea = new Map(areas.map((a) => [a.idArea, a.poligono]))
   const puntos = new Map()
   return maquinas.flatMap((m) => {
+    const posicion = gps.get(m.idMaquina)
+    if (gpsVigente(posicion, ahora)) {
+      return [{ maquina: m, lngLat: [posicion.longitud, posicion.latitud], indice: 0, gps: posicion }]
+    }
     const poligono = poligonoZona.get(m.idZonaActual) ?? poligonoArea.get(m.idAreaActual)
     if (!m.operadorActual || !poligono) return []
     const clave = m.idZonaActual ? `z${m.idZonaActual}` : `a${m.idAreaActual}`
@@ -107,6 +119,21 @@ export function posicionarMaquinas(maquinas, areas, zonas) {
     const grupo = puntos.get(clave)
     // Varias máquinas en la misma zona se reparten alrededor del punto para no taparse
     const indice = grupo.cantidad++
-    return [{ maquina: m, lngLat: grupo.punto, indice }]
+    return [{ maquina: m, lngLat: grupo.punto, indice, gps: null }]
   })
+}
+
+/**
+ * Agrega posiciones nuevas al mapa idMaquina -> posición, quedándose con la más reciente de cada máquina
+ * (una posición guardada sin señal puede llegar después de otra más nueva). Devuelve el mismo Map si nada cambió.
+ */
+export function actualizarGps(gps, posiciones) {
+  let siguiente = gps
+  for (const p of posiciones) {
+    const actual = siguiente.get(p.idMaquina)
+    if (actual && Date.parse(actual.fechaHora) >= Date.parse(p.fechaHora)) continue
+    if (siguiente === gps) siguiente = new Map(gps)
+    siguiente.set(p.idMaquina, p)
+  }
+  return siguiente
 }
