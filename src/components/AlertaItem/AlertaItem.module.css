@@ -1,0 +1,125 @@
+/* Misma forma que HistorialEvento; --acento lo fija el tono (aviso, peligro) */
+.alertaItem {
+  --acento: var(--warning-text);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  list-style: none;
+  transition: background-color 0.6s ease-out;
+
+  /* Alertas del mismo día, una bajo otra en la tarjeta */
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+
+  &.peligro {
+    --acento: var(--danger);
+  }
+
+  /* Turno o jornada extendidos que siguen abiertos: borde de acento a la izquierda */
+  &.activa {
+    box-shadow: inset 3px 0 0 var(--acento);
+  }
+
+  /* Llegó por WebSocket mientras la página estaba abierta */
+  &.nueva {
+    background: color-mix(in srgb, var(--warning) 8%, transparent);
+  }
+
+  .icono {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    color: var(--acento);
+  }
+
+  .cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .titulo {
+    font-size: 14px;
+    color: var(--text-h);
+
+    .actor {
+      font-weight: 700;
+    }
+
+    .maquina {
+      font-weight: 800;
+      color: var(--acento);
+    }
+  }
+
+  .etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .etiqueta,
+    .recien {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px;
+      border: 1px solid color-mix(in srgb, var(--acento) 25%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--acento) 8%, transparent);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--acento);
+    }
+
+    .recien {
+      border-color: var(--warning);
+      background: var(--warning);
+      color: var(--on-warning);
+    }
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 13px;
+    color: var(--text);
+
+    .metaItem {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+  }
+
+  .fecha {
+    flex: none;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--text-tertiary);
+  }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+
+    .fecha {
+      width: 100%;
+      box-sizing: border-box;
+      padding-left: 50px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

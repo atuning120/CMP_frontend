@@ -1,0 +1,135 @@
+/* Bajo el header, sobre el contenido (también sobre el mapa y sus paneles) */
+.avisosAlertas {
+  position: fixed;
+  top: 72px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+
+  .aviso {
+    --acento: var(--warning-text);
+
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 12px 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--acento);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow-raised);
+    list-style: none;
+    text-align: left;
+    pointer-events: auto;
+    animation: entrar 0.2s ease-out;
+
+    &.peligro {
+      --acento: var(--danger);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .icono {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--acento) 12%, transparent);
+    color: var(--acento);
+  }
+
+  .cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .texto {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-h);
+  }
+
+  .detalle {
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .ver {
+    align-self: flex-start;
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-radius: 4px;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .cerrar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-alt);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    @media (pointer: coarse) {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  /* Teléfono: el header ocupa dos filas; los avisos van abajo, a todo el ancho */
+  @media (max-width: 640px) {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    flex-direction: column-reverse;
+  }
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

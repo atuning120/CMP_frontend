@@ -7,6 +7,7 @@ import {
   obtenerFlota,
   obtenerMaquinasConAlerta,
 } from '../services/flotaService.js'
+import { obtenerAlertasActivas } from '../services/alertasService.js'
 import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 
@@ -14,6 +15,8 @@ import { listarUsuarios } from '../services/usuariosService.js'
 export const CLAVES = {
   flota: ['flota'],
   alertas: ['alertas'],
+  // Dentro de 'alertas': invalidar las alertas también refresca el contador
+  alertasActivas: ['alertas', 'activas'],
   catalogos: ['catalogos'],
   geocercas: ['geocercas'],
   gps: ['gps'],
@@ -39,6 +42,10 @@ export const useFlota = (opciones) => useQuery({ queryKey: CLAVES.flota, queryFn
 // Conjunto de ids de máquinas con turno extendido (vacío para un VISOR)
 export const useMaquinasConAlerta = (opciones) =>
   useQuery({ queryKey: CLAVES.alertas, queryFn: obtenerMaquinasConAlerta, ...opciones })
+
+// Operadores con más de 10 h trabajadas ahora mismo (contador de la pestaña Alertas); el WebSocket lo mantiene al día
+export const useAlertasActivas = (habilitado) =>
+  useQuery({ queryKey: CLAVES.alertasActivas, queryFn: obtenerAlertasActivas, enabled: habilitado })
 
 export const useCatalogos = () => useQuery({ queryKey: CLAVES.catalogos, queryFn: obtenerCatalogos })
 

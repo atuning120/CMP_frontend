@@ -81,3 +81,11 @@ export function formatearFecha(iso) {
   if (fecha.toDateString() === ayer.toDateString()) return `ayer ${hora}`
   return `${formatoCorto(fecha)} ${hora}`
 }
+
+// "45 min", "10 h" o "10 h 25 min"
+export function formatearDuracion(minutos) {
+  const horas = Math.floor(minutos / 60)
+  const resto = Math.floor(minutos % 60)
+  if (horas === 0) return `${resto} min`
+  return resto === 0 ? `${horas} h` : `${horas} h ${resto} min`
+}
