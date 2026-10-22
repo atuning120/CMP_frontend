@@ -346,6 +346,44 @@
     color: var(--danger);
   }
 
+  /* Skeleton de carga: mismas medidas que el dato que reemplaza, para que la tabla no salte */
+  .skConteo {
+    width: 8px;
+    height: 10px;
+    margin: 4px auto;
+  }
+
+  .skNombre {
+    width: 140px;
+    height: 15px;
+  }
+
+  .skEmail {
+    width: 190px;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+
+  .skPastilla {
+    width: 80px;
+    height: 22px;
+    border-radius: 999px;
+  }
+
+  .skEstado {
+    width: 56px;
+  }
+
+  .skFecha {
+    width: 84px;
+  }
+
+  .skSelect {
+    width: 150px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
   .visuallyHidden {
     position: absolute;
     width: 1px;
@@ -495,7 +533,8 @@
       }
     }
 
-    .select {
+    .select,
+    .skSelect {
       flex: 1;
       height: 40px;
     }

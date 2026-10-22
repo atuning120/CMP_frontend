@@ -12,6 +12,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { AlertCircle, AlertTriangle, ChevronRight, GripVertical, Layers, MapPinned, Plus, Search } from 'lucide-react'
 import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
 import GeocercaDetalle from '../GeocercaDetalle/GeocercaDetalle.jsx'
+import Skeleton, { AvisoCarga } from '../Skeleton/Skeleton.jsx'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
 import styles from './GeocercasPanel.module.css'
@@ -91,6 +92,8 @@ const normalizar = (texto) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
 
+const FILAS_SKELETON = [1, 2, 3, 4, 5, 6]
+
 /**
  * Edición de geocercas (solo ADMIN). Las geometrías se dibujan en el mapa con Terra Draw a través de
  * `mapa` (ref de MapaPlanta); el Backend valida que el polígono sea válido y que cada zona quede dentro
@@ -108,6 +111,7 @@ function GeocercasPanel({
   onGuardado,
   onVerMapa,
   onReordenar,
+  cargando,
 }) {
   const [accion, setAccion] = useState(null)
   const [form, setForm] = useState(FORM_VACIO)
@@ -410,8 +414,16 @@ function GeocercasPanel({
         accessibility={accesibilidad(areas)}
       >
         <SortableContext items={grupos.map((g) => g.area.idArea)} strategy={verticalListSortingStrategy}>
+          {cargando && <AvisoCarga texto="Cargando geocercas…" />}
           <ul className={styles.lista}>
-            {areas.length === 0 && (
+            {cargando &&
+              FILAS_SKELETON.map((n) => (
+                <li key={n} className={styles.skFila} aria-hidden="true">
+                  <Skeleton className={styles.skDistintivo} />
+                  <Skeleton className={styles.skNombre} />
+                </li>
+              ))}
+            {!cargando && areas.length === 0 && (
               <li className={styles.vacio}>Aún no hay áreas. Crea la primera con “Nueva área”.</li>
             )}
             {areas.length > 0 && grupos.length === 0 && (

@@ -8,6 +8,15 @@
     inset: 0;
   }
 
+  .cargando {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    pointer-events: none;
+  }
+
   /* Barra superior sobre el mapa: chips de contexto + coordenadas UTM del cursor */
   .overlay {
     position: absolute;

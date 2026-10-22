@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Activity, AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
+import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useCatalogos, useFlota } from '../../hooks/consultas.js'
 import { conRegreso, ESTADOS_MAQUINA, estadoDe, regresoVencido, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
@@ -22,6 +23,7 @@ const reemplazable = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubre
 
 const SIN_MAQUINAS = []
 const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
+const FILAS_SKELETON = [1, 2, 3, 4, 5]
 
 /**
  * Gestión de la flota (JEFE_TURNO y ADMIN): las mismas acciones que el jefe de turno tiene en la app
@@ -34,7 +36,8 @@ function Flota() {
   const catalogosQuery = useCatalogos()
   const flota = flotaQuery.data ?? SIN_MAQUINAS
   const catalogos = catalogosQuery.data ?? CATALOGOS_VACIOS
-  const cargando = flotaQuery.isPending || catalogosQuery.isPending
+  // Los catálogos solo los usan los formularios: la tabla no los espera
+  const cargando = flotaQuery.isPending
   const error = errorSinDatos(flotaQuery) ?? errorSinDatos(catalogosQuery)
   // Momento de la última carga de la flota: para marcar los regresos vencidos (no hace falta que avance en vivo)
   const ahora = flotaQuery.dataUpdatedAt
@@ -123,7 +126,7 @@ function Flota() {
               onClick={() => setFiltro(f.id)}
             >
               {f.etiqueta}
-              <span className={styles.filtroConteo}>{conteos[f.id]}</span>
+              <span className={styles.filtroConteo}>{cargando ? <Skeleton className={styles.skConteo} /> : conteos[f.id]}</span>
             </button>
           ))}
         </div>
@@ -135,6 +138,7 @@ function Flota() {
         </p>
       )}
 
+      {cargando && <AvisoCarga texto="Cargando flota…" />}
       <div className={styles.tablaWrapper}>
         <table className={styles.tabla}>
           <thead className={styles.cabecera}>
@@ -148,13 +152,34 @@ function Flota() {
             </tr>
           </thead>
           <tbody className={styles.cuerpo}>
-            {cargando && (
-              <tr>
-                <td className={styles.vacio} colSpan={6}>
-                  Cargando flota…
-                </td>
-              </tr>
-            )}
+            {cargando &&
+              FILAS_SKELETON.map((n) => (
+                <tr key={n} className={styles.fila} aria-hidden="true">
+                  <td className={styles.td}>
+                    <Skeleton className={styles.skCodigo} />
+                    <Skeleton className={styles.skSecundario} />
+                  </td>
+                  <td className={styles.td} data-label="Operador asignado">
+                    <Skeleton className={styles.skTexto} />
+                  </td>
+                  <td className={styles.td} data-label="Turno en curso">
+                    <Skeleton className={styles.skTexto} />
+                  </td>
+                  <td className={`${styles.td} ${styles.numero}`} data-label="Horómetro">
+                    <Skeleton className={styles.skNumero} />
+                  </td>
+                  <td className={styles.td} data-label="Estado">
+                    <Skeleton className={styles.skEstado} />
+                  </td>
+                  <td className={`${styles.td} ${styles.acciones}`}>
+                    <div className={styles.botones}>
+                      <Skeleton className={styles.skAccion} />
+                      <Skeleton className={styles.skAccion} />
+                      <Skeleton className={styles.skAccion} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
             {!cargando && visibles.length === 0 && (
               <tr>
                 <td className={styles.vacio} colSpan={6}>

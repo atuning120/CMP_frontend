@@ -443,6 +443,45 @@
       box-shadow: 0 0 0 3px var(--focus-ring);
     }
   }
+
+  /* Skeleton de carga: mismas medidas que el dato que reemplaza, para que la tabla no salte */
+  .skConteo {
+    width: 8px;
+    height: 10px;
+    margin: 4px auto;
+  }
+
+  .skCodigo {
+    width: 120px;
+    height: 16px;
+  }
+
+  .skSecundario {
+    width: 150px;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+
+  .skTexto {
+    width: 100px;
+  }
+
+  .skNumero {
+    width: 48px;
+    margin-left: auto;
+  }
+
+  .skEstado {
+    width: 84px;
+    height: 22px;
+    border-radius: 999px;
+  }
+
+  .skAccion {
+    width: 76px;
+    height: 32px;
+    border-radius: 9px;
+  }
 }
 
 
@@ -457,6 +496,10 @@
   .flota {
     .accionTexto {
       display: none;
+    }
+
+    .skAccion {
+      width: 36px;
     }
   }
 }
@@ -576,6 +619,16 @@
 
     .numero {
       text-align: left;
+    }
+
+    .skNumero {
+      margin-left: 0;
+    }
+
+    .skAccion {
+      flex: 1;
+      width: auto;
+      height: 38px;
     }
 
     .acciones {

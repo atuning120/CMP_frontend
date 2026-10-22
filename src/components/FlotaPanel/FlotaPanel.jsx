@@ -1,5 +1,7 @@
 import { Clock3, MapPin, Search, Truck, User } from 'lucide-react'
 import LeyendaMapa from '../LeyendaMapa/LeyendaMapa.jsx'
+import Skeleton, { AvisoCarga } from '../Skeleton/Skeleton.jsx'
+import SkeletonMaquina from '../SkeletonMaquina/SkeletonMaquina.jsx'
 import { ETIQUETA_ESTADO } from '../../pages/Mapa/geo.js'
 import styles from './FlotaPanel.module.css'
 
@@ -8,6 +10,8 @@ const FILTROS = [
   { id: 'operando', etiqueta: 'Operando' },
   { id: 'alertas', etiqueta: 'Alertas' },
 ]
+
+const TARJETAS_SKELETON = [1, 2, 3, 4]
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
@@ -30,6 +34,8 @@ function FlotaPanel({
 }) {
   // Sin acceso a alertas (VISOR) no se muestran el filtro ni su leyenda
   const filtros = conAlertas ? FILTROS : FILTROS.filter((f) => f.id !== 'alertas')
+  // Con la flota ya en caché (p. ej. al volver desde /flota) se muestra aunque lo demás siga cargando
+  const esqueleto = cargando && items.length === 0
 
   return (
     <aside className={styles.flotaPanel}>
@@ -39,7 +45,7 @@ function FlotaPanel({
             <Truck size={18} className={styles.titleIcon} />
             Flota
           </h2>
-          <span className={styles.counter}>{total} equipos</span>
+          {esqueleto ? <Skeleton className={styles.skCounter} /> : <span className={styles.counter}>{total} equipos</span>}
         </div>
         <label className={styles.search}>
           <Search size={16} className={styles.searchIcon} />
@@ -62,14 +68,15 @@ function FlotaPanel({
               onClick={() => onFiltro(f.id)}
             >
               {f.etiqueta}
-              <span className={styles.filtroConteo}>{conteos[f.id]}</span>
+              <span className={styles.filtroConteo}>{esqueleto ? <Skeleton className={styles.skConteo} /> : conteos[f.id]}</span>
             </button>
           ))}
         </div>
       </header>
 
+      {esqueleto && <AvisoCarga texto="Cargando flota…" />}
       <ul className={styles.lista}>
-        {cargando && items.length === 0 && <li className={styles.vacio}>Cargando flota…</li>}
+        {esqueleto && TARJETAS_SKELETON.map((n) => <SkeletonMaquina key={n} />)}
         {!cargando && items.length === 0 && <li className={styles.vacio}>No hay máquinas que coincidan.</li>}
         {items.map(({ maquina, estado, ubicacion, enMapa }) => (
           <li key={maquina.idMaquina}>

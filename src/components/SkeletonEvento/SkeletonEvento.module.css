@@ -1,0 +1,62 @@
+/* Mismas medidas que HistorialEvento y AlertaItem, para que la lista no salte al llegar los datos */
+.skeletonEvento {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  list-style: none;
+
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+
+  .icono {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+    padding-top: 3px;
+  }
+
+  .titulo {
+    width: min(360px, 85%);
+    height: 14px;
+  }
+
+  .etiqueta {
+    width: 96px;
+    height: 20px;
+    border-radius: 999px;
+  }
+
+  .meta {
+    width: min(220px, 60%);
+  }
+
+  .fecha {
+    flex: none;
+    width: 64px;
+    margin-top: 3px;
+  }
+
+  @media (max-width: 640px) {
+    flex-wrap: wrap;
+
+    /* Icono (36 px) + separación (14 px) + cuerpo llenan la fila: la fecha baja a la siguiente, como en el item */
+    .cuerpo {
+      flex-basis: calc(100% - 50px);
+    }
+
+    .fecha {
+      margin: 0 0 0 50px;
+    }
+  }
+}

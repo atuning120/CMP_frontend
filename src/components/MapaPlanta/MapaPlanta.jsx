@@ -9,6 +9,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import { aUtm, LOS_COLORADOS, puntoInterior } from '../../pages/Mapa/geo.js'
+import Skeleton from '../Skeleton/Skeleton.jsx'
 import styles from './MapaPlanta.module.css'
 
 setWorkerUrl(workerUrl)
@@ -407,6 +408,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
   return (
     <div className={styles.mapaPlanta}>
       <div ref={contenedorRef} className={styles.mapa} />
+      {/* Hasta que MapLibre carga el estilo y las primeras imágenes satelitales */}
+      {!listo && <Skeleton className={styles.cargando} />}
       <div className={styles.overlay}>
         {overlay}
         <span className={styles.coordenadas}>

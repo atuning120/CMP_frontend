@@ -1,0 +1,55 @@
+/* Mismas medidas que la tarjeta de FlotaPanel, para que la lista no salte al llegar los datos */
+.skeletonMaquina {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  border-radius: 14px;
+  background: var(--surface);
+  list-style: none;
+
+  .fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .codigo {
+    width: 110px;
+    height: 18px;
+  }
+
+  .badge {
+    width: 72px;
+    height: 20px;
+    border-radius: 999px;
+  }
+
+  .modelo {
+    width: 55%;
+  }
+
+  .detalle {
+    width: 70%;
+  }
+
+  .pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .operador {
+    width: 45%;
+  }
+
+  .horometro {
+    width: 52px;
+  }
+}
