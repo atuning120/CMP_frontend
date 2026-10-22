@@ -288,21 +288,22 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
       )
     })
     maquinas.forEach(({ maquina, lngLat, indice, estado, categoria }) => {
+      const activa = seleccion?.tipo === 'maquina' && seleccion.id === maquina.idMaquina
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${styles[categoria] ?? ''} ${
-        seleccion?.tipo === 'maquina' && seleccion.id === maquina.idMaquina ? styles.maquinaActiva : ''
-      }`
+      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${styles[categoria] ?? ''} ${activa ? styles.maquinaActiva : ''}`
       el.setAttribute('aria-label', `Máquina ${maquina.nombre}`)
+      el.setAttribute('aria-pressed', String(activa))
       const punto = document.createElement('span')
       punto.className = styles.punto
       const codigo = document.createElement('span')
       codigo.className = styles.codigo
       codigo.textContent = maquina.nombre
       el.append(punto, codigo)
+      // Un segundo clic sobre la máquina ya seleccionada la deselecciona (y cierra su tarjeta)
       el.addEventListener('click', (e) => {
         e.stopPropagation()
-        onSeleccionarRef.current({ tipo: 'maquina', id: maquina.idMaquina })
+        onSeleccionarRef.current(activa ? null : { tipo: 'maquina', id: maquina.idMaquina })
       })
       nuevos.push(new Marker({ element: el, anchor: 'top', offset: desplazamiento(indice) }).setLngLat(lngLat).addTo(map))
     })
