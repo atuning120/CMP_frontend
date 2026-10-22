@@ -287,10 +287,10 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
         onSeleccionarRef.current({ tipo: 'zona', id: z.idZona }),
       )
     })
-    maquinas.forEach(({ maquina, lngLat, indice, estado }) => {
+    maquinas.forEach(({ maquina, lngLat, indice, estado, categoria }) => {
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${
+      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${styles[categoria] ?? ''} ${
         seleccion?.tipo === 'maquina' && seleccion.id === maquina.idMaquina ? styles.maquinaActiva : ''
       }`
       el.setAttribute('aria-label', `Máquina ${maquina.nombre}`)

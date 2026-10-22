@@ -4,8 +4,11 @@ import styles from './LeyendaMapa.module.css'
 const ELEMENTOS = [
   { clase: 'area', texto: 'Límite de área', detalle: 'Polígono mayor' },
   { clase: 'zona', texto: 'Zona de trabajo', detalle: 'Geocerca activa' },
-  { clase: 'operando', texto: 'Máquina operando', detalle: 'Turno en curso' },
-  { clase: 'alerta', texto: 'Alerta', detalle: 'Turno de más de 10 h' },
+  { clase: 'productivo', texto: 'Productivo', detalle: 'Estado del turno' },
+  { clase: 'demora', texto: 'Demora', detalle: 'Estado del turno' },
+  { clase: 'mantencion', texto: 'Mantención o falla', detalle: 'Estado del turno' },
+  { clase: 'sinEstado', texto: 'Sin estado', detalle: 'Turno recién iniciado' },
+  { clase: 'alerta', texto: 'Alerta', detalle: 'Halo: turno de más de 10 h' },
 ]
 
 /**

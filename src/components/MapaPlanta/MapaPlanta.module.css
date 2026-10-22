@@ -134,6 +134,23 @@
         0 0 0 6px var(--map-alerta-halo);
     }
 
+    /* Con turno en curso el relleno es el del estado operacional; la alerta conserva su halo */
+    &.productivo .punto {
+      background: var(--map-productivo);
+    }
+
+    &.demora .punto {
+      background: var(--map-demora);
+    }
+
+    &.mantencion .punto {
+      background: var(--map-mantencion);
+    }
+
+    &.sinEstado .punto {
+      background: var(--map-detenida);
+    }
+
     &.maquinaActiva .codigo {
       background: var(--map-seleccion);
       color: var(--on-warning);
