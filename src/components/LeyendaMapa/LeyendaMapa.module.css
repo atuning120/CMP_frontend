@@ -55,15 +55,32 @@
     border-top: 3px solid var(--map-zona);
   }
 
-  .operando,
+  .productivo,
+  .demora,
+  .mantencion,
+  .sinEstado,
   .alerta {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--map-operando);
+    background: var(--map-productivo);
   }
 
+  .demora {
+    background: var(--map-demora);
+  }
+
+  .mantencion {
+    background: var(--map-mantencion);
+  }
+
+  .sinEstado {
+    background: var(--map-detenida);
+  }
+
+  /* La alerta es un halo alrededor del punto, sea cual sea su estado */
   .alerta {
-    background: var(--map-alerta);
+    background: var(--map-detenida);
+    box-shadow: 0 0 0 3px var(--map-alerta-halo);
   }
 }

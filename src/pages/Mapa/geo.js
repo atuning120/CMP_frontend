@@ -84,6 +84,30 @@ export function estadoMaquina(maquina, conAlerta) {
   return 'detenida'
 }
 
+// Color del punto en el mapa según la categoría del estado operacional vigente del turno (lo elige el operador en la
+// app): verde produciendo, amarillo en demora, rojo en mantención o falla. Como en la app, sin categoría es una demora
+const CLASE_CATEGORIA = { PRODUCTIVO: 'productivo', DEMORA: 'demora', MANTENCION: 'mantencion' }
+
+/** Clase del color de la máquina en el mapa: null sin turno en curso, 'sinEstado' si el turno aún no registra uno. */
+export function categoriaMaquina(maquina) {
+  if (!maquina.operadorActual) return null
+  if (!maquina.estadoOperacional) return 'sinEstado'
+  return CLASE_CATEGORIA[maquina.estadoOperacional.categoria] ?? 'demora'
+}
+
+/**
+ * Aplica a la flota un cambio de estado operacional recibido por WebSocket, si es más nuevo que el que tiene la
+ * máquina. Devuelve el mismo arreglo si nada cambió, o null si la máquina no tiene turno en curso en la flota
+ * (el turno empezó después de la última consulta): entonces hay que volver a pedir la flota.
+ */
+export function actualizarEstadoOperacional(flota, { idMaquina, estadoOperacional }) {
+  const maquina = flota.find((m) => m.idMaquina === idMaquina)
+  if (!maquina?.operadorActual) return null
+  const actual = maquina.estadoOperacional
+  if (actual && Date.parse(actual.desde) >= Date.parse(estadoOperacional.desde)) return flota
+  return flota.map((m) => (m === maquina ? { ...m, estadoOperacional } : m))
+}
+
 export const ETIQUETA_ESTADO = {
   operando: 'Operando',
   alerta: 'Alerta',

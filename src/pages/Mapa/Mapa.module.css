@@ -483,6 +483,32 @@
     color: var(--text-h);
   }
 
+  .tarjetaCategoria {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+
+    .tarjetaPunto {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--map-detenida);
+    }
+
+    &.productivo .tarjetaPunto {
+      background: var(--map-productivo);
+    }
+
+    &.demora .tarjetaPunto {
+      background: var(--map-demora);
+    }
+
+    &.mantencion .tarjetaPunto {
+      background: var(--map-mantencion);
+    }
+  }
+
   .tarjetaEstado {
     margin-top: 2px;
     font-weight: 700;

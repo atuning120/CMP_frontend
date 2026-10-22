@@ -1,12 +1,21 @@
 import { apiJson } from './api.js'
 import { getSesion } from './session.js'
+import { suscribirSocket } from './socket.js'
 
 // Mismos roles que exige el Backend en GET /alertas
 const ROLES_ALERTAS = ['JEFE_TURNO', 'ADMIN']
 
 export const puedeVerAlertas = (sesion) => ROLES_ALERTAS.includes(sesion?.rol)
 
-// Todas las máquinas (también las dadas de baja) con su turno en curso y la zona de ese turno
+/**
+ * Cambios de estado operacional en tiempo real (Socket.IO, namespace /estados): `alRecibir` recibe
+ * { idMaquina, idTurno, estadoOperacional: { idEstado, nombre, categoria, desde } } cada vez que un operador cambia de
+ * estado en la app, y `alReconectar` avisa cuando la conexión vuelve tras un corte. Devuelve la función para desconectarse.
+ */
+export const suscribirEstadosOperacionales = ({ alRecibir, alReconectar }) =>
+  suscribirSocket('/estados', { estados: alRecibir }, alReconectar)
+
+// Todas las máquinas (también las dadas de baja) con su turno en curso, la zona y el estado operacional de ese turno
 export const obtenerFlota = () => apiJson('/maquinas/flota')
 
 /**

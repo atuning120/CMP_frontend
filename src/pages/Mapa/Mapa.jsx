@@ -7,11 +7,19 @@ import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import Skeleton from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
-import { puedeVerAlertas } from '../../services/flotaService.js'
+import { puedeVerAlertas, suscribirEstadosOperacionales } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { obtenerUltimasPosiciones, suscribirPosiciones } from '../../services/trackingService.js'
-import { actualizarGps, ETIQUETA_ESTADO, estadoMaquina, posicionarMaquinas, puntoInterior } from './geo.js'
+import {
+  actualizarEstadoOperacional,
+  actualizarGps,
+  categoriaMaquina,
+  ETIQUETA_ESTADO,
+  estadoMaquina,
+  posicionarMaquinas,
+  puntoInterior,
+} from './geo.js'
 import styles from './Mapa.module.css'
 
 // La flota cambia con los turnos: se refresca cada minuto mientras la página está abierta
@@ -102,6 +110,20 @@ function Mapa() {
     }
   }, [queryClient])
 
+  // Estado operacional en tiempo real por WebSocket: el punto de la máquina cambia de color sin esperar el refresco
+  useEffect(() => {
+    const aplicar = (cambio) => {
+      const flota = queryClient.getQueryData(CLAVES.flota)
+      const siguiente = flota && actualizarEstadoOperacional(flota, cambio)
+      if (siguiente) queryClient.setQueryData(CLAVES.flota, siguiente)
+      else queryClient.invalidateQueries({ queryKey: CLAVES.flota })
+    }
+    return suscribirEstadosOperacionales({
+      alRecibir: aplicar,
+      alReconectar: () => queryClient.invalidateQueries({ queryKey: CLAVES.flota }),
+    })
+  }, [queryClient])
+
   const { areas, zonas } = geocercas
   const nombreArea = useMemo(() => new Map(areas.map((a) => [a.idArea, a.nombre])), [areas])
 
@@ -144,7 +166,7 @@ function Mapa() {
 
   const marcadores = useMemo(() => {
     const estados = new Map(items.map((i) => [i.maquina.idMaquina, i.estado]))
-    return posiciones.map((p) => ({ ...p, estado: estados.get(p.maquina.idMaquina) }))
+    return posiciones.map((p) => ({ ...p, estado: estados.get(p.maquina.idMaquina), categoria: categoriaMaquina(p.maquina) }))
   }, [posiciones, items])
 
   // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver lo elegido o dibujar
@@ -227,6 +249,12 @@ function Mapa() {
               {maquina.nombre} · {[maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' ')}
             </strong>
             <span>Operador: {maquina.operadorActual}</span>
+            {maquina.operadorActual && (
+              <span className={`${styles.tarjetaCategoria} ${styles[categoriaMaquina(maquina)]}`}>
+                <span className={styles.tarjetaPunto} />
+                {maquina.estadoOperacional?.nombre ?? 'Sin estado operacional registrado'}
+              </span>
+            )}
             <span>{ubicacion}</span>
             {maquina.horometroActual !== null && <span>Horómetro: {formatoHoras.format(maquina.horometroActual)} h</span>}
             {posicion.gps && (
