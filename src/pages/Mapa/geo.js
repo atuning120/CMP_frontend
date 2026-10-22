@@ -91,7 +91,7 @@ export const ETIQUETA_ESTADO = {
   fuera: 'Fuera de servicio',
 }
 
-// Una posición GPS más antigua que esto ya no dice dónde está la máquina (la app manda cada 2 min, el LL301 cada 30 s)
+// Una posición GPS más antigua que esto ya no dice dónde está la máquina (la app y el LL301 mandan cada 30 s)
 export const GPS_VIGENTE_MS = 15 * 60 * 1000
 
 export const gpsVigente = (posicion, ahora) =>
