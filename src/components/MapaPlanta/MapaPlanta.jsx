@@ -49,6 +49,10 @@ const desplazamiento = (indice) => {
   return [Math.round(Math.cos(angulo) * 26), Math.round(Math.sin(angulo) * 26)]
 }
 
+// Última vista del mapa (centro, zoom y rotación): sobrevive a la navegación entre páginas para que
+// al volver a /mapa quede encuadrado donde estaba; al recargar la pestaña se parte de la vista inicial
+let ultimaVista = { center: LOS_COLORADOS, zoom: 14.2, bearing: 0 }
+
 const formatoUtm = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
 
 // Puntos ya marcados del polígono que se está dibujando. Terra Draw los lleva en committedCoordinateCount;
@@ -87,8 +91,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     const map = new MapLibreMap({
       container: contenedorRef.current,
       style: ESTILO,
-      center: LOS_COLORADOS,
-      zoom: 14.2,
+      ...ultimaVista,
       maxZoom: 20,
       // Vista siempre cenital: se puede desplazar y rotar, pero no inclinar (sin eje z)
       maxPitch: 0,
@@ -225,6 +228,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
       drawRef.current?.stop()
       drawRef.current = null
       listoRef.current = false
+      ultimaVista = { center: map.getCenter().toArray(), zoom: map.getZoom(), bearing: map.getBearing() }
       map.remove()
       mapRef.current = null
     }
