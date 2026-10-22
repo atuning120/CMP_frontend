@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { LogOut } from 'lucide-react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
-import { puedeGestionarFlota } from '../../services/flotaService.js'
+import { useAlertasEnVivo } from '../../hooks/alertasEnVivo.js'
+import { useAlertasActivas } from '../../hooks/consultas.js'
+import { puedeGestionarFlota, puedeVerAlertas } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
 import { salir } from '../../services/authService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
+import AvisosAlertas from '../AvisosAlertas/AvisosAlertas.jsx'
 import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
@@ -33,6 +36,11 @@ function MainLayout() {
   const sesion = useSesion()
   const navigate = useNavigate()
   const [confirmandoSalida, setConfirmandoSalida] = useState(false)
+  // Alertas en tiempo real para jefes de turno y administradores, en cualquier página del panel
+  const conAlertas = puedeVerAlertas(sesion)
+  const enAlertas = useMatch('/alertas') !== null
+  const { avisos, descartarAviso } = useAlertasEnVivo(conAlertas, enAlertas)
+  const activas = useAlertasActivas(conAlertas).data ?? 0
 
   const handleLogout = () => {
     salir()
@@ -65,6 +73,17 @@ function MainLayout() {
           {puedeVerHistorial(sesion) && (
             <NavLink to="/historial" className={navLinkClass}>
               Historial
+            </NavLink>
+          )}
+          {conAlertas && (
+            <NavLink to="/alertas" className={navLinkClass}>
+              Alertas
+              {activas > 0 && (
+                <span className={styles.badge} title={`${activas} operadores con más de 10 h trabajadas`}>
+                  {activas}
+                  <span className={styles.visuallyHidden}> activas</span>
+                </span>
+              )}
             </NavLink>
           )}
           {esAdmin(sesion) && (
@@ -108,6 +127,8 @@ function MainLayout() {
           onCancelar={() => setConfirmandoSalida(false)}
         />
       )}
+
+      {avisos.length > 0 && <AvisosAlertas avisos={avisos} onCerrar={descartarAviso} />}
 
       <main className={styles.content}>
         <Outlet />

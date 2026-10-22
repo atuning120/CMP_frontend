@@ -97,6 +97,32 @@
         color: var(--on-hero);
       }
     }
+
+    /* Contador de alertas activas en su pestaña */
+    .badge {
+      min-width: 20px;
+      height: 20px;
+      box-sizing: border-box;
+      margin-left: 6px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--warning);
+      font-size: 12px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 20px;
+      text-align: center;
+      color: var(--on-warning);
+    }
+
+    .visuallyHidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   .cuenta {
