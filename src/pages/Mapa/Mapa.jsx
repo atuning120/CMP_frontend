@@ -5,6 +5,7 @@ import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
+import Skeleton from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
 import { puedeVerAlertas } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
@@ -65,7 +66,8 @@ function Mapa() {
   const flota = flotaQuery.data ?? SIN_MAQUINAS
   const conAlerta = alertasQuery.data ?? SIN_ALERTAS
   const gps = gpsQuery.data ?? SIN_GPS
-  const cargando = geocercasQuery.isPending || flotaQuery.isPending
+  const cargandoGeocercas = geocercasQuery.isPending
+  const cargandoFlota = flotaQuery.isPending
   const error = errorSinDatos(geocercasQuery) ?? errorSinDatos(flotaQuery)
   // Hora de referencia para descartar posiciones GPS viejas; avanza cada minuto y con cada posición nueva
   const [ahora, setAhora] = useState(() => Date.now())
@@ -331,7 +333,7 @@ function Mapa() {
                 >
                   <span className={styles.railIcono}>
                     <Layers size={20} />
-                    <span className={styles.railInsignia}>{areas.length}</span>
+                    {!cargandoGeocercas && <span className={styles.railInsignia}>{areas.length}</span>}
                   </span>
                   <span className={styles.railTexto}>Geocercas</span>
                 </button>
@@ -342,19 +344,31 @@ function Mapa() {
             <ul className={styles.railResumen} aria-label="Resumen de la flota">
               <li className={styles.railDato} data-tooltip="Operando ahora" tabIndex={0}>
                 <span className={`${styles.railPunto} ${styles.railOperando}`} />
-                <span className={styles.railNumero}>{conteos.operando}</span>
+                {cargandoFlota ? (
+                  <Skeleton className={styles.skRailNumero} />
+                ) : (
+                  <span className={styles.railNumero}>{conteos.operando}</span>
+                )}
                 <span className={styles.visuallyHidden}>operando</span>
               </li>
               {puedeVerAlertas(sesion) && (
                 <li className={styles.railDato} data-tooltip="Con alerta (turno de más de 10 h)" tabIndex={0}>
                   <span className={`${styles.railPunto} ${styles.railAlerta}`} />
-                  <span className={styles.railNumero}>{conteos.alertas}</span>
+                  {cargandoFlota ? (
+                    <Skeleton className={styles.skRailNumero} />
+                  ) : (
+                    <span className={styles.railNumero}>{conteos.alertas}</span>
+                  )}
                   <span className={styles.visuallyHidden}>con alerta</span>
                 </li>
               )}
               <li className={styles.railDato} data-tooltip="Fuera de servicio" tabIndex={0}>
                 <span className={`${styles.railPunto} ${styles.railFuera}`} />
-                <span className={styles.railNumero}>{conteos.fuera}</span>
+                {cargandoFlota ? (
+                  <Skeleton className={styles.skRailNumero} />
+                ) : (
+                  <span className={styles.railNumero}>{conteos.fuera}</span>
+                )}
                 <span className={styles.visuallyHidden}>fuera de servicio</span>
               </li>
             </ul>
@@ -381,6 +395,7 @@ function Mapa() {
             onGuardado={alGuardar}
             onVerMapa={verMapa}
             onReordenar={alReordenar}
+            cargando={cargandoGeocercas}
           />
         ) : (
           <FlotaPanel
@@ -393,7 +408,7 @@ function Mapa() {
             conteos={conteos}
             seleccionada={seleccion?.tipo === 'maquina' ? seleccion.id : null}
             onSeleccionar={seleccionarMaquina}
-            cargando={cargando}
+            cargando={cargandoGeocercas || cargandoFlota}
             conAlertas={puedeVerAlertas(sesion)}
           />
         )}

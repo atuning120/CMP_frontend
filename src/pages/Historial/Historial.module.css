@@ -346,6 +346,18 @@
     text-align: center;
     color: var(--text-tertiary);
   }
+
+  /* Skeleton de carga */
+  .skDia {
+    width: 130px;
+    height: 13px;
+    margin: 4px 0 12px 4px;
+  }
+
+  .skConteo {
+    width: 72px;
+    height: 13px;
+  }
 }
 
 @media (max-width: 900px) {

@@ -324,6 +324,18 @@
     padding: 12px 16px 16px;
     border-top: 1px solid var(--border);
   }
+
+  /* Skeleton de carga */
+  .skCounter {
+    width: 70px;
+    height: 13px;
+  }
+
+  .skConteo {
+    width: 8px;
+    height: 10px;
+    margin: 4px auto;
+  }
 }
 
 /* Pantalla angosta: el panel va bajo el mapa con su altura natural y la página entera hace scroll

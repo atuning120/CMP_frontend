@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, Check, Info, LoaderCircle, Search, Users } from 'lucide-react'
+import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useUsuarios } from '../../hooks/consultas.js'
 import { idUsuarioSesion, useSesion } from '../../services/session.js'
 import { cambiarRol, ETIQUETA_ROL, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
@@ -19,6 +20,7 @@ const PROVEEDOR = { MICROSOFT: 'Microsoft', CREDENCIALES: 'Contraseña', GOOGLE:
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
 
 const SIN_USUARIOS = []
+const FILAS_SKELETON = [1, 2, 3, 4, 5]
 
 /**
  * Administración de usuarios (solo ADMIN). Quien entra por primera vez con Microsoft queda como Visor
@@ -144,7 +146,9 @@ function Admin() {
               onClick={() => setFiltro(f.id)}
             >
               {f.etiqueta}
-              <span className={styles.filtroConteo}>{conteos[f.id] ?? 0}</span>
+              <span className={styles.filtroConteo}>
+                {cargando ? <Skeleton className={styles.skConteo} /> : (conteos[f.id] ?? 0)}
+              </span>
             </button>
           ))}
         </div>
@@ -156,6 +160,7 @@ function Admin() {
         </p>
       )}
 
+      {cargando && <AvisoCarga texto="Cargando usuarios…" />}
       <div className={styles.tablaWrapper}>
         <table className={styles.tabla}>
           <thead className={styles.cabecera}>
@@ -171,13 +176,28 @@ function Admin() {
             </tr>
           </thead>
           <tbody className={styles.cuerpo}>
-            {cargando && (
-              <tr>
-                <td className={styles.vacio} colSpan={6}>
-                  Cargando usuarios…
-                </td>
-              </tr>
-            )}
+            {cargando &&
+              FILAS_SKELETON.map((n) => (
+                <tr key={n} className={styles.fila} aria-hidden="true">
+                  <td className={styles.td}>
+                    <Skeleton className={styles.skNombre} />
+                    <Skeleton className={styles.skEmail} />
+                  </td>
+                  <td className={styles.td}>
+                    <Skeleton className={styles.skPastilla} />
+                  </td>
+                  <td className={styles.td}>
+                    <Skeleton className={styles.skEstado} />
+                  </td>
+                  <td className={`${styles.td} ${styles.fecha}`}>
+                    <Skeleton className={styles.skFecha} />
+                  </td>
+                  <td className={`${styles.td} ${styles.rol}`} data-label="Rol">
+                    <Skeleton className={styles.skSelect} />
+                  </td>
+                  <td className={`${styles.td} ${styles.resultado}`} />
+                </tr>
+              ))}
             {!cargando && visibles.length === 0 && (
               <tr>
                 <td className={styles.vacio} colSpan={6}>

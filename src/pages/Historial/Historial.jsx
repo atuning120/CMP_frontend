@@ -1,6 +1,8 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, CalendarRange, FileSpreadsheet, History, Layers, Play, RefreshCw, Search, Truck } from 'lucide-react'
 import HistorialEvento from '../../components/HistorialEvento/HistorialEvento.jsx'
+import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
+import SkeletonEvento from '../../components/SkeletonEvento/SkeletonEvento.jsx'
 import { textoEvento } from '../../components/HistorialEvento/describirEvento.js'
 import { descargarHistorialExcel, listarHistorial } from '../../services/historialService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from './fechas.js'
@@ -10,6 +12,12 @@ const TIPOS = [
   { id: 'TODO', etiqueta: 'Todo', icono: Layers },
   { id: 'TURNOS', etiqueta: 'Turnos', icono: Play },
   { id: 'FLOTA', etiqueta: 'Flota', icono: Truck },
+]
+
+// Forma de la lista mientras carga: dos días, con tres y dos eventos
+const DIAS_SKELETON = [
+  [1, 2, 3],
+  [4, 5],
 ]
 
 const RESULTADO_VACIO = { clave: null, eventos: [], hayMas: false, error: null, errorMas: null }
@@ -234,7 +242,7 @@ function Historial() {
 
         <span className={styles.conteo}>
           {cargando
-            ? 'Cargando…'
+            ? <Skeleton className={styles.skConteo} />
             : regex
               ? `${filtrados.length}${hayMas ? '+' : ''} de ${eventos.length}${hayMas ? '+' : ''} eventos`
               : `${eventos.length}${hayMas ? '+' : ''} eventos`}
@@ -278,7 +286,21 @@ function Historial() {
       )}
 
       <div className={styles.lista}>
-        {cargando && <p className={styles.vacio}>Cargando historial…</p>}
+        {cargando && (
+          <>
+            <AvisoCarga texto="Cargando historial…" />
+            {DIAS_SKELETON.map((eventos, i) => (
+              <div key={i} aria-hidden="true">
+                <Skeleton className={styles.skDia} />
+                <ul className={styles.eventos}>
+                  {eventos.map((n) => (
+                    <SkeletonEvento key={n} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        )}
         {vigente && !resultado.error && eventos.length === 0 && (
           <p className={styles.vacio}>No hay eventos en este rango de fechas.</p>
         )}
@@ -299,7 +321,13 @@ function Historial() {
 
         {eventos.length > 0 &&
           (cargandoMas ? (
-            <p className={styles.fin}>Cargando más eventos…</p>
+            <>
+              <AvisoCarga texto="Cargando más eventos…" />
+              <ul className={styles.eventos} aria-hidden="true">
+                <SkeletonEvento />
+                <SkeletonEvento />
+              </ul>
+            </>
           ) : resultado.errorMas ? (
             <button type="button" className={styles.cargarMas} onClick={reintentarMas}>
               No se pudieron cargar más eventos. Reintentar

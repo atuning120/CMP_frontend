@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AlarmClockOff, AlertCircle, AlertTriangle, CalendarRange, RefreshCw, ShieldAlert } from 'lucide-react'
 import AlertaItem from '../../components/AlertaItem/AlertaItem.jsx'
+import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
+import SkeletonEvento from '../../components/SkeletonEvento/SkeletonEvento.jsx'
 import { useAlertasActivas } from '../../hooks/consultas.js'
 import { escucharAlertas } from '../../hooks/alertasEnVivo.js'
 import { coincideTipo, listarAlertas } from '../../services/alertasService.js'
@@ -12,6 +14,12 @@ const TIPOS = [
   { id: 'TODO', etiqueta: 'Todas', icono: ShieldAlert },
   { id: 'EXTENDIDOS', etiqueta: '+10 horas', icono: AlertTriangle },
   { id: 'CIERRES_AUTOMATICOS', etiqueta: 'Cierre auto', icono: AlarmClockOff },
+]
+
+// Forma de la lista mientras carga: dos días, con tres y dos eventos
+const DIAS_SKELETON = [
+  [1, 2, 3],
+  [4, 5],
 ]
 
 const RESULTADO_VACIO = { clave: null, alertas: [], hayMas: false, error: null, errorMas: null }
@@ -187,7 +195,9 @@ function Alertas() {
           ))}
         </div>
 
-        <span className={styles.conteo}>{cargando ? 'Cargando…' : `${alertas.length}${hayMas ? '+' : ''} alertas`}</span>
+        <span className={styles.conteo}>
+          {cargando ? <Skeleton className={styles.skConteo} /> : `${alertas.length}${hayMas ? '+' : ''} alertas`}
+        </span>
       </div>
 
       {opcionRango === 'personalizado' && (
@@ -227,7 +237,21 @@ function Alertas() {
       )}
 
       <div className={styles.lista}>
-        {cargando && <p className={styles.vacio}>Cargando alertas…</p>}
+        {cargando && (
+          <>
+            <AvisoCarga texto="Cargando alertas…" />
+            {DIAS_SKELETON.map((eventos, i) => (
+              <div key={i} aria-hidden="true">
+                <Skeleton className={styles.skDia} />
+                <ul className={styles.items}>
+                  {eventos.map((n) => (
+                    <SkeletonEvento key={n} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </>
+        )}
         {vigente && !resultado.error && alertas.length === 0 && (
           <p className={styles.vacio}>No hay alertas en este rango de fechas.</p>
         )}
@@ -245,7 +269,13 @@ function Alertas() {
 
         {alertas.length > 0 &&
           (cargandoMas ? (
-            <p className={styles.fin}>Cargando más alertas…</p>
+            <>
+              <AvisoCarga texto="Cargando más alertas…" />
+              <ul className={styles.items} aria-hidden="true">
+                <SkeletonEvento />
+                <SkeletonEvento />
+              </ul>
+            </>
           ) : resultado.errorMas ? (
             <button type="button" className={styles.cargarMas} onClick={() => setResultado((r) => ({ ...r, errorMas: null }))}>
               No se pudieron cargar más alertas. Reintentar

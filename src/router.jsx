@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import Cargando from './components/Cargando/Cargando.jsx'
+import SkeletonMapa from './components/SkeletonMapa/SkeletonMapa.jsx'
 import MainLayout from './components/MainLayout/MainLayout.jsx'
 import RequireAuth from './components/RequireAuth/RequireAuth.jsx'
 import Admin from './pages/Admin/Admin.jsx'
@@ -25,7 +25,7 @@ export const router = createBrowserRouter([
             path: 'mapa',
             // Carga diferida: MapLibre pesa ~1 MB y no debe sumarse al login
             lazy: () => import('./pages/Mapa/Mapa.jsx').then((m) => ({ Component: m.default })),
-            hydrateFallbackElement: <Cargando texto="Cargando mapa…" />,
+            hydrateFallbackElement: <SkeletonMapa />,
           },
           {
             // Gestión de la flota, historial y alertas: jefes de turno y administradores
