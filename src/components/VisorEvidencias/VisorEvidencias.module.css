@@ -1,0 +1,188 @@
+.visorEvidencias {
+  display: flex;
+  flex-direction: column;
+  width: min(960px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-h);
+  text-align: left;
+
+  &:not([open]) {
+    display: none;
+  }
+
+  &::backdrop {
+    background: var(--backdrop);
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .encabezado {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .titulo {
+    margin: 0;
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .subtitulo {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .boton,
+  .cerrar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .boton {
+    padding: 0 12px;
+  }
+
+  .cerrar {
+    width: 36px;
+  }
+
+  /* Fondo oscuro fijo: la foto se ve igual en modo claro y oscuro */
+  .lienzo {
+    position: relative;
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 240px;
+    background: var(--brand-deep);
+  }
+
+  .foto {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100dvh - 220px);
+    object-fit: contain;
+  }
+
+  .girando {
+    color: var(--on-hero-muted);
+    animation: girar 0.9s linear infinite;
+  }
+
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 16px;
+    font-size: 14px;
+    color: var(--on-hero-muted);
+  }
+
+  .flecha {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--map-overlay-bg);
+    color: var(--on-hero);
+    cursor: pointer;
+    transform: translateY(-50%);
+
+    &:hover {
+      background: var(--brand);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .anterior {
+    left: 12px;
+  }
+
+  .siguiente {
+    right: 12px;
+  }
+
+  .descripcion {
+    margin: 0;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-h);
+    white-space: pre-line;
+  }
+
+  /* En teléfono el botón de descarga queda solo con su ícono */
+  @media (max-width: 480px) {
+    .textoBoton {
+      display: none;
+    }
+
+    .boton {
+      width: 36px;
+      padding: 0;
+    }
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visorEvidencias {
+    .girando {
+      animation: none;
+    }
+  }
+}

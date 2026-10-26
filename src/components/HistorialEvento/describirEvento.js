@@ -1,4 +1,4 @@
-import { Activity, ArrowLeftRight, Ban, CircleCheck, CirclePlus, Pencil, Play, RefreshCw, Square, Undo2 } from 'lucide-react'
+import { Activity, ArrowLeftRight, Ban, Camera, CircleCheck, CirclePlus, Pencil, Play, RefreshCw, Square, Undo2 } from 'lucide-react'
 import { ESTADOS_MAQUINA } from '../../pages/Flota/estados.js'
 
 // Igual que HistorialEventoCard de la app móvil
@@ -6,6 +6,7 @@ const PRESENTACION = {
   INICIO_TURNO: { icono: Play, verbo: 'inició turno en', tono: 'exito' },
   FIN_TURNO: { icono: Square, verbo: 'cerró turno en', tono: 'peligro' },
   CAMBIO_UBICACION: { icono: ArrowLeftRight, verbo: 'trasladó', tono: 'primario' },
+  NOVEDAD: { icono: Camera, verbo: 'reportó una novedad en', tono: 'aviso' },
   INCORPORAR: { icono: CirclePlus, verbo: 'incorporó', tono: 'primario' },
   EDITAR: { icono: Pencil, verbo: 'editó', tono: 'aviso' },
   HABILITAR: { icono: CircleCheck, verbo: 'habilitó', tono: 'exito' },
@@ -24,6 +25,29 @@ const numero = (valor) => {
   if (valor === null || valor === undefined || valor === '') return null
   const n = Number(valor)
   return Number.isFinite(n) ? n : null
+}
+
+// Cómo se llama el texto que el operador escribió en cada reporte de la app
+const ETIQUETA_REPORTE = { INICIO_TURNO: 'Instrucciones', FIN_TURNO: 'Novedades del cierre' }
+
+const evidenciasDe = (lista) => (Array.isArray(lista) ? lista.filter((e) => typeof e?.id === 'string') : [])
+
+/**
+ * Lo que el operador reportó con el evento: { etiqueta, descripcion, evidencias } o null si no hay nada.
+ * Inicio y cierre de turno lo traen en detalle.reporte; una novedad trae su texto en observacion (se muestra
+ * como cualquier observación) y sus fotos en detalle.evidencias.
+ */
+const reporteDe = (evento) => {
+  const { detalle } = evento
+  if (evento.tipo === 'NOVEDAD') {
+    const evidencias = evidenciasDe(detalle?.evidencias)
+    return evidencias.length ? { etiqueta: null, descripcion: null, evidencias } : null
+  }
+  const etiqueta = ETIQUETA_REPORTE[evento.tipo]
+  if (!etiqueta || !detalle?.reporte) return null
+  const descripcion = texto(detalle.reporte.descripcion)
+  const evidencias = evidenciasDe(detalle.reporte.evidencias)
+  return descripcion || evidencias.length ? { etiqueta, descripcion, evidencias } : null
 }
 
 export const etiquetaEstado = (valor) => ESTADOS_MAQUINA.find((e) => e.valor === valor)?.etiqueta ?? valor
@@ -70,6 +94,7 @@ export function describirEvento(evento) {
     ? [texto(detalle?.areaAnterior), texto(detalle?.zonaAnterior)].filter(Boolean).join(' · ')
     : ''
   const traslado = esCambioUbicacion ? [ubicacionAnterior, ubicacion].filter(Boolean).join(' → ') : ''
+  const reporte = reporteDe(evento)
 
   return {
     presentacion,
@@ -84,11 +109,13 @@ export function describirEvento(evento) {
     ubicacion,
     horometro,
     traslado,
+    reporte,
   }
 }
 
 /**
- * La tarjeta como texto plano y en el orden en que se lee (título, etiquetas, observación, ubicación y horómetro),
+ * La tarjeta como texto plano y en el orden en que se lee (título, etiquetas, observación, ubicación, horómetro y
+ * reporte del operador),
  * para buscar en el historial. Los campos van unidos por " · " para que una expresión pueda abarcar varios.
  */
 export function textoEvento(evento) {
@@ -114,6 +141,8 @@ export function textoEvento(evento) {
     d.traslado,
     d.esTurno && d.ubicacion,
     d.esTurno && d.horometro,
+    d.reporte?.descripcion && `${d.reporte.etiqueta}: ${d.reporte.descripcion}`,
+    d.reporte?.evidencias.length && (d.reporte.evidencias.length === 1 ? 'Con foto' : `Con ${d.reporte.evidencias.length} fotos`),
   ]
     .filter(Boolean)
     .join(' · ')

@@ -10,6 +10,7 @@ import {
 import { obtenerAlertasActivas } from '../services/alertasService.js'
 import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
+import { obtenerEvidencia } from '../services/evidenciasService.js'
 
 // Claves de la caché: las páginas que piden lo mismo (la flota en el mapa y en /flota) comparten la respuesta
 export const CLAVES = {
@@ -21,6 +22,7 @@ export const CLAVES = {
   geocercas: ['geocercas'],
   gps: ['gps'],
   usuarios: ['usuarios'],
+  evidencias: ['evidencias'],
 }
 
 // Las geocercas casi no cambian y sus polígonos son lo más pesado: se dan por vigentes 5 minutos
@@ -56,3 +58,15 @@ export const useUsuarios = () => useQuery({ queryKey: CLAVES.usuarios, queryFn: 
 
 // Un refresco que falla no tapa lo que ya se muestra: el error solo se informa si no hay datos que mostrar
 export const errorSinDatos = (consulta) => (consulta.data === undefined ? (consulta.error?.message ?? null) : null)
+
+// Una foto de evidencia no cambia nunca: se descarga una vez y se reutiliza mientras se navega el historial.
+// Pasados unos minutos sin mostrarse se libera (son data URL de varios cientos de KB)
+export const useEvidencia = (idEvidencia, { enabled = true } = {}) =>
+  useQuery({
+    queryKey: [...CLAVES.evidencias, idEvidencia],
+    queryFn: () => obtenerEvidencia(idEvidencia),
+    enabled,
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    retry: 1,
+  })
