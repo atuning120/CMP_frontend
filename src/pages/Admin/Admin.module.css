@@ -242,6 +242,18 @@
     color: var(--warning-text);
   }
 
+  .principal {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--selection-bg);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
   .email {
     display: block;
     font-size: 13px;
@@ -320,6 +332,75 @@
     }
   }
 
+  /* Igual que el botón "Incorporar máquina" de /flota */
+  .primario {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--on-primary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .acciones {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .botones {
+    display: flex;
+    gap: 6px;
+  }
+
+  .accion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &:disabled {
+      cursor: progress;
+      opacity: 0.6;
+    }
+  }
+
   .rolFijo {
     font-weight: 600;
     color: var(--text);
@@ -384,6 +465,12 @@
     border-radius: 10px;
   }
 
+  .skAccion {
+    width: 200px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
   .visuallyHidden {
     position: absolute;
     width: 1px;
@@ -420,6 +507,16 @@
 
     .subtitle {
       font-size: 14px;
+    }
+
+    .header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .primario {
+      justify-content: center;
+      height: 44px;
     }
 
     .search {
@@ -536,6 +633,21 @@
     .select,
     .skSelect {
       flex: 1;
+      height: 40px;
+    }
+
+    .acciones {
+      flex: 1 1 100%;
+      width: auto;
+
+      &:empty {
+        display: none;
+      }
+    }
+
+    .botones .accion {
+      flex: 1;
+      justify-content: center;
       height: 40px;
     }
 

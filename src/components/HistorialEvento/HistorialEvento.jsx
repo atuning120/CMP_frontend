@@ -1,4 +1,5 @@
 import { AlarmClockOff, Clock, MapPin, UserCheck } from 'lucide-react'
+import GaleriaEvidencias from '../GaleriaEvidencias/GaleriaEvidencias.jsx'
 import { formatearFecha } from '../../pages/Historial/fechas.js'
 import { describirEvento, etiquetaEstado } from './describirEvento.js'
 import styles from './HistorialEvento.module.css'
@@ -21,6 +22,7 @@ function HistorialEvento({ evento }) {
     ubicacion,
     horometro,
     traslado,
+    reporte,
   } = descripcion
   const Icono = presentacion.icono
   const tono = presentacion.tono
@@ -106,6 +108,24 @@ function HistorialEvento({ evento }) {
               </span>
             )}
           </p>
+        )}
+
+        {reporte?.descripcion && (
+          <p className={styles.reporte}>
+            <span className={styles.reporteEtiqueta}>{reporte.etiqueta}</span>
+            {reporte.descripcion}
+          </p>
+        )}
+
+        {reporte?.evidencias.length > 0 && (
+          <GaleriaEvidencias
+            evidencias={reporte.evidencias}
+            contexto={{
+              titulo: `${evento.actor} · ${evento.maquina.nombre}`,
+              maquina: evento.maquina.nombre,
+              descripcion: reporte.descripcion ?? evento.observacion,
+            }}
+          />
         )}
       </div>
 

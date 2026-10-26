@@ -1,0 +1,5 @@
+# Falsos positivos revisados a mano (gitleaks escanea todo el historial, así que el commit queda para siempre).
+# Cada línea es el fingerprint que imprime `gitleaks git -v`: ignora solo ese hallazgo, no el archivo ni la regla.
+
+# Alfabeto del generador de contraseñas de FormularioUsuario (letras y dígitos sin 0/O ni 1/l/I), no un secreto
+e22b49812350565d6c20f970f6e898cd0050643d:src/components/FormularioUsuario/FormularioUsuario.jsx:generic-api-key:9

@@ -153,7 +153,7 @@ function Historial() {
             <History size={22} className={styles.titleIcon} />
             Historial
           </h1>
-          <p className={styles.subtitle}>Inicios y cierres de turno, cambios de área/zona de los operadores y acciones sobre la flota, del más reciente al más antiguo.</p>
+          <p className={styles.subtitle}>Inicios y cierres de turno, cambios de área/zona y novedades de los operadores (con sus fotos) y acciones sobre la flota, del más reciente al más antiguo.</p>
         </div>
         <div className={styles.acciones}>
           <button
