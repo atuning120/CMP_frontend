@@ -9,12 +9,14 @@ import { suscribirSocket } from './socket.js'
 
 /**
  * Una página de alertas: { alertas, hayMas, activas }. `activas` son los operadores con más de 10 h trabajadas
- * ahora mismo, sin importar el rango.
- * tipo: 'TODO' | 'EXTENDIDOS' | 'CIERRES_AUTOMATICOS'. rango: { desde, hasta } en ISO; hasta es exclusiva y null es
- * "hasta ahora". ultimo: la última alerta recibida (cursor fecha + id).
+ * ahora mismo, sin importar el rango. Cada alerta trae `atenciones` ({ usuario, fecha, comentario }, de la primera a la
+ * última): vacío es pendiente; la primera es quien la atendió y las siguientes, notas posteriores.
+ * tipo: 'TODO' | 'EXTENDIDOS' | 'CIERRES_AUTOMATICOS'. estado: 'TODAS' | 'PENDIENTES' | 'ATENDIDAS'.
+ * rango: { desde, hasta } en ISO; hasta es exclusiva y null es "hasta ahora". ultimo: la última alerta recibida
+ * (cursor fecha + id).
  */
-export function listarAlertas(tipo, rango, ultimo) {
-  const params = new URLSearchParams({ tipo, desde: rango.desde })
+export function listarAlertas(tipo, rango, ultimo, estado = 'TODAS') {
+  const params = new URLSearchParams({ tipo, estado, desde: rango.desde })
   if (rango.hasta) params.set('hasta', rango.hasta)
   if (ultimo) {
     params.set('antes', ultimo.fecha)
@@ -26,14 +28,25 @@ export function listarAlertas(tipo, rango, ultimo) {
 // Solo el contador de activas (para la pestaña del header): la página más chica posible
 export const obtenerAlertasActivas = async () => (await apiJson('/alertas?limite=1')).activas
 
+// Máximo que acepta el Backend
+export const LARGO_MAXIMO_COMENTARIO = 500
+
+/**
+ * Atiende la alerta (la primera vez; comentario opcional) o le agrega una nota (después; comentario obligatorio).
+ * Nada se edita ni se borra. Devuelve { idAlerta, atenciones } con todas sus atenciones.
+ */
+export const atenderAlerta = (idAlerta, comentario) =>
+  apiJson(`/alertas/${encodeURIComponent(idAlerta)}/atenciones`, { method: 'POST', body: JSON.stringify({ comentario }) })
+
 // Si la alerta corresponde al filtro de tipo de la página
 export const coincideTipo = (alerta, tipo) =>
   tipo === 'TODO' || (tipo === 'CIERRES_AUTOMATICOS') === (alerta.tipo === 'CIERRE_AUTOMATICO')
 
 /**
- * Alertas nuevas en tiempo real (Socket.IO, namespace /alertas): `alRecibir` recibe { nuevas, activas } cada vez que
- * aparecen alertas o cambia el contador. `alReconectar` avisa cuando la conexión vuelve tras un corte (lo que llegó
- * mientras tanto se perdió). Devuelve la función para desconectarse.
+ * Alertas en tiempo real (Socket.IO, namespace /alertas): `alRecibir` recibe { nuevas, activas } cada vez que
+ * aparecen alertas o cambia el contador; `alAtender` recibe { idAlerta, atenciones } cuando alguien (incluido otro
+ * jefe de turno) atiende una alerta o le agrega una nota. `alReconectar` avisa cuando la conexión vuelve tras un corte
+ * (lo que llegó mientras tanto se perdió). Devuelve la función para desconectarse.
  */
-export const suscribirAlertas = ({ alRecibir, alReconectar }) =>
-  suscribirSocket('/alertas', { alertas: alRecibir }, alReconectar)
+export const suscribirAlertas = ({ alRecibir, alAtender, alReconectar }) =>
+  suscribirSocket('/alertas', { alertas: alRecibir, atenciones: alAtender }, alReconectar)

@@ -10,8 +10,9 @@ const MAX_AVISOS = 3
 const oyentes = new Set()
 
 /**
- * Recibe las alertas en tiempo real que llegan a la conexión del layout: `alRecibir(nuevas)` con cada lote y
- * `alReconectar()` cuando la conexión vuelve tras un corte (lo que llegó mientras tanto se perdió).
+ * Recibe las alertas en tiempo real que llegan a la conexión del layout: `alRecibir(nuevas)` con cada lote,
+ * `alAtender({ idAlerta, atenciones })` cuando alguien atiende una alerta y `alReconectar()` cuando la conexión
+ * vuelve tras un corte (lo que llegó mientras tanto se perdió).
  * Devuelve la función para dejar de escuchar.
  */
 export function escucharAlertas(oyente) {
@@ -56,6 +57,7 @@ export function useAlertasEnVivo(habilitado, silenciar) {
           return [...nuevas, ...actuales.filter((a) => !ids.has(a.id))].slice(0, MAX_AVISOS)
         })
       },
+      alAtender: (atencion) => oyentes.forEach((o) => o.alAtender?.(atencion)),
       alReconectar: () => {
         queryClient.invalidateQueries({ queryKey: CLAVES.alertas })
         oyentes.forEach((o) => o.alReconectar())

@@ -1,10 +1,12 @@
 import { Clock, MapPin, Timer } from 'lucide-react'
 import { formatearFecha } from '../../pages/Historial/fechas.js'
+import AtencionAlerta from '../AtencionAlerta/AtencionAlerta.jsx'
 import { describirAlerta } from './describirAlerta.js'
 import styles from './AlertaItem.module.css'
 
-// Una alerta en la lista de /alertas, con la misma forma que un evento del historial. `nueva`: llegó por WebSocket
-function AlertaItem({ alerta, nueva }) {
+// Una alerta en la lista de /alertas, con la misma forma que un evento del historial. `nueva`: llegó por WebSocket.
+// onAtendida recibe { idAlerta, atenciones } cuando se atiende o se le agrega una nota
+function AlertaItem({ alerta, nueva, onAtendida }) {
   const { icono: Icono, tono, activa, frase, etiqueta, ubicacion, jornada } = describirAlerta(alerta)
 
   return (
@@ -39,6 +41,8 @@ function AlertaItem({ alerta, nueva }) {
             {jornada ? `Jornada desde ${formatearFecha(jornada.inicio)}` : `Inicio ${formatearFecha(alerta.turno.horaInicio)}`}
           </span>
         </p>
+
+        <AtencionAlerta alerta={alerta} onGuardada={onAtendida} />
       </div>
 
       <time className={styles.fecha} dateTime={alerta.fecha} title={new Date(alerta.fecha).toLocaleString('es-CL')}>
