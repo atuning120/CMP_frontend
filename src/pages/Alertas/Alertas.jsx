@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlarmClockOff, AlertCircle, AlertTriangle, CalendarRange, RefreshCw, ShieldAlert } from 'lucide-react'
+import { AlarmClockOff, AlertCircle, AlertTriangle, CalendarRange, CheckCircle2, CircleDashed, Layers3, RefreshCw, ShieldAlert } from 'lucide-react'
 import AlertaItem from '../../components/AlertaItem/AlertaItem.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import SkeletonEvento from '../../components/SkeletonEvento/SkeletonEvento.jsx'
@@ -16,6 +16,13 @@ const TIPOS = [
   { id: 'CIERRES_AUTOMATICOS', etiqueta: 'Cierre auto', icono: AlarmClockOff },
 ]
 
+// Si alguien ya atendió la alerta (la atención y sus notas se guardan; las alertas se calculan desde los turnos)
+const ESTADOS = [
+  { id: 'TODAS', etiqueta: 'Cualquiera', icono: Layers3 },
+  { id: 'PENDIENTES', etiqueta: 'Pendientes', icono: CircleDashed },
+  { id: 'ATENDIDAS', etiqueta: 'Atendidas', icono: CheckCircle2 },
+]
+
 // Forma de la lista mientras carga: dos días, con tres y dos eventos
 const DIAS_SKELETON = [
   [1, 2, 3],
@@ -30,10 +37,12 @@ const ordenar = (a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a
 /**
  * Alertas de turno (JEFE_TURNO y ADMIN): turnos y jornadas de más de 10 h y cierres automáticos, agrupados por día y
  * paginados del más reciente al más antiguo. Las que aparecen mientras la página está abierta llegan por WebSocket
- * y se suman arriba, marcadas como nuevas.
+ * y se suman arriba, marcadas como nuevas. Cada una se puede atender (y después agregarle notas); lo que atiende otro
+ * jefe de turno también llega en tiempo real.
  */
 function Alertas() {
   const [tipo, setTipo] = useState('TODO')
+  const [estado, setEstado] = useState('TODAS')
   const [opcionRango, setOpcionRango] = useState('7')
   const [personalizado, setPersonalizado] = useState(() => ({ desde: hoyMasDias(-6), hasta: hoyMasDias(0) }))
   const [recargas, setRecargas] = useState(0)
@@ -52,7 +61,7 @@ function Alertas() {
   }, [opcionRango, personalizado])
 
   // Identifica la consulta vigente: respuestas de un filtro o rango anterior se descartan
-  const clave = rango ? `${tipo}|${rango.desde}|${rango.hasta}|${recargas}` : null
+  const clave = rango ? `${tipo}|${estado}|${rango.desde}|${rango.hasta}|${recargas}` : null
   const vigente = resultado.clave === clave
   const cargando = clave !== null && !vigente
   const { alertas, hayMas } = vigente ? resultado : RESULTADO_VACIO
@@ -60,7 +69,7 @@ function Alertas() {
   useEffect(() => {
     if (!clave) return
     let activa = true
-    listarAlertas(tipo, rango)
+    listarAlertas(tipo, rango, null, estado)
       .then((p) => activa && setResultado({ ...RESULTADO_VACIO, clave, alertas: p.alertas, hayMas: p.hayMas }))
       .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: e.message }))
     return () => {
@@ -70,17 +79,28 @@ function Alertas() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clave])
 
-  // Alertas en tiempo real: solo caben en un rango que llega hasta ahora y si son del tipo elegido
-  const enVivoRef = useRef({ clave, tipo, rango })
+  // Atención propia o de otro jefe de turno: se actualiza la alerta donde esté (aunque ya no calce con el filtro,
+  // para que no desaparezca mientras se mira)
+  const aplicarAtencion = useCallback(({ idAlerta, atenciones }) => {
+    setResultado((r) =>
+      r.alertas.some((a) => a.id === idAlerta)
+        ? { ...r, alertas: r.alertas.map((a) => (a.id === idAlerta ? { ...a, atenciones } : a)) }
+        : r,
+    )
+  }, [])
+
+  // Alertas en tiempo real: solo caben en un rango que llega hasta ahora, si son del tipo elegido y si el filtro
+  // admite pendientes (una alerta nueva nunca está atendida)
+  const enVivoRef = useRef({ clave, tipo, estado, rango })
   useEffect(() => {
-    enVivoRef.current = { clave, tipo, rango }
+    enVivoRef.current = { clave, tipo, estado, rango }
   })
   useEffect(
     () =>
       escucharAlertas({
         alRecibir: (recibidas) => {
-          const { clave: vigenteAhora, tipo: tipoAhora, rango: rangoAhora } = enVivoRef.current
-          if (!rangoAhora || rangoAhora.hasta) return
+          const { clave: vigenteAhora, tipo: tipoAhora, estado: estadoAhora, rango: rangoAhora } = enVivoRef.current
+          if (!rangoAhora || rangoAhora.hasta || estadoAhora === 'ATENDIDAS') return
           const caben = recibidas.filter((a) => coincideTipo(a, tipoAhora) && a.fecha >= rangoAhora.desde)
           if (caben.length === 0) return
           setResultado((r) => {
@@ -90,10 +110,11 @@ function Alertas() {
           })
           setNuevas((actuales) => new Set([...actuales, ...caben.map((a) => a.id)]))
         },
+        alAtender: aplicarAtencion,
         // Lo que llegó durante el corte se perdió: se vuelve a pedir la lista
         alReconectar: () => setRecargas((n) => n + 1),
       }),
-    [],
+    [aplicarAtencion],
   )
 
   const cargarMas = useCallback(async () => {
@@ -102,7 +123,7 @@ function Alertas() {
     cargandoMasRef.current = true
     setCargandoMas(true)
     try {
-      const p = await listarAlertas(tipo, rango, ultimo)
+      const p = await listarAlertas(tipo, rango, ultimo, estado)
       setResultado((r) =>
         r.clave !== clave
           ? r
@@ -114,7 +135,7 @@ function Alertas() {
       cargandoMasRef.current = false
       setCargandoMas(false)
     }
-  }, [alertas, hayMas, cargando, resultado.errorMas, tipo, rango, clave])
+  }, [alertas, hayMas, cargando, resultado.errorMas, tipo, estado, rango, clave])
 
   // Scroll infinito: se vuelve a observar tras cada página, por si el final sigue a la vista
   const cargarMasRef = useRef(cargarMas)
@@ -155,7 +176,7 @@ function Alertas() {
           </h1>
           <p className={styles.subtitle}>
             Turnos y jornadas de más de 10 h y cierres automáticos, del más reciente al más antiguo. Las nuevas llegan en
-            tiempo real.
+            tiempo real; al atenderlas queda registrado quién lo hizo, cuándo y con qué comentario.
           </p>
         </div>
         <button type="button" className={styles.boton} onClick={recargar} disabled={cargando} title="Recargar">
@@ -173,6 +194,21 @@ function Alertas() {
               aria-selected={tipo === id}
               className={`${styles.segmento} ${tipo === id ? styles.segmentoActivo : ''}`}
               onClick={() => setTipo(id)}
+            >
+              <Icono size={15} /> {etiqueta}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.grupo} role="tablist" aria-label="Atención">
+          {ESTADOS.map(({ id, etiqueta, icono: Icono }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={estado === id}
+              className={`${styles.segmento} ${estado === id ? styles.segmentoActivo : ''}`}
+              onClick={() => setEstado(id)}
             >
               <Icono size={15} /> {etiqueta}
             </button>
@@ -253,7 +289,13 @@ function Alertas() {
           </>
         )}
         {vigente && !resultado.error && alertas.length === 0 && (
-          <p className={styles.vacio}>No hay alertas en este rango de fechas.</p>
+          <p className={styles.vacio}>
+            {estado === 'PENDIENTES'
+              ? 'No hay alertas pendientes en este rango de fechas.'
+              : estado === 'ATENDIDAS'
+                ? 'No hay alertas atendidas en este rango de fechas.'
+                : 'No hay alertas en este rango de fechas.'}
+          </p>
         )}
 
         {dias.map((dia) => (
@@ -261,7 +303,7 @@ function Alertas() {
             <h2 className={styles.diaTitulo}>{dia.titulo}</h2>
             <ul className={styles.items}>
               {dia.eventos.map((alerta) => (
-                <AlertaItem key={alerta.id} alerta={alerta} nueva={nuevas.has(alerta.id)} />
+                <AlertaItem key={alerta.id} alerta={alerta} nueva={nuevas.has(alerta.id)} onAtendida={aplicarAtencion} />
               ))}
             </ul>
           </div>
