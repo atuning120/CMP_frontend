@@ -1,0 +1,71 @@
+.errorPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 16px;
+  text-align: center;
+
+  .title {
+    margin: 0;
+    color: var(--text-h);
+  }
+
+  .detail {
+    max-width: 100%;
+    margin: 0;
+    padding: 8px 12px;
+    overflow-x: auto;
+    border-radius: 8px;
+    background: var(--code-bg);
+    color: var(--danger);
+    font-size: 13px;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .primary,
+  .secondary {
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .primary {
+    border: none;
+    background: var(--primary);
+    color: var(--on-primary);
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  .secondary {
+    border: 1px solid var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+  }
+}
