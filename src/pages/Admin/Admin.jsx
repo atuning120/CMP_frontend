@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, Check, Info, LoaderCircle, Search, Users } from 'lucide-react'
+import { AlertCircle, Check, Info, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
+import DialogoConfirmacion from '../../components/DialogoConfirmacion/DialogoConfirmacion.jsx'
+import FormularioUsuario from '../../components/FormularioUsuario/FormularioUsuario.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useUsuarios } from '../../hooks/consultas.js'
 import { idUsuarioSesion, useSesion } from '../../services/session.js'
-import { cambiarRol, ETIQUETA_ROL, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
+import { cambiarEstadoUsuario, cambiarRol, ETIQUETA_ROL, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
 import styles from './Admin.module.css'
 
 const FILTROS = [
@@ -23,8 +25,9 @@ const SIN_USUARIOS = []
 const FILAS_SKELETON = [1, 2, 3, 4, 5]
 
 /**
- * Administración de usuarios (solo ADMIN). Quien entra por primera vez con Microsoft queda como Visor
- * hasta que un administrador le asigna otro rol aquí.
+ * Administración de usuarios (solo ADMIN): alta y edición de usuarios web y operadores (incluido restablecer
+ * la contraseña), rol y activación.
+ * Quien entra por primera vez con Microsoft queda como Visor hasta que un administrador le asigna otro rol aquí.
  */
 function Admin() {
   const sesion = useSesion()
@@ -38,6 +41,10 @@ function Admin() {
   const [busqueda, setBusqueda] = useState('')
   // Estado del guardado por fila: { [idUsuario]: 'guardando' | 'guardado' | mensaje de error }
   const [estadoFila, setEstadoFila] = useState({})
+  // Panel del formulario: null cerrado, 'nuevo' para crear o el usuario que se edita
+  const [formulario, setFormulario] = useState(null)
+  // Usuario que se va a desactivar, a la espera de confirmación
+  const [desactivando, setDesactivando] = useState(null)
 
   const conteos = useMemo(() => {
     const c = { todos: usuarios.length }
@@ -54,10 +61,11 @@ function Admin() {
       .sort((a, b) => new Date(b.creadoEn) - new Date(a.creadoEn))
   }, [usuarios, filtro, busqueda])
 
-  const handleRol = async (usuario, rol) => {
+  // Guarda un cambio de la fila y deja su resultado (guardando, guardado o el error) junto a ella
+  const guardarFila = async (usuario, cambio) => {
     setEstadoFila((e) => ({ ...e, [usuario.idUsuario]: 'guardando' }))
     try {
-      const actualizado = await cambiarRol(usuario.idUsuario, rol)
+      const actualizado = await cambio()
       queryClient.setQueryData(CLAVES.usuarios, (lista) =>
         lista?.map((u) => (u.idUsuario === actualizado.idUsuario ? actualizado : u)),
       )
@@ -67,12 +75,34 @@ function Admin() {
     }
   }
 
+  const handleRol = (usuario, rol) => guardarFila(usuario, () => cambiarRol(usuario.idUsuario, rol))
+
+  const handleActivo = (usuario, activo) => {
+    setDesactivando(null)
+    guardarFila(usuario, () => cambiarEstadoUsuario(usuario.idUsuario, activo))
+  }
+
+  const handleGuardado = (usuario) => {
+    const nuevo = formulario === 'nuevo'
+    queryClient.setQueryData(CLAVES.usuarios, (lista = []) =>
+      nuevo ? [usuario, ...lista] : lista.map((u) => (u.idUsuario === usuario.idUsuario ? usuario : u)),
+    )
+    setEstadoFila((e) => ({ ...e, [usuario.idUsuario]: 'guardado' }))
+    setFormulario(null)
+    if (nuevo) {
+      // Que aparezca aunque el filtro o la búsqueda lo dejarían fuera
+      setFiltro('todos')
+      setBusqueda('')
+    }
+  }
+
   const controlRol = (u) => {
     if (u.rol === 'OPERADOR') {
-      return <span className={styles.rolFijo} title="Los operadores se gestionan desde la app móvil">{ETIQUETA_ROL.OPERADOR}</span>
+      return <span className={styles.rolFijo} title="El rol de un operador va ligado a su ficha y no se cambia">{ETIQUETA_ROL.OPERADOR}</span>
     }
-    if (u.idUsuario === miId) {
-      return <span className={styles.rolFijo} title="No puedes cambiar tu propio rol">{ETIQUETA_ROL[u.rol] ?? u.rol}</span>
+    if (u.idUsuario === miId || u.esPrincipal) {
+      const motivo = u.esPrincipal ? 'El administrador principal se define en la configuración del Backend' : 'No puedes cambiar tu propio rol'
+      return <span className={styles.rolFijo} title={motivo}>{ETIQUETA_ROL[u.rol] ?? u.rol}</span>
     }
     return (
       <select
@@ -88,6 +118,31 @@ function Admin() {
           </option>
         ))}
       </select>
+    )
+  }
+
+  const controlAcciones = (u) => {
+    const ocupado = estadoFila[u.idUsuario] === 'guardando'
+    const esPropio = u.idUsuario === miId
+    // Al administrador principal solo lo edita él mismo, y nadie lo desactiva
+    if (u.esPrincipal && !esPropio) return null
+    return (
+      <div className={styles.botones}>
+        <button type="button" className={styles.accion} disabled={ocupado} onClick={() => setFormulario(u)}>
+          <Pencil size={15} /> Editar
+        </button>
+        {!esPropio &&
+          !u.esPrincipal &&
+          (u.activo ? (
+            <button type="button" className={styles.accion} disabled={ocupado} onClick={() => setDesactivando(u)}>
+              <UserX size={15} /> Desactivar
+            </button>
+          ) : (
+            <button type="button" className={styles.accion} disabled={ocupado} onClick={() => handleActivo(u, true)}>
+              <UserCheck size={15} /> Activar
+            </button>
+          ))}
+      </div>
     )
   }
 
@@ -111,16 +166,19 @@ function Admin() {
             <Users size={22} className={styles.titleIcon} />
             Usuarios
           </h1>
-          <p className={styles.subtitle}>Asigna el rol de cada persona que usa el panel web.</p>
+          <p className={styles.subtitle}>Crea y edita cuentas, restablece contraseñas y asigna roles.</p>
         </div>
+        <button type="button" className={styles.primario} onClick={() => setFormulario('nuevo')}>
+          <Plus size={18} /> Nuevo usuario
+        </button>
       </header>
 
       <p className={styles.nota}>
         <Info size={16} className={styles.notaIcono} />
         {/* En un span: dentro del flex, el texto y el <strong> serían columnas separadas */}
         <span>
-          Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). El
-          cambio de rol se aplica la próxima vez que la persona inicie sesión.
+          Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). Los
+          cambios de rol se aplican la próxima vez que la persona inicie sesión. Desactivar no borra su historial.
         </span>
       </p>
 
@@ -171,6 +229,9 @@ function Admin() {
               <th className={styles.th}>Registrado</th>
               <th className={styles.th}>Rol</th>
               <th className={styles.th}>
+                <span className={styles.visuallyHidden}>Acciones</span>
+              </th>
+              <th className={styles.th}>
                 <span className={styles.visuallyHidden}>Resultado</span>
               </th>
             </tr>
@@ -195,12 +256,15 @@ function Admin() {
                   <td className={`${styles.td} ${styles.rol}`} data-label="Rol">
                     <Skeleton className={styles.skSelect} />
                   </td>
+                  <td className={`${styles.td} ${styles.acciones}`}>
+                    <Skeleton className={styles.skAccion} />
+                  </td>
                   <td className={`${styles.td} ${styles.resultado}`} />
                 </tr>
               ))}
             {!cargando && visibles.length === 0 && (
               <tr>
-                <td className={styles.vacio} colSpan={6}>
+                <td className={styles.vacio} colSpan={7}>
                   No hay usuarios que coincidan.
                 </td>
               </tr>
@@ -211,6 +275,11 @@ function Admin() {
                   <span className={styles.nombre}>
                     {u.nombre}
                     {u.idUsuario === miId && <span className={styles.tu}>tú</span>}
+                    {u.esPrincipal && (
+                      <span className={styles.principal} title="Administrador principal: no se puede desactivar ni cambiar de rol">
+                        <ShieldCheck size={12} /> Principal
+                      </span>
+                    )}
                   </span>
                   <span className={styles.email}>{u.email}</span>
                 </td>
@@ -226,12 +295,36 @@ function Admin() {
                 </td>
                 <td className={`${styles.td} ${styles.fecha}`} data-label="Registrado">{formatoFecha.format(new Date(u.creadoEn))}</td>
                 <td className={`${styles.td} ${styles.rol}`} data-label="Rol">{controlRol(u)}</td>
+                <td className={`${styles.td} ${styles.acciones}`}>{controlAcciones(u)}</td>
                 <td className={`${styles.td} ${styles.resultado}`}>{estadoGuardado(u)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {formulario && (
+        <FormularioUsuario
+          usuario={formulario === 'nuevo' ? null : formulario}
+          esPropio={formulario !== 'nuevo' && formulario.idUsuario === miId}
+          onCerrar={() => setFormulario(null)}
+          onGuardado={handleGuardado}
+        />
+      )}
+      {desactivando && (
+        <DialogoConfirmacion
+          titulo={`¿Desactivar a ${desactivando.nombre}?`}
+          mensaje={
+            desactivando.rol === 'OPERADOR'
+              ? 'No podrá entrar a la app móvil ni ser asignado a una máquina. Su historial de turnos se conserva y puedes reactivarlo cuando quieras.'
+              : 'No podrá iniciar sesión. Su historial se conserva y puedes reactivarlo cuando quieras. Si tiene una sesión abierta, termina cuando vence su acceso actual.'
+          }
+          icono={<UserX size={20} />}
+          textoConfirmar="Desactivar"
+          onConfirmar={() => handleActivo(desactivando, false)}
+          onCancelar={() => setDesactivando(null)}
+        />
+      )}
     </section>
   )
 }
