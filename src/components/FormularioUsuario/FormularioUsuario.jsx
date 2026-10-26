@@ -6,11 +6,11 @@ import styles from './FormularioUsuario.module.css'
 
 const LARGO_MINIMO_PASSWORD = 8
 // Sin caracteres que se confunden al dictarla o copiarla a mano (0/O, 1/l/I)
-const CARACTERES_PASSWORD = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
+const ALFABETO_GENERADO = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
 
 const generarPassword = (largo = 12) => {
   const valores = crypto.getRandomValues(new Uint32Array(largo))
-  return Array.from(valores, (v) => CARACTERES_PASSWORD[v % CARACTERES_PASSWORD.length]).join('')
+  return Array.from(valores, (v) => ALFABETO_GENERADO[v % ALFABETO_GENERADO.length]).join('')
 }
 
 // Qué permite cada rol: así el administrador sabe qué acceso necesita
