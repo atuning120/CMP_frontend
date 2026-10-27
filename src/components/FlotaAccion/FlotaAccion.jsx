@@ -19,6 +19,7 @@ import {
 } from '../../pages/Flota/motivos.js'
 import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado } from '../../pages/Flota/estados.js'
 import styles from './FlotaAccion.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const FICHA_VACIA = {
   nombre: '',
@@ -430,7 +431,8 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
       }
     } catch (e) {
       // El turno pudo quedar cerrado aunque la acción fallara: al reintentar ya no se pide el horómetro
-      setError(cerroTurno ? `El turno de ${conTurno.operadorActual} quedó cerrado, pero: ${e.message}` : e.message)
+      const mensaje = mensajeDeError(e, 'No se pudo completar la acción.')
+      setError(cerroTurno ? `El turno de ${conTurno.operadorActual} quedó cerrado, pero: ${mensaje}` : mensaje)
       setGuardando(false)
     }
   }

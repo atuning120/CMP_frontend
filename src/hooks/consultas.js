@@ -11,6 +11,7 @@ import { obtenerAlertasActivas } from '../services/alertasService.js'
 import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 import { obtenerEvidencia } from '../services/evidenciasService.js'
+import { mensajeDeError } from '../services/errores.js'
 
 // Claves de la caché: las páginas que piden lo mismo (la flota en el mapa y en /flota) comparten la respuesta
 export const CLAVES = {
@@ -57,7 +58,8 @@ export const useGeocercas = () =>
 export const useUsuarios = () => useQuery({ queryKey: CLAVES.usuarios, queryFn: listarUsuarios })
 
 // Un refresco que falla no tapa lo que ya se muestra: el error solo se informa si no hay datos que mostrar
-export const errorSinDatos = (consulta) => (consulta.data === undefined ? (consulta.error?.message ?? null) : null)
+export const errorSinDatos = (consulta) =>
+  consulta.data === undefined && consulta.error ? mensajeDeError(consulta.error, 'No se pudo cargar la información.') : null
 
 // Una foto de evidencia no cambia nunca: se descarga una vez y se reutiliza mientras se navega el historial.
 // Pasados unos minutos sin mostrarse se libera (son data URL de varios cientos de KB)

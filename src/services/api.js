@@ -1,4 +1,5 @@
 import { accessTokenPorVencer, actualizarTokens, cerrarSesion, getSesion } from './session.js'
+import { ErrorParaUsuario, MENSAJE_SIN_CONEXION, mensajeDeRespuesta } from './errores.js'
 
 // URL del Backend desde las variables de entorno de Vite (gitignoradas):
 // .env.development para `pnpm dev` (Backend local) y .env.production para `pnpm build` (Azure).
@@ -33,7 +34,8 @@ export async function apiFetch(path, init = {}, timeoutMs = TIMEOUT_MS) {
   }
 }
 
-export class ApiError extends Error {
+// Su mensaje ya está traducido para el usuario (ver mensajeDeRespuesta)
+export class ApiError extends ErrorParaUsuario {
   constructor(message, status, code) {
     super(message)
     this.status = status
@@ -41,7 +43,7 @@ export class ApiError extends Error {
   }
 }
 
-const errorConexion = () => new ApiError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.', 0)
+const errorConexion = () => new ApiError(MENSAJE_SIN_CONEXION, 0)
 
 const sesionExpirada = () => {
   cerrarSesion()
@@ -59,7 +61,7 @@ async function renovar() {
     throw errorConexion()
   }
   if (response.status === 401) return false
-  if (!response.ok) throw new ApiError('El servidor no pudo renovar la sesión. Intenta nuevamente.', response.status)
+  if (!response.ok) throw new ApiError(mensajeDeRespuesta(response.status, null), response.status)
   actualizarTokens(await response.json())
   return true
 }
@@ -89,7 +91,7 @@ async function llamar(path, init, timeoutMs, accessToken) {
 /**
  * Llamada autenticada que devuelve la respuesta ya validada. Con el access token vencido (o rechazado con 401)
  * renueva la sesión y reintenta una vez; si ya no se puede renovar cierra la sesión, y RequireAuth lleva al login.
- * Lanza ApiError con el mensaje del Backend.
+ * Lanza ApiError con un mensaje para el usuario (el del Backend solo si es un error de negocio).
  */
 async function apiAutenticado(path, init, timeoutMs) {
   const sesion = getSesion()
@@ -106,7 +108,7 @@ async function apiAutenticado(path, init, timeoutMs) {
   }
   if (!response.ok) {
     const data = await response.json().catch(() => null)
-    throw new ApiError(data?.message ?? 'El servidor no pudo procesar la solicitud.', response.status, data?.code)
+    throw new ApiError(mensajeDeRespuesta(response.status, data), response.status, data?.code)
   }
   return response
 }

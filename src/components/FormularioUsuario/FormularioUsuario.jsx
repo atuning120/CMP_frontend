@@ -3,6 +3,7 @@ import { AlertCircle, AlertTriangle, Eye, EyeOff, Info, KeyRound } from 'lucide-
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import { crearUsuario, editarUsuario, ETIQUETA_ROL, ROLES_CREABLES } from '../../services/usuariosService.js'
 import styles from './FormularioUsuario.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const LARGO_MINIMO_PASSWORD = 8
 // Sin caracteres que se confunden al dictarla o copiarla a mano (0/O, 1/l/I)
@@ -99,7 +100,7 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
       const guardado = editando ? await editarUsuario(usuario.idUsuario, datosAEnviar()) : await crearUsuario(datosAEnviar())
       onGuardado(guardado)
     } catch (err) {
-      setError(err.message)
+      setError(mensajeDeError(err, 'No se pudo guardar el usuario.'))
       setGuardando(false)
     }
   }

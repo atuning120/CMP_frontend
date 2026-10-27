@@ -3,6 +3,7 @@ import { AlertCircle, CheckCircle2, LoaderCircle, MessageSquarePlus } from 'luci
 import { formatearFecha } from '../../pages/Historial/fechas.js'
 import { atenderAlerta, LARGO_MAXIMO_COMENTARIO } from '../../services/alertasService.js'
 import styles from './AtencionAlerta.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 /**
  * Quién atendió la alerta y las notas posteriores, con el formulario para atenderla (comentario opcional) o agregar
@@ -31,7 +32,7 @@ function AtencionAlerta({ alerta, onGuardada }) {
       onGuardada(await atenderAlerta(alerta.id, comentario.trim()))
       cerrar()
     } catch (err) {
-      setError(err.message)
+      setError(mensajeDeError(err, 'No se pudo guardar la atención.'))
     } finally {
       setGuardando(false)
     }

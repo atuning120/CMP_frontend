@@ -8,6 +8,7 @@ import { CLAVES, errorSinDatos, useUsuarios } from '../../hooks/consultas.js'
 import { idUsuarioSesion, useSesion } from '../../services/session.js'
 import { cambiarEstadoUsuario, cambiarRol, ETIQUETA_ROL, ROLES_ASIGNABLES } from '../../services/usuariosService.js'
 import styles from './Admin.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const FILTROS = [
   { id: 'todos', etiqueta: 'Todos' },
@@ -71,7 +72,7 @@ function Admin() {
       )
       setEstadoFila((e) => ({ ...e, [usuario.idUsuario]: 'guardado' }))
     } catch (e) {
-      setEstadoFila((prev) => ({ ...prev, [usuario.idUsuario]: e.message }))
+      setEstadoFila((prev) => ({ ...prev, [usuario.idUsuario]: mensajeDeError(e, 'No se pudo guardar el cambio.') }))
     }
   }
 

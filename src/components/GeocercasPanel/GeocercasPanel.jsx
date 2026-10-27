@@ -16,6 +16,7 @@ import Skeleton, { AvisoCarga } from '../Skeleton/Skeleton.jsx'
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import * as geocercas from '../../services/geocercasService.js'
 import styles from './GeocercasPanel.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const NOMBRE = { area: 'área', zona: 'zona' }
 
@@ -133,7 +134,7 @@ function GeocercasPanel({
     if (!over || active.id === over.id) return
     const ids = areas.map((a) => a.idArea)
     setErrorOrden(null)
-    onReordenar(arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id))).catch((e) => setErrorOrden(e.message))
+    onReordenar(arrayMove(ids, ids.indexOf(active.id), ids.indexOf(over.id))).catch((e) => setErrorOrden(mensajeDeError(e, 'No se pudo guardar el nuevo orden.')))
   }
 
   // Al salir del modo edición no debe quedar nada a medio dibujar
@@ -261,7 +262,7 @@ function GeocercasPanel({
       limpiar()
       await onGuardado(nueva)
     } catch (e) {
-      setError(e.message)
+      setError(mensajeDeError(e, 'No se pudieron guardar los cambios.'))
     } finally {
       setGuardando(false)
     }

@@ -1,6 +1,7 @@
 import { apiFetch } from './api.js'
 import { AuthError } from './authService.js'
 import { guardarSesion } from './session.js'
+import { MENSAJE_SIN_CONEXION } from './errores.js'
 
 // App registrada en Microsoft Entra ID (multi-organización). El Client ID no es secreto
 const CLIENT_ID = import.meta.env.VITE_AZURE_CLIENT_ID?.trim()
@@ -68,7 +69,7 @@ export async function loginConMicrosoft() {
       body: JSON.stringify({ entraIdToken: resultado.idToken }),
     })
   } catch {
-    throw new AuthError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.')
+    throw new AuthError(MENSAJE_SIN_CONEXION)
   }
   const data = await response.json().catch(() => null)
   if (!response.ok) {

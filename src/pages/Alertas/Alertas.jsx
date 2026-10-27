@@ -8,6 +8,7 @@ import { escucharAlertas } from '../../hooks/alertasEnVivo.js'
 import { coincideTipo, listarAlertas } from '../../services/alertasService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from '../Historial/fechas.js'
 import styles from './Alertas.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 // Los mismos filtros de la pestaña Alertas de la app móvil
 const TIPOS = [
@@ -71,7 +72,7 @@ function Alertas() {
     let activa = true
     listarAlertas(tipo, rango, null, estado)
       .then((p) => activa && setResultado({ ...RESULTADO_VACIO, clave, alertas: p.alertas, hayMas: p.hayMas }))
-      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: e.message }))
+      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: mensajeDeError(e, 'No se pudieron cargar las alertas.') }))
     return () => {
       activa = false
     }
@@ -130,7 +131,7 @@ function Alertas() {
           : { ...r, alertas: [...r.alertas, ...p.alertas.filter((a) => !r.alertas.some((x) => x.id === a.id))], hayMas: p.hayMas },
       )
     } catch (e) {
-      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: e.message }))
+      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: mensajeDeError(e, 'No se pudieron cargar más alertas.') }))
     } finally {
       cargandoMasRef.current = false
       setCargandoMas(false)
