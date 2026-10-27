@@ -79,7 +79,7 @@ function MainLayout() {
             <NavLink to="/alertas" className={navLinkClass}>
               Alertas
               {activas > 0 && (
-                <span className={styles.badge} title={`${activas} operadores con más de 10 h trabajadas`}>
+                <span className={styles.badge} title={`${activas} alertas activas: operadores con más de 10 h trabajadas o máquinas detenidas por mantención o falla`}>
                   {activas}
                   <span className={styles.visuallyHidden}> activas</span>
                 </span>
