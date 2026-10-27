@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { AlarmClockOff, AlertCircle, AlertTriangle, CalendarRange, CheckCircle2, CircleDashed, Layers3, RefreshCw, ShieldAlert } from 'lucide-react'
+import { AlarmClockOff, AlertCircle, AlertTriangle, CalendarRange, CheckCircle2, CircleDashed, Layers3, RefreshCw, ShieldAlert, Wrench } from 'lucide-react'
 import AlertaItem from '../../components/AlertaItem/AlertaItem.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import SkeletonEvento from '../../components/SkeletonEvento/SkeletonEvento.jsx'
@@ -8,12 +8,14 @@ import { escucharAlertas } from '../../hooks/alertasEnVivo.js'
 import { coincideTipo, listarAlertas } from '../../services/alertasService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from '../Historial/fechas.js'
 import styles from './Alertas.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 // Los mismos filtros de la pestaña Alertas de la app móvil
 const TIPOS = [
   { id: 'TODO', etiqueta: 'Todas', icono: ShieldAlert },
   { id: 'EXTENDIDOS', etiqueta: '+10 horas', icono: AlertTriangle },
   { id: 'CIERRES_AUTOMATICOS', etiqueta: 'Cierre auto', icono: AlarmClockOff },
+  { id: 'MANTENCIONES', etiqueta: 'Mantención', icono: Wrench },
 ]
 
 // Si alguien ya atendió la alerta (la atención y sus notas se guardan; las alertas se calculan desde los turnos)
@@ -35,8 +37,8 @@ const RESULTADO_VACIO = { clave: null, alertas: [], hayMas: false, error: null, 
 const ordenar = (a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a.id)
 
 /**
- * Alertas de turno (JEFE_TURNO y ADMIN): turnos y jornadas de más de 10 h y cierres automáticos, agrupados por día y
- * paginados del más reciente al más antiguo. Las que aparecen mientras la página está abierta llegan por WebSocket
+ * Alertas de turno (JEFE_TURNO y ADMIN): turnos y jornadas de más de 10 h, cierres automáticos y máquinas detenidas por
+ * mantención o falla, agrupados por día y paginados del más reciente al más antiguo. Las que aparecen mientras la página está abierta llegan por WebSocket
  * y se suman arriba, marcadas como nuevas. Cada una se puede atender (y después agregarle notas); lo que atiende otro
  * jefe de turno también llega en tiempo real.
  */
@@ -71,7 +73,7 @@ function Alertas() {
     let activa = true
     listarAlertas(tipo, rango, null, estado)
       .then((p) => activa && setResultado({ ...RESULTADO_VACIO, clave, alertas: p.alertas, hayMas: p.hayMas }))
-      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: e.message }))
+      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: mensajeDeError(e, 'No se pudieron cargar las alertas.') }))
     return () => {
       activa = false
     }
@@ -130,7 +132,7 @@ function Alertas() {
           : { ...r, alertas: [...r.alertas, ...p.alertas.filter((a) => !r.alertas.some((x) => x.id === a.id))], hayMas: p.hayMas },
       )
     } catch (e) {
-      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: e.message }))
+      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: mensajeDeError(e, 'No se pudieron cargar más alertas.') }))
     } finally {
       cargandoMasRef.current = false
       setCargandoMas(false)

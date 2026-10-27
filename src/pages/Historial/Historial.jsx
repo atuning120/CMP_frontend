@@ -7,6 +7,7 @@ import { textoEvento } from '../../components/HistorialEvento/describirEvento.js
 import { descargarHistorialExcel, listarHistorial } from '../../services/historialService.js'
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from './fechas.js'
 import styles from './Historial.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const TIPOS = [
   { id: 'TODO', etiqueta: 'Todo', icono: Layers },
@@ -35,7 +36,9 @@ const compilarBusqueda = (busqueda) => {
   try {
     return { regex: new RegExp(normalizar(patron), 'i') }
   } catch (e) {
-    return { regex: null, errorBusqueda: e.message }
+    // El detalle del navegador viene en inglés y es técnico: se explica qué revisar
+    console.warn('Búsqueda no válida', e)
+    return { regex: null, errorBusqueda: 'La búsqueda tiene un símbolo especial sin cerrar, como ( o [. Revísalo o quítalo.' }
   }
 }
 
@@ -77,7 +80,7 @@ function Historial() {
     let activa = true
     listarHistorial(tipo, rango)
       .then((p) => activa && setResultado({ ...RESULTADO_VACIO, clave, eventos: p.eventos, hayMas: p.hayMas }))
-      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: e.message }))
+      .catch((e) => activa && setResultado({ ...RESULTADO_VACIO, clave, error: mensajeDeError(e, 'No se pudo cargar el historial.') }))
     return () => {
       activa = false
     }
@@ -103,7 +106,7 @@ function Historial() {
           : { ...r, eventos: [...r.eventos, ...p.eventos.filter((e) => !r.eventos.some((x) => x.id === e.id))], hayMas: p.hayMas },
       )
     } catch (e) {
-      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: e.message }))
+      setResultado((r) => (r.clave !== clave ? r : { ...r, errorMas: mensajeDeError(e, 'No se pudieron cargar más eventos.') }))
     } finally {
       cargandoMasRef.current = false
       setCargandoMas(false)
@@ -139,7 +142,7 @@ function Historial() {
     try {
       await descargarHistorialExcel(tipo, rango)
     } catch (e) {
-      setErrorExcel(e.message)
+      setErrorExcel(mensajeDeError(e, 'No se pudo descargar el Excel.'))
     } finally {
       setExportando(false)
     }
@@ -203,7 +206,7 @@ function Historial() {
         </label>
         <p id="historial-busqueda-ayuda" className={errorBusqueda ? styles.ayudaError : styles.ayuda}>
           {errorBusqueda
-            ? `Expresión regular no válida: ${errorBusqueda}`
+            ? errorBusqueda
             : ''}
         </p>
       </div>

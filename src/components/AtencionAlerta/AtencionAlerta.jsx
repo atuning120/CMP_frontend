@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { AlertCircle, CheckCircle2, LoaderCircle, MessageSquarePlus } from 'lucide-react'
 import { formatearFecha } from '../../pages/Historial/fechas.js'
 import { atenderAlerta, LARGO_MAXIMO_COMENTARIO } from '../../services/alertasService.js'
 import styles from './AtencionAlerta.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 /**
  * Quién atendió la alerta y las notas posteriores, con el formulario para atenderla (comentario opcional) o agregar
@@ -15,11 +16,14 @@ function AtencionAlerta({ alerta, onGuardada }) {
   const [error, setError] = useState('')
   const [atencion, ...notas] = alerta.atenciones ?? []
   const esNota = Boolean(atencion)
+  // Identifica esta atención: si la respuesta no llega y se reintenta, el Backend no la registra dos veces
+  const idCliente = useRef(null)
 
   const cerrar = () => {
     setAbierto(false)
     setComentario('')
     setError('')
+    idCliente.current = null
   }
 
   const guardar = async (e) => {
@@ -28,10 +32,11 @@ function AtencionAlerta({ alerta, onGuardada }) {
     setGuardando(true)
     setError('')
     try {
-      onGuardada(await atenderAlerta(alerta.id, comentario.trim()))
+      idCliente.current ??= crypto.randomUUID()
+      onGuardada(await atenderAlerta(alerta.id, comentario.trim(), idCliente.current, alerta.atenciones?.length ?? 0))
       cerrar()
     } catch (err) {
-      setError(err.message)
+      setError(mensajeDeError(err, 'No se pudo guardar la atención.'))
     } finally {
       setGuardando(false)
     }

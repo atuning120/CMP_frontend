@@ -1,14 +1,35 @@
-import { AlarmClockOff, AlertTriangle, Layers } from 'lucide-react'
+import { AlarmClockOff, AlertTriangle, Layers, Wrench } from 'lucide-react'
 import { formatearDuracion } from '../../pages/Historial/fechas.js'
 
 const minutosEntre = (desde, hasta) => ((hasta ? new Date(hasta).getTime() : Date.now()) - new Date(desde).getTime()) / 60000
 
+// "Mantención / Falla Mecánica Inesperada" -> "Falla Mecánica Inesperada": la categoría ya la dice el tipo de alerta
+const nombreEstadoSinCategoria = (nombre) => nombre.replace(/^[^/]+\/\s*/, '')
+
+// Mantención o falla que marcó el operador (en rojo en el mapa): activa mientras la máquina siga en ese estado
+function describirDetencion(alerta) {
+  const { detencion, turno } = alerta
+  const activa = turno.estado === 'EN_CURSO' && !detencion.fin
+  const duracion = formatearDuracion(minutosEntre(detencion.inicio, detencion.fin))
+  const etiqueta = activa ? `Detenida hace ${duracion}` : `Detenida ${duracion}`
+  return {
+    icono: Wrench,
+    tono: 'peligro',
+    activa,
+    frase: { antes: '', despues: ` reportó ${nombreEstadoSinCategoria(detencion.estado)} en ` },
+    etiqueta: activa ? `Activa · ${etiqueta}` : etiqueta,
+    ubicacion: [alerta.area, alerta.zona].filter(Boolean).join(' · '),
+    jornada: null,
+  }
+}
+
 /**
  * Lo que muestran la lista y los avisos de una alerta (igual que AlertaCard de la app móvil): icono, tono, si sigue
- * activa (turno o jornada extendidos que siguen abiertos: los que todavía requieren acción), la frase de qué pasó
- * (en partes, para resaltar operador y máquina) y la etiqueta con el estado.
+ * activa (turno o jornada extendidos que siguen abiertos, o máquina que sigue detenida: los que todavía requieren
+ * acción), la frase de qué pasó (en partes, para resaltar operador y máquina) y la etiqueta con el estado.
  */
 export function describirAlerta(alerta) {
+  if (alerta.tipo === 'MANTENCION' && alerta.detencion) return describirDetencion(alerta)
   const { turno } = alerta
   const esCierreAutomatico = alerta.tipo === 'CIERRE_AUTOMATICO'
   const jornada = alerta.tipo === 'JORNADA_EXTENDIDA' ? (alerta.jornada ?? null) : null

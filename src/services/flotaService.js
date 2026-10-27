@@ -44,26 +44,31 @@ const enviar = (method, path, body) => apiJson(path, { method, body: JSON.string
 // datos: { nombre, marca, modelo, tipoMaquina, anio, patente, numeroChasis, horometroInicial, esContratista, idOperador, motivo, observacion }
 export const crearMaquina = (datos) => enviar('POST', '/maquinas', datos)
 
-// Ficha completa + motivo. idOperador null deja la máquina sin operador
+// versionBase (en editar, cambiar estado, reemplazar y devolver): la `version` de la máquina que vio el jefe de turno.
+// Si otro la cambió mientras tanto, el Backend no aplica la acción y responde 409 con code MAQUINA_MODIFICADA
+export const MAQUINA_MODIFICADA = 'MAQUINA_MODIFICADA'
+
+// Ficha completa + motivo + versionBase. idOperador null deja la máquina sin operador
 export const editarMaquina = (idMaquina, datos) => enviar('PATCH', `/maquinas/${idMaquina}`, datos)
 
 // Habilitar / deshabilitar: el mismo PATCH enviando solo el estado. regresoEstimado (ISO) solo en mantenimiento
 // o fuera de servicio; undefined no lo toca
-export const cambiarEstadoMaquina = (idMaquina, estado, motivo, observacion, regresoEstimado) =>
-  enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion, regresoEstimado })
+export const cambiarEstadoMaquina = (idMaquina, versionBase, estado, motivo, observacion, regresoEstimado) =>
+  enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion, regresoEstimado, versionBase })
 
 // La entrante es de la flota (idMaquinaEntrante) o nueva (maquinaNueva). Sin idOperador, pasa el de la saliente.
-// estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO
+// estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO; versionBase: la de la saliente
 export const reemplazarMaquina = (idSaliente, datos) => enviar('POST', `/maquinas/${idSaliente}/reemplazo`, datos)
 
 // La original vuelve a operar con el operador de su respaldo, y el respaldo vuelve a su estado anterior
-export const devolverMaquina = (idMaquina, motivo, observacion) =>
-  enviar('POST', `/maquinas/${idMaquina}/devolucion`, { motivo, observacion })
+export const devolverMaquina = (idMaquina, versionBase, motivo, observacion) =>
+  enviar('POST', `/maquinas/${idMaquina}/devolucion`, { motivo, observacion, versionBase })
 
 // Cierra el turno en curso de la máquina en nombre del operador (para sacarla de operación). El horómetro final
-// lo obtiene el jefe de turno en terreno o por radio
-export const cerrarTurnoDeMaquina = (idMaquina, horometroFinal, motivo) =>
-  enviar('POST', `/turnos/maquina/${idMaquina}/cierre`, { horometroFinal, motivo })
+// lo obtiene el jefe de turno en terreno o por radio. idTurno: el turno que se ve (idTurnoActual de la flota); si el
+// operador u otro jefe lo cerró antes, el Backend responde 409 TURNO_YA_CERRADO con quién y a qué hora
+export const cerrarTurnoDeMaquina = (idMaquina, horometroFinal, motivo, idTurno) =>
+  enviar('POST', `/turnos/maquina/${idMaquina}/cierre`, { horometroFinal, motivo, idTurno: idTurno ?? undefined })
 
 export const listarOperadoresAsignables = () => apiJson('/maquinas/operadores')
 export const listarModelosMaquina = () => apiJson('/modelos-maquina')

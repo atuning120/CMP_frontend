@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, ImageOff, LoaderCircle, X } from 'lucide-react'
 import { useEvidencia } from '../../hooks/consultas.js'
 import styles from './VisorEvidencias.module.css'
+import { mensajeDeError } from '../../services/errores.js'
 
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -72,7 +73,7 @@ function VisorEvidencias({ evidencias, inicial = 0, contexto, onCerrar }) {
         {foto.isPending && <LoaderCircle size={28} className={styles.girando} aria-label="Cargando foto" />}
         {foto.isError && (
           <p className={styles.error} role="alert">
-            <ImageOff size={22} /> {foto.error.message}
+            <ImageOff size={22} /> {mensajeDeError(foto.error, 'No se pudo cargar la foto.')}
           </p>
         )}
         {foto.data && <img className={styles.foto} src={foto.data} alt={`Evidencia de ${contexto.titulo}`} />}

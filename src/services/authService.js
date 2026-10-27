@@ -1,5 +1,6 @@
 import { apiFetch } from './api.js'
 import { cerrarSesion, getSesion, guardarSesion } from './session.js'
+import { ErrorParaUsuario, MENSAJE_SIN_CONEXION } from './errores.js'
 
 // Mensajes para el usuario según el código de error del Backend; nunca se muestra el texto crudo
 const MENSAJES_ERROR = {
@@ -9,7 +10,7 @@ const MENSAJES_ERROR = {
   DEMASIADOS_INTENTOS: 'Demasiados intentos fallidos. Espera unos minutos e intenta nuevamente.',
 }
 
-export class AuthError extends Error {}
+export class AuthError extends ErrorParaUsuario {}
 
 /**
  * Login con email y contraseña (POST /auth/login/web/credenciales). Guarda la sesión y la
@@ -23,7 +24,7 @@ export async function loginConCredenciales(email, password) {
       body: JSON.stringify({ email: email.trim(), password }),
     })
   } catch {
-    throw new AuthError('No se pudo conectar con el servidor. Revisa tu conexión e intenta nuevamente.')
+    throw new AuthError(MENSAJE_SIN_CONEXION)
   }
 
   if (!response.ok) {

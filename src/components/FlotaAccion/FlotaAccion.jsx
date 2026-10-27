@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Activity, AlertCircle, AlertTriangle, ClipboardList, Info, Truck } from 'lucide-react'
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import SelectorEstado from '../SelectorEstado/SelectorEstado.jsx'
@@ -8,6 +9,7 @@ import {
   crearMaquina,
   devolverMaquina,
   editarMaquina,
+  MAQUINA_MODIFICADA,
   reemplazarMaquina,
 } from '../../services/flotaService.js'
 import {
@@ -19,6 +21,8 @@ import {
 } from '../../pages/Flota/motivos.js'
 import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado } from '../../pages/Flota/estados.js'
 import styles from './FlotaAccion.module.css'
+import { mensajeDeError } from '../../services/errores.js'
+import { CLAVES } from '../../hooks/consultas.js'
 
 const FICHA_VACIA = {
   nombre: '',
@@ -276,6 +280,10 @@ function CampoOperador({ valor, onCambio, operadores, maquina, conMantener }) {
  */
 function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const { tipo, maquina } = accion
+  const queryClient = useQueryClient()
+  // Versión de la máquina sobre la que se prepara la acción. Si otro jefe de turno la cambió entremedio, se recarga la
+  // flota y se adopta la nueva: volver a confirmar aplica el cambio sabiendo lo que hizo el otro
+  const [versionBase, setVersionBase] = useState(() => maquina?.version)
   const estadoActual = maquina ? estadoDe(maquina) : null
   // Estado elegido en el panel de cambio de estado
   const [nuevoEstado, setNuevoEstado] = useState('')
@@ -377,7 +385,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     let cerroTurno = false
     try {
       if (pideCierre) {
-        await cerrarTurnoDeMaquina(conTurno.idMaquina, horometro, motivo)
+        await cerrarTurnoDeMaquina(conTurno.idMaquina, horometro, motivo, conTurno.idTurnoActual)
         cerroTurno = true
         setTurnoCerrado(true)
       }
@@ -386,6 +394,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         await onGuardado(`${nueva.nombre} se incorporó a la flota.`)
       } else if (tipo === 'editar') {
         await editarMaquina(maquina.idMaquina, {
+          versionBase,
           ...datosFicha(ficha, false),
           idOperador,
           ...(cambiaEstado ? { estado: estadoEditado } : {}),
@@ -401,6 +410,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
       } else if (tipo === 'estado') {
         await cambiarEstadoMaquina(
           maquina.idMaquina,
+          versionBase,
           nuevoEstado,
           justificacion.motivo,
           justificacion.observacion,
@@ -408,7 +418,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         )
         await onGuardado(`${maquina.nombre} quedó ${destino.etiqueta.toLowerCase()}.`)
       } else if (tipo === 'devolver') {
-        const { respaldo: devuelto } = await devolverMaquina(maquina.idMaquina, justificacion.motivo, justificacion.observacion)
+        const { respaldo: devuelto } = await devolverMaquina(maquina.idMaquina, versionBase, justificacion.motivo, justificacion.observacion)
         await onGuardado(`${maquina.nombre} volvió a operar; ${devuelto.nombre} quedó ${estadoDe(devuelto).etiqueta.toLowerCase()}.`)
       } else {
         if (entrante.origen === 'flota' && !entrante.idMaquina) {
@@ -416,6 +426,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           return setError('Elige la máquina que entra en su lugar.')
         }
         const datos = {
+          versionBase,
           ...(entrante.origen === 'flota'
             ? { idMaquinaEntrante: Number(entrante.idMaquina) }
             : { maquinaNueva: datosFicha(ficha, true) }),
@@ -429,8 +440,14 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         await onGuardado(`${nueva.nombre} tomó el lugar de ${maquina.nombre}.`)
       }
     } catch (e) {
+      if (e?.code === MAQUINA_MODIFICADA) {
+        await queryClient.refetchQueries({ queryKey: CLAVES.flota })
+        const actual = queryClient.getQueryData(CLAVES.flota)?.find((m) => m.idMaquina === maquina.idMaquina)
+        if (actual) setVersionBase(actual.version)
+      }
       // El turno pudo quedar cerrado aunque la acción fallara: al reintentar ya no se pide el horómetro
-      setError(cerroTurno ? `El turno de ${conTurno.operadorActual} quedó cerrado, pero: ${e.message}` : e.message)
+      const mensaje = mensajeDeError(e, 'No se pudo completar la acción.')
+      setError(cerroTurno ? `El turno de ${conTurno.operadorActual} quedó cerrado, pero: ${mensaje}` : mensaje)
       setGuardando(false)
     }
   }
