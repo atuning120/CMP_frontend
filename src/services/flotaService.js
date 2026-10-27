@@ -65,9 +65,10 @@ export const devolverMaquina = (idMaquina, versionBase, motivo, observacion) =>
   enviar('POST', `/maquinas/${idMaquina}/devolucion`, { motivo, observacion, versionBase })
 
 // Cierra el turno en curso de la máquina en nombre del operador (para sacarla de operación). El horómetro final
-// lo obtiene el jefe de turno en terreno o por radio
-export const cerrarTurnoDeMaquina = (idMaquina, horometroFinal, motivo) =>
-  enviar('POST', `/turnos/maquina/${idMaquina}/cierre`, { horometroFinal, motivo })
+// lo obtiene el jefe de turno en terreno o por radio. idTurno: el turno que se ve (idTurnoActual de la flota); si el
+// operador u otro jefe lo cerró antes, el Backend responde 409 TURNO_YA_CERRADO con quién y a qué hora
+export const cerrarTurnoDeMaquina = (idMaquina, horometroFinal, motivo, idTurno) =>
+  enviar('POST', `/turnos/maquina/${idMaquina}/cierre`, { horometroFinal, motivo, idTurno: idTurno ?? undefined })
 
 export const listarOperadoresAsignables = () => apiJson('/maquinas/operadores')
 export const listarModelosMaquina = () => apiJson('/modelos-maquina')

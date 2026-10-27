@@ -385,7 +385,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     let cerroTurno = false
     try {
       if (pideCierre) {
-        await cerrarTurnoDeMaquina(conTurno.idMaquina, horometro, motivo)
+        await cerrarTurnoDeMaquina(conTurno.idMaquina, horometro, motivo, conTurno.idTurnoActual)
         cerroTurno = true
         setTurnoCerrado(true)
       }
