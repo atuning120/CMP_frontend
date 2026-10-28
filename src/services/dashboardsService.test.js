@@ -11,10 +11,10 @@ import {
 
 afterEach(() => vi.unstubAllGlobals())
 
-// Todos los roles web ven los dashboards; solo jefe de turno y administrador cargan el Excel
+// Solo jefe de turno y administrador ven los dashboards y cargan el Excel
 describe('permisos de dashboards por rol', () => {
   it.each([
-    ['VISOR', true, false],
+    ['VISOR', false, false],
     ['JEFE_TURNO', true, true],
     ['ADMIN', true, true],
     ['OPERADOR', false, false],

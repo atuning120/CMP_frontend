@@ -1,8 +1,8 @@
 import { apiJson } from './api.js'
 
-// Dashboards de Metabase embebidos (GET /dashboards/:tipo): todos los roles del panel web los ven; el Excel del estado
-// de pago (EP) del contratista lo cargan solo jefes de turno y administradores. Mismos roles que exige el Backend
-export const ROLES_DASHBOARDS = ['ADMIN', 'JEFE_TURNO', 'VISOR']
+// Dashboards de Metabase embebidos (GET /dashboards/:tipo): solo jefes de turno y administradores los ven y cargan el Excel
+// del estado de pago (EP) del contratista; el VISOR no tiene acceso. Mismos roles que exige el Backend
+export const ROLES_DASHBOARDS = ['ADMIN', 'JEFE_TURNO']
 export const ROLES_CARGA_EP = ['ADMIN', 'JEFE_TURNO']
 
 export const puedeVerDashboards = (sesion) => ROLES_DASHBOARDS.includes(sesion?.rol)
