@@ -3,6 +3,7 @@ import SkeletonMapa from './components/SkeletonMapa/SkeletonMapa.jsx'
 import MainLayout from './components/MainLayout/MainLayout.jsx'
 import RequireAuth from './components/RequireAuth/RequireAuth.jsx'
 import Admin from './pages/Admin/Admin.jsx'
+import Dashboards from './pages/Dashboards/Dashboards.jsx'
 import Alertas from './pages/Alertas/Alertas.jsx'
 import ErrorPage from './pages/ErrorPage/ErrorPage.jsx'
 import Flota from './pages/Flota/Flota.jsx'
@@ -53,6 +54,8 @@ export const router = createBrowserRouter([
                   importarConRecarga(() => import('./pages/Mapa/Mapa.jsx')).then((m) => ({ Component: m.default })),
                 hydrateFallbackElement: <SkeletonMapa />,
               },
+              // Todos los roles web: el VISOR solo mira; subir el Excel lo controla la propia página
+              { path: 'dashboards', element: <Dashboards /> },
               {
                 // Gestión de la flota, historial y alertas: jefes de turno y administradores
                 element: <RequireAuth roles={['JEFE_TURNO', 'ADMIN']} />,

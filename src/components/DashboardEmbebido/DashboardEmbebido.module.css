@@ -1,0 +1,110 @@
+.dashboardEmbebido {
+  position: relative;
+  min-height: 70vh;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+
+  /* Metabase no ajusta su alto al contenido en la versión gratuita: el iframe ocupa la ventana y hace scroll adentro */
+  .marco {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 220px);
+    min-height: 70vh;
+    border: none;
+  }
+
+  .oculto {
+    visibility: hidden;
+  }
+
+  .skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .fila {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tarjeta {
+    height: 88px;
+    border-radius: 12px;
+  }
+
+  .grafico {
+    flex: 1;
+    min-height: 240px;
+    border-radius: 12px;
+  }
+
+  .pista {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  .estado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 70vh;
+    padding: 24px;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .estadoTitulo {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .estadoTexto {
+    max-width: 440px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .reintentar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    margin-top: 8px;
+    padding: 0 14px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+}

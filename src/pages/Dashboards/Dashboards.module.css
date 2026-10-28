@@ -1,0 +1,217 @@
+/* Encabezado, control segmentado y botones como Historial; más ancho porque el dashboard lo necesita */
+.dashboards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  text-align: left;
+
+  .header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .titleIcon {
+    color: var(--primary);
+  }
+
+  .subtitle {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .grupo {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--surface-alt);
+  }
+
+  .segmento {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .segmentoActivo {
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    color: var(--text-h);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 16px;
+  }
+
+  .selector {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .selectorLabel {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .select {
+    min-width: 280px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .selectorSkeleton {
+    width: 280px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .detalle {
+    flex: 1;
+    min-width: 200px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    overflow-wrap: anywhere;
+  }
+
+  .boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    margin-left: auto;
+    padding: 0 14px;
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    background: var(--primary);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--on-primary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--danger-border);
+    border-radius: 10px;
+    background: var(--danger-bg);
+    font-size: 14px;
+    color: var(--danger);
+  }
+
+  .reintentar {
+    margin-left: auto;
+    padding: 4px 10px;
+    border: 1px solid var(--danger-border);
+    border-radius: 8px;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 48px 16px;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .vacioIcono {
+    color: var(--primary);
+  }
+
+  .vacioTitulo {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .vacioTexto {
+    max-width: 460px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
