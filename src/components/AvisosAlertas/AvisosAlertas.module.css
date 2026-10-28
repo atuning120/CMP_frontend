@@ -32,10 +32,6 @@
     &.peligro {
       --acento: var(--danger);
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: none;
-    }
   }
 
   .icono {
@@ -109,21 +105,6 @@
       outline: none;
       box-shadow: 0 0 0 3px var(--focus-ring);
     }
-
-    @media (pointer: coarse) {
-      width: 44px;
-      height: 44px;
-    }
-  }
-
-  /* Teléfono: el header ocupa dos filas; los avisos van abajo, a todo el ancho */
-  @media (max-width: 640px) {
-    top: auto;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
-    width: auto;
-    flex-direction: column-reverse;
   }
 }
 
@@ -131,5 +112,35 @@
   from {
     opacity: 0;
     transform: translateY(-8px);
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .avisosAlertas {
+    .aviso {
+      animation: none;
+    }
+  }
+}
+
+@media (pointer: coarse) {
+  .avisosAlertas {
+    .cerrar {
+      width: 44px;
+      height: 44px;
+    }
+  }
+}
+
+/* Teléfono: el header ocupa dos filas; los avisos van abajo, a todo el ancho */
+@media (max-width: 640px) {
+  .avisosAlertas {
+    top: auto;
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    flex-direction: column-reverse;
   }
 }

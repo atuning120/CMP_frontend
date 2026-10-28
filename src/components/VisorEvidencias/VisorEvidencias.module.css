@@ -159,18 +159,6 @@
     color: var(--text-h);
     white-space: pre-line;
   }
-
-  /* En teléfono el botón de descarga queda solo con su ícono */
-  @media (max-width: 480px) {
-    .textoBoton {
-      display: none;
-    }
-
-    .boton {
-      width: 36px;
-      padding: 0;
-    }
-  }
 }
 
 @keyframes girar {
@@ -183,6 +171,20 @@
   .visorEvidencias {
     .girando {
       animation: none;
+    }
+  }
+}
+
+/* En teléfono el botón de descarga queda solo con su ícono */
+@media (max-width: 480px) {
+  .visorEvidencias {
+    .textoBoton {
+      display: none;
+    }
+
+    .boton {
+      width: 36px;
+      padding: 0;
     }
   }
 }

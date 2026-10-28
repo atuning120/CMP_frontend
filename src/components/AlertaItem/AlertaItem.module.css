@@ -109,7 +109,9 @@
     color: var(--text-tertiary);
   }
 
-  @media (max-width: 640px) {
+}
+@media (max-width: 640px) {
+  .alertaItem {
     flex-wrap: wrap;
 
     .fecha {
@@ -118,8 +120,10 @@
       padding-left: 50px;
     }
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
+  .alertaItem {
     transition: none;
   }
 }
