@@ -6,7 +6,7 @@
   padding: 14px 16px;
   list-style: none;
 
-  & + & {
+  &+& {
     border-top: 1px solid var(--border);
   }
 
@@ -47,7 +47,10 @@
     margin-top: 3px;
   }
 
-  @media (max-width: 640px) {
+}
+
+@media (max-width: 640px) {
+  .skeletonEvento {
     flex-wrap: wrap;
 
     /* Icono (36 px) + separación (14 px) + cuerpo llenan la fila: la fecha baja a la siguiente, como en el item */

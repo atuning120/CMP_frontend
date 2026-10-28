@@ -114,8 +114,8 @@ async function apiAutenticado(path, init, timeoutMs) {
 }
 
 // El JSON de la respuesta (o null si no hay cuerpo)
-export async function apiJson(path, init = {}) {
-  const response = await apiAutenticado(path, init)
+export async function apiJson(path, init = {}, timeoutMs = TIMEOUT_MS) {
+  const response = await apiAutenticado(path, init, timeoutMs)
   return response.status === 204 ? null : await response.json().catch(() => null)
 }
 

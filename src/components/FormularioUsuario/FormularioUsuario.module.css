@@ -7,10 +7,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-
-    @media (max-width: 480px) {
-      grid-template-columns: 1fr;
-    }
   }
 
   .campo {
@@ -167,7 +163,7 @@
     }
   }
 
-  .switchInput:checked + .switchPista {
+  .switchInput:checked+.switchPista {
     background: var(--primary);
 
     &::after {
@@ -246,9 +242,18 @@
 
 @media (prefers-reduced-motion: reduce) {
   .formularioUsuario {
+
     .switchPista,
     .switchPista::after {
       transition: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .formularioUsuario {
+    .dosColumnas {
+      grid-template-columns: 1fr;
     }
   }
 }

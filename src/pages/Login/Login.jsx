@@ -144,7 +144,8 @@ function Login() {
             type="button"
             className={styles.microsoft}
             onClick={handleMicrosoftLogin}
-            disabled={submitting}
+            //disabled={submitting}
+            disabled={true}
           >
             <img src={microsoftLogo} alt="" className={styles.microsoftIcon} />
             Iniciar sesión con Microsoft

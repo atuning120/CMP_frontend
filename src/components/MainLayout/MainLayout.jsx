@@ -7,6 +7,7 @@ import { useAlertasEnVivo } from '../../hooks/alertasEnVivo.js'
 import { useAlertasActivas } from '../../hooks/consultas.js'
 import { puedeGestionarFlota, puedeVerAlertas } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
+import { puedeVerDashboards } from '../../services/dashboardsService.js'
 import { salir } from '../../services/authService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import AvisosAlertas from '../AvisosAlertas/AvisosAlertas.jsx'
@@ -65,6 +66,11 @@ function MainLayout() {
           <NavLink to="/mapa" className={navLinkClass}>
             Mapa
           </NavLink>
+          {puedeVerDashboards(sesion) && (
+            <NavLink to="/dashboards" className={navLinkClass}>
+              Dashboards
+            </NavLink>
+          )}
           {puedeGestionarFlota(sesion) && (
             <NavLink to="/flota" className={navLinkClass}>
               Flota

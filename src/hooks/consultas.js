@@ -11,6 +11,7 @@ import { obtenerAlertasActivas } from '../services/alertasService.js'
 import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 import { obtenerEvidencia } from '../services/evidenciasService.js'
+import { listarCargasEp, obtenerDashboard } from '../services/dashboardsService.js'
 import { mensajeDeError } from '../services/errores.js'
 
 // Claves de la caché: las páginas que piden lo mismo (la flota en el mapa y en /flota) comparten la respuesta
@@ -24,6 +25,9 @@ export const CLAVES = {
   gps: ['gps'],
   usuarios: ['usuarios'],
   evidencias: ['evidencias'],
+  dashboards: ['dashboards'],
+  // Dentro de 'dashboards': confirmar una carga refresca la lista y las URL firmadas
+  cargasEp: ['dashboards', 'cargas'],
 }
 
 // Las geocercas casi no cambian y sus polígonos son lo más pesado: se dan por vigentes 5 minutos
@@ -72,3 +76,20 @@ export const useEvidencia = (idEvidencia, { enabled = true } = {}) =>
     gcTime: 5 * 60_000,
     retry: 1,
   })
+
+// La URL firmada del dashboard vence en una hora: se pide otra antes. Sin reintentos si Metabase no está configurado
+const RENOVAR_DASHBOARD_MS = 55 * 60_000
+
+export const useDashboard = (tipo, periodo, { enabled = true } = {}) =>
+  useQuery({
+    queryKey: [...CLAVES.dashboards, tipo, periodo ?? null],
+    queryFn: () => obtenerDashboard(tipo, periodo),
+    enabled,
+    staleTime: RENOVAR_DASHBOARD_MS,
+    refetchInterval: RENOVAR_DASHBOARD_MS,
+    // Volver a la pestaña no debe recargar el iframe (se perderían los filtros que el usuario movió)
+    refetchOnWindowFocus: false,
+    retry: (intentos, error) => error?.status !== 503 && error?.status !== 404 && intentos < 2,
+  })
+
+export const useCargasEp = ({ enabled = true } = {}) => useQuery({ queryKey: CLAVES.cargasEp, queryFn: listarCargasEp, enabled })
