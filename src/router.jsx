@@ -54,12 +54,11 @@ export const router = createBrowserRouter([
                   importarConRecarga(() => import('./pages/Mapa/Mapa.jsx')).then((m) => ({ Component: m.default })),
                 hydrateFallbackElement: <SkeletonMapa />,
               },
-              // Todos los roles web: el VISOR solo mira; subir el Excel lo controla la propia página
-              { path: 'dashboards', element: <Dashboards /> },
               {
-                // Gestión de la flota, historial y alertas: jefes de turno y administradores
+                // Gestión de la flota, historial, alertas y dashboards: jefes de turno y administradores
                 element: <RequireAuth roles={['JEFE_TURNO', 'ADMIN']} />,
                 children: [
+                  { path: 'dashboards', element: <Dashboards /> },
                   { path: 'flota', element: <Flota /> },
                   { path: 'historial', element: <Historial /> },
                   { path: 'alertas', element: <Alertas /> },

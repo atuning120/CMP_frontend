@@ -2,19 +2,18 @@ import { useState } from 'react'
 import { AlertCircle, RefreshCw, Settings } from 'lucide-react'
 import Skeleton, { AvisoCarga } from '../Skeleton/Skeleton.jsx'
 import { useDashboard } from '../../hooks/consultas.js'
-import { useTheme } from '../../hooks/useTheme.js'
 import { urlConTema } from '../../services/dashboardsService.js'
 import { mensajeDeError } from '../../services/errores.js'
 import styles from './DashboardEmbebido.module.css'
 
 /**
  * Dashboard de Metabase en un <iframe> con la URL que firma el Backend (quien lo ve no necesita cuenta en Metabase).
- * tipo: 'operacion' | 'estado-pago' (con el período AAAA-MM de una carga). Sigue el tema claro u oscuro de la web.
+ * tipo: 'operacion' | 'estado-pago' (con el período AAAA-MM de una carga). Los gráficos quedan sobre el fondo de la
+ * página; el modo oscuro lo resuelve el CSS sin recargar el iframe.
  */
 function DashboardEmbebido({ tipo, periodo, titulo }) {
-  const { theme } = useTheme()
   const consulta = useDashboard(tipo, periodo)
-  const url = consulta.data ? urlConTema(consulta.data.url, theme) : null
+  const url = consulta.data ? urlConTema(consulta.data.url) : null
   // Metabase tarda en arrancar si estaba detenido: el skeleton sigue hasta que el iframe termina de cargar
   const [cargada, setCargada] = useState(null)
   const cargando = !url || cargada !== url
@@ -59,7 +58,7 @@ function DashboardEmbebido({ tipo, periodo, titulo }) {
       )}
       {url && (
         <iframe
-          // Una URL nueva (token renovado o cambio de tema) vuelve a cargar el dashboard
+          // Una URL nueva (token renovado) vuelve a cargar el dashboard
           key={url}
           src={url}
           title={titulo}

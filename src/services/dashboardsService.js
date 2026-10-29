@@ -1,8 +1,8 @@
 import { apiJson } from './api.js'
 
-// Dashboards de Metabase embebidos (GET /dashboards/:tipo): todos los roles del panel web los ven; el Excel del estado
-// de pago (EP) del contratista lo cargan solo jefes de turno y administradores. Mismos roles que exige el Backend
-export const ROLES_DASHBOARDS = ['ADMIN', 'JEFE_TURNO', 'VISOR']
+// Dashboards de Metabase embebidos (GET /dashboards/:tipo): solo jefes de turno y administradores los ven y cargan el Excel
+// del estado de pago (EP) del contratista; el VISOR no tiene acceso. Mismos roles que exige el Backend
+export const ROLES_DASHBOARDS = ['ADMIN', 'JEFE_TURNO']
 export const ROLES_CARGA_EP = ['ADMIN', 'JEFE_TURNO']
 
 export const puedeVerDashboards = (sesion) => ROLES_DASHBOARDS.includes(sesion?.rol)
@@ -74,6 +74,8 @@ export const confirmarCargaEp = (carga, reemplazar) =>
   apiJson('/dashboards/cargas', { method: 'POST', body: formularioCarga(carga, reemplazar) }, TIMEOUT_CARGA_MS)
 
 /**
- * URL del iframe con el tema de la web: Metabase acepta `theme=night` en el fragmento (#) de la URL firmada.
+ * URL del iframe con fondo transparente (`theme=transparent` en el fragmento # de la URL firmada): los gráficos quedan
+ * sobre el fondo de la página. El `theme=night` de Metabase es azul marino y no se puede cambiar en la versión gratuita,
+ * así que el modo oscuro lo hace la web invirtiendo el iframe con CSS (DashboardEmbebido.module.css).
  */
-export const urlConTema = (url, tema) => (tema === 'dark' ? `${url}${url.includes('#') ? '&' : '#'}theme=night` : url)
+export const urlConTema = (url) => `${url}${url.includes('#') ? '&' : '#'}theme=transparent`

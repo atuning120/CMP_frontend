@@ -11,10 +11,10 @@ import {
 
 afterEach(() => vi.unstubAllGlobals())
 
-// Todos los roles web ven los dashboards; solo jefe de turno y administrador cargan el Excel
+// Solo jefe de turno y administrador ven los dashboards y cargan el Excel
 describe('permisos de dashboards por rol', () => {
   it.each([
-    ['VISOR', true, false],
+    ['VISOR', false, false],
     ['JEFE_TURNO', true, true],
     ['ADMIN', true, true],
     ['OPERADOR', false, false],
@@ -41,11 +41,10 @@ describe('fechas del estado de pago', () => {
 })
 
 describe('urlConTema', () => {
-  it('agrega theme=night al fragmento solo en modo oscuro', () => {
+  it('agrega theme=transparent al fragmento', () => {
     const url = 'https://mb/embed/dashboard/tok#bordered=false&titled=false'
-    expect(urlConTema(url, 'dark')).toBe(`${url}&theme=night`)
-    expect(urlConTema(url, 'light')).toBe(url)
-    expect(urlConTema('https://mb/embed/dashboard/tok', 'dark')).toBe('https://mb/embed/dashboard/tok#theme=night')
+    expect(urlConTema(url)).toBe(`${url}&theme=transparent`)
+    expect(urlConTema('https://mb/embed/dashboard/tok')).toBe('https://mb/embed/dashboard/tok#theme=transparent')
   })
 })
 
