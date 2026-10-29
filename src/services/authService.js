@@ -1,4 +1,4 @@
-import { apiFetch } from './api.js'
+import { apiFetchSesion } from './api.js'
 import { cerrarSesion, getSesion, guardarSesion } from './session.js'
 import { ErrorParaUsuario, MENSAJE_SIN_CONEXION } from './errores.js'
 
@@ -19,7 +19,7 @@ export class AuthError extends ErrorParaUsuario {}
 export async function loginConCredenciales(email, password) {
   let response
   try {
-    response = await apiFetch('/auth/login/web/credenciales', {
+    response = await apiFetchSesion('/auth/login/web/credenciales', {
       method: 'POST',
       body: JSON.stringify({ email: email.trim(), password }),
     })
@@ -35,20 +35,23 @@ export async function loginConCredenciales(email, password) {
     )
   }
 
-  const { accessToken, refreshToken, refreshTokenExpiraEn, rol } = await response.json()
-  const sesion = { accessToken, refreshToken, refreshTokenExpiraEn, rol, email: email.trim() }
-  guardarSesion(sesion)
-  return sesion
+  guardarSesion({ ...(await response.json()), email: email.trim() })
+  return getSesion()
 }
 
 /**
- * Cierra la sesión en este navegador y revoca su refresh token en el Backend (POST /auth/logout).
+ * Cierra la sesión en este navegador: el Backend revoca el refresh token de la cookie y la borra (POST /auth/logout).
  * No espera la respuesta: sin conexión la sesión igual se cierra aquí y el token vence solo.
  */
 export function salir() {
-  const refreshToken = getSesion()?.refreshToken
-  if (refreshToken) {
-    apiFetch('/auth/logout', { method: 'POST', body: JSON.stringify({ refreshToken }), keepalive: true }).catch(() => {})
+  const sesion = getSesion()
+  if (sesion) {
+    // refreshToken: solo lo traen las sesiones guardadas antes de la cookie
+    apiFetchSesion('/auth/logout', {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken: sesion.refreshToken }),
+      keepalive: true,
+    }).catch(() => {})
   }
   cerrarSesion()
 }

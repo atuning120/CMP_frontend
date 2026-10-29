@@ -1,6 +1,6 @@
-import { apiFetch } from './api.js'
+import { apiFetchSesion } from './api.js'
 import { AuthError } from './authService.js'
-import { guardarSesion } from './session.js'
+import { getSesion, guardarSesion } from './session.js'
 import { MENSAJE_SIN_CONEXION } from './errores.js'
 
 // App registrada en Microsoft Entra ID (multi-organización). El Client ID no es secreto
@@ -64,7 +64,7 @@ export async function loginConMicrosoft() {
 
   let response
   try {
-    response = await apiFetch('/auth/login/web', {
+    response = await apiFetchSesion('/auth/login/web', {
       method: 'POST',
       body: JSON.stringify({ entraIdToken: resultado.idToken }),
     })
@@ -76,14 +76,6 @@ export async function loginConMicrosoft() {
     throw new AuthError(MENSAJES_ERROR[data?.code] ?? 'El servidor no pudo procesar el inicio de sesión.')
   }
 
-  const sesion = {
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
-    refreshTokenExpiraEn: data.refreshTokenExpiraEn,
-    rol: data.rol,
-    email: data.email,
-    nombre: data.nombre,
-  }
-  guardarSesion(sesion)
-  return { ...sesion, nuevo: data.nuevo }
+  guardarSesion(data)
+  return { ...getSesion(), nuevo: data.nuevo }
 }

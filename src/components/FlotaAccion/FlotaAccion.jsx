@@ -92,7 +92,7 @@ const aIso = (local) => (local ? new Date(local).toISOString() : null)
 // respaldo (en reserva o fuera de servicio), que quedan operativos al entrar
 const ESTADOS_RESPALDO = ['EN_RESERVA', 'BAJA', 'ACTIVA', 'BAJO_OBSERVACION']
 
-/** Fecha estimada de regreso de una máquina en mantenimiento o fuera de servicio (opcional). */
+/** Fecha estimada de regreso de una máquina en mantenimiento (opcional). */
 function CampoRegreso({ valor, onCambio, nombre }) {
   // Se fija al abrir el formulario: no hace falta que avance mientras se llena
   const [minimo] = useState(() => aLocal(Date.now()))
@@ -537,7 +537,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
                 ))}
               </div>
             </fieldset>
-            <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />
+            {pideRegreso && <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />}
             <fieldset className={styles.fieldset}>
               <legend className={styles.label}>Máquina que entra</legend>
               <div className={styles.segmentado}>
