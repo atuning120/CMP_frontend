@@ -74,6 +74,8 @@ export const confirmarCargaEp = (carga, reemplazar) =>
   apiJson('/dashboards/cargas', { method: 'POST', body: formularioCarga(carga, reemplazar) }, TIMEOUT_CARGA_MS)
 
 /**
- * URL del iframe con el tema de la web: Metabase acepta `theme=night` en el fragmento (#) de la URL firmada.
+ * URL del iframe con fondo transparente (`theme=transparent` en el fragmento # de la URL firmada): los gráficos quedan
+ * sobre el fondo de la página. El `theme=night` de Metabase es azul marino y no se puede cambiar en la versión gratuita,
+ * así que el modo oscuro lo hace la web invirtiendo el iframe con CSS (DashboardEmbebido.module.css).
  */
-export const urlConTema = (url, tema) => (tema === 'dark' ? `${url}${url.includes('#') ? '&' : '#'}theme=night` : url)
+export const urlConTema = (url) => `${url}${url.includes('#') ? '&' : '#'}theme=transparent`

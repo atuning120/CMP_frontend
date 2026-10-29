@@ -68,6 +68,9 @@
   --map-sombra: 0 2px 6px rgba(0, 0, 0, 0.45);
   --map-alerta-halo: rgba(249, 171, 0, 0.4);
 
+  /* Dashboards de Metabase: el modo oscuro invierte el iframe (blanco -> gris de --surface, texto oscuro -> claro) */
+  --dashboard-filtro: none;
+
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
@@ -104,6 +107,7 @@
   --code-bg: #303134;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --dashboard-filtro: invert(0.84) hue-rotate(180deg);
 }
 
 body {
