@@ -1,6 +1,5 @@
 import { io } from 'socket.io-client'
-import { API_URL, renovarSesion } from './api.js'
-import { getSesion } from './session.js'
+import { API_URL, renovarSesion, tokenVigente } from './api.js'
 
 // Si el Backend rechaza la conexión, se reintenta tras esta espera (después de intentar renovar la sesión)
 const ESPERA_RECONEXION_MS = 5000
@@ -14,7 +13,7 @@ const ESPERA_RECONEXION_MS = 5000
 export function suscribirSocket(namespace, eventos, alReconectar) {
   const socket = io(`${API_URL}${namespace}`, {
     // Función: en cada (re)conexión se manda el token vigente, no el del primer intento
-    auth: (cb) => cb({ token: getSesion()?.accessToken }),
+    auth: (cb) => tokenVigente().then((token) => cb({ token })),
   })
   let cerrado = false
   let temporizador = null
