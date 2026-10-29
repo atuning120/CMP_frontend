@@ -166,3 +166,8 @@ pnpm build
 docker build -t geoplanta-web .
 docker run -p 8080:80 geoplanta-web
 ```
+
+nginx envía una **Content-Security-Policy** (`nginx/seguridad.conf`) que lista los únicos orígenes con los que la web
+puede conectarse: Backend, Metabase, imagen satelital de Esri y Microsoft. Si cambia la URL de alguno, hay que
+actualizarla ahí. El script inline de `index.html` se autoriza por su hash, y `nginx/csp.test.js` falla si se edita
+sin actualizarlo.
