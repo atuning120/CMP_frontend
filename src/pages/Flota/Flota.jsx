@@ -47,7 +47,7 @@ function Flota() {
   const [aviso, setAviso] = useState(null)
 
   const conteos = useMemo(() => Object.fromEntries(FILTROS.map((f) => [f.id, flota.filter(f.incluye).length])), [flota])
-  // Ya pasó su regreso estimado y sigue en mantenimiento o fuera de servicio: el jefe de turno debe hacer seguimiento
+  // Ya pasó su regreso estimado y sigue en mantenimiento: el jefe de turno debe hacer seguimiento
   const atrasadas = useMemo(() => flota.filter((m) => regresoVencido(m, ahora)), [flota, ahora])
 
   const visibles = useMemo(() => {
