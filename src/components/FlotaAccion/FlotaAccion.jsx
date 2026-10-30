@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Activity, AlertCircle, AlertTriangle, ClipboardList, Info, Truck } from 'lucide-react'
+import { Activity, AlertCircle, AlertTriangle, ArrowRight, Check, ClipboardList, Info, PlusCircle, Truck, UserRound } from 'lucide-react'
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import SelectorEstado from '../SelectorEstado/SelectorEstado.jsx'
 import {
@@ -145,6 +145,72 @@ function CierreTurno({ maquina, horometro, onCambio }) {
           <span className={styles.ayuda}>Al iniciar el turno marcaba {formatoHoras.format(maquina.horometroActual)} h.</span>
         )}
       </label>
+    </div>
+  )
+}
+
+// Qué pasa con una candidata al entrar en un reemplazo (el operador en turno sigue con ella)
+const notaCandidata = (m) => {
+  if (m.estado === 'EN_RESERVA') return 'Disponible en reserva'
+  if (m.estado === 'BAJA') return 'Fuera de servicio: queda operativa al entrar'
+  if (m.operadorActual) return `En turno de ${m.operadorActual}`
+  return estadoDe(m).etiqueta
+}
+
+/** Una máquina del resumen de un reemplazo: la que sale o la que entra (vacía mientras no se elige). */
+function TarjetaCambio({ rol, nombre, detalle, estado }) {
+  return (
+    <div className={nombre ? styles.cambioMaquina : `${styles.cambioMaquina} ${styles.cambioPendiente}`}>
+      <span className={styles.cambioRol}>{rol}</span>
+      <strong className={styles.cambioNombre}>{nombre || 'Por elegir'}</strong>
+      {detalle && <span className={styles.cambioDetalle}>{detalle}</span>}
+      {estado && (
+        <span className={styles.cambioEstado}>
+          <span className={`${styles.punto} ${styles[estado.clase]}`} /> {estado.etiqueta}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** Máquinas de la flota que pueden entrar en un reemplazo, como tarjetas con su estado. */
+function ListaCandidatas({ candidatas, valor, onCambio, onNueva }) {
+  if (candidatas.length === 0) {
+    return (
+      <div className={styles.sinCandidatas}>
+        <p className={styles.sinCandidatasTexto}>No hay máquinas de la flota disponibles para cubrirla.</p>
+        <button type="button" className={styles.enlace} onClick={onNueva}>
+          Registrar una máquina nueva
+        </button>
+      </div>
+    )
+  }
+  return (
+    <div className={styles.candidatas} role="radiogroup" aria-label="Máquina que entra">
+      {candidatas.map((m) => {
+        const elegida = String(m.idMaquina) === valor
+        const estado = estadoDe(m)
+        return (
+          <label key={m.idMaquina} className={elegida ? `${styles.candidata} ${styles.candidataElegida}` : styles.candidata}>
+            <input
+              type="radio"
+              name="entrante"
+              className={styles.radio}
+              checked={elegida}
+              onChange={() => onCambio(String(m.idMaquina))}
+            />
+            <span className={`${styles.punto} ${styles[estado.clase]}`} />
+            <span className={styles.candidataTexto}>
+              <span className={styles.candidataNombre}>
+                {m.nombre}
+                <span className={styles.candidataModelo}>{[m.tipoMaquina, m.modelo].filter(Boolean).join(' · ')}</span>
+              </span>
+              <span className={styles.candidataNota}>{notaCandidata(m)}</span>
+            </span>
+            {elegida && <Check size={18} className={styles.candidataCheck} />}
+          </label>
+        )
+      })}
     </div>
   )
 }
@@ -349,6 +415,11 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     [flota, maquina],
   )
 
+  // Reemplazar: la candidata elegida, para el resumen "sale → entra"
+  const elegida = candidatas.find((m) => String(m.idMaquina) === entrante.idMaquina)
+  // Editar y reemplazar se arman en secciones numeradas, como en la app
+  const conSecciones = tipo === 'editar' || tipo === 'reemplazar'
+
   const guardar = async (event) => {
     event.preventDefault()
     setError(null)
@@ -509,18 +580,41 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
 
         {tipo === 'reemplazar' && (
           <>
-            <p className={styles.aviso}>
-              <Info size={16} className={styles.avisoIcono} />
-              Otra máquina toma el lugar de {maquina.nombre}, que sigue {estadoActual.etiqueta.toLowerCase()}, y de su
-              operador. Cuando {maquina.nombre} vuelva, usa "Devolver" para dejar todo como estaba.
-            </p>
-            <fieldset className={styles.fieldset}>
-              <legend className={styles.label}>Máquina que entra</legend>
-              <div className={styles.segmentado}>
+            <div className={styles.cambio}>
+              <div className={styles.cambioFila}>
+                <TarjetaCambio
+                  rol="Sale"
+                  nombre={maquina.nombre}
+                  detalle={[maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' · ')}
+                  estado={estadoActual}
+                />
+                <ArrowRight size={20} className={styles.cambioFlecha} aria-hidden />
+                <TarjetaCambio
+                  rol="Entra"
+                  nombre={entrante.origen === 'flota' ? elegida?.nombre : ficha.nombre.trim().toUpperCase()}
+                  detalle={
+                    entrante.origen === 'flota'
+                      ? elegida && [elegida.tipoMaquina, elegida.modelo].filter(Boolean).join(' · ')
+                      : 'Máquina nueva'
+                  }
+                />
+              </div>
+              <p className={styles.cambioTexto}>
+                <Info size={14} className={styles.avisoIcono} />
+                {maquina.nombre} sigue {estadoActual.etiqueta.toLowerCase()}. Cuando vuelva, usa "Devolver" para dejar
+                todo como estaba.
+              </p>
+            </div>
+
+            <section className={styles.seccion}>
+              <h3 className={styles.seccionTitulo}>
+                <Truck size={16} className={styles.seccionIcono} /> 1. Máquina que entra
+              </h3>
+              <div className={styles.segmentado} role="radiogroup" aria-label="Origen de la máquina que entra">
                 {[
-                  ['flota', 'Una de la flota'],
-                  ['nueva', 'Una máquina nueva'],
-                ].map(([valor, texto]) => (
+                  ['flota', 'Una de la flota', Truck],
+                  ['nueva', 'Una máquina nueva', PlusCircle],
+                ].map(([valor, texto, Icono]) => (
                   <label key={valor} className={`${styles.segmento} ${entrante.origen === valor ? styles.segmentoActivo : ''}`}>
                     <input
                       type="radio"
@@ -529,33 +623,29 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
                       checked={entrante.origen === valor}
                       onChange={() => setEntrante((e) => ({ ...e, origen: valor }))}
                     />
+                    <Icono size={15} />
                     {texto}
                   </label>
                 ))}
               </div>
-              {entrante.origen === 'flota' && (
-                <select
-                  className={styles.input}
-                  value={entrante.idMaquina}
-                  onChange={(e) => setEntrante((s) => ({ ...s, idMaquina: e.target.value }))}
-                  aria-label="Máquina que entra"
-                >
-                  <option value="">Elegir máquina…</option>
-                  {candidatas.map((m) => (
-                    <option key={m.idMaquina} value={m.idMaquina}>
-                      {m.nombre} · {[m.tipoMaquina, m.modelo].filter(Boolean).join(' ')}
-                      {m.estado === 'EN_RESERVA'
-                        ? ' (en reserva)'
-                        : m.estado === 'BAJA'
-                          ? ' (fuera de servicio: queda operativa)'
-                          : m.operadorActual
-                            ? ` (en turno: ${m.operadorActual})`
-                            : ''}
-                    </option>
-                  ))}
-                </select>
+              {entrante.origen === 'flota' ? (
+                <ListaCandidatas
+                  candidatas={candidatas}
+                  valor={entrante.idMaquina}
+                  onCambio={(idMaquina) => setEntrante((e) => ({ ...e, idMaquina }))}
+                  onNueva={() => setEntrante((e) => ({ ...e, origen: 'nueva' }))}
+                />
+              ) : (
+                <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla />
               )}
-            </fieldset>
+            </section>
+
+            <section className={styles.seccion}>
+              <h3 className={styles.seccionTitulo}>
+                <UserRound size={16} className={styles.seccionIcono} /> 2. Operador
+              </h3>
+              <CampoOperador valor={operador} onCambio={setOperador} operadores={catalogos.operadores} maquina={maquina} conMantener />
+            </section>
           </>
         )}
 
@@ -615,28 +705,15 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           </>
         )}
 
-        {(tipo === 'incorporar' || (tipo === 'reemplazar' && entrante.origen === 'nueva')) && (
-          <CamposFicha
-            ficha={ficha}
-            onCambio={setFicha}
-            catalogos={catalogos}
-            conHorometro={tipo !== 'editar'}
-            conPlantilla={tipo !== 'editar'}
-          />
+        {tipo === 'incorporar' && (
+          <>
+            <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla />
+            <CampoOperador valor={operador} onCambio={setOperador} operadores={catalogos.operadores} maquina={maquina} conMantener={false} />
+          </>
         )}
 
-        {(tipo === 'incorporar' || tipo === 'reemplazar') && (
-          <CampoOperador
-            valor={operador}
-            onCambio={setOperador}
-            operadores={catalogos.operadores}
-            maquina={maquina}
-            conMantener={tipo === 'reemplazar'}
-          />
-        )}
-
-        <div className={tipo === 'editar' ? styles.seccion : styles.grupo}>
-          {tipo === 'editar' && (
+        <div className={conSecciones ? styles.seccion : styles.grupo}>
+          {conSecciones && (
             <h3 className={styles.seccionTitulo}>
               <ClipboardList size={16} className={styles.seccionIconoAmbar} /> 3. Justificación del jefe de turno
             </h3>

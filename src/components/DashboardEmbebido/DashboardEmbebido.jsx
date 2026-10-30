@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { AlertCircle, RefreshCw, Settings } from 'lucide-react'
+import { CloudOff, RefreshCw, Settings } from 'lucide-react'
 import Skeleton, { AvisoCarga } from '../Skeleton/Skeleton.jsx'
 import { useDashboard } from '../../hooks/consultas.js'
 import { urlConTema } from '../../services/dashboardsService.js'
-import { mensajeDeError } from '../../services/errores.js'
 import styles from './DashboardEmbebido.module.css'
 
 /**
@@ -19,22 +18,29 @@ function DashboardEmbebido({ tipo, periodo, titulo }) {
   const cargando = !url || cargada !== url
 
   if (consulta.error && !consulta.data) {
-    const sinConfigurar = consulta.error.status === 503
+    const sinConfigurar = consulta.error.code === 'METABASE_NO_CONFIGURADO'
+    const reintentando = consulta.isFetching
     return (
       <div className={styles.dashboardEmbebido}>
         <div className={styles.estado} role="alert">
-          {sinConfigurar ? <Settings size={22} /> : <AlertCircle size={22} />}
+          <span className={styles.estadoIcono}>{sinConfigurar ? <Settings size={26} /> : <CloudOff size={26} />}</span>
           <p className={styles.estadoTitulo}>
-            {sinConfigurar ? 'Este dashboard todavía no está disponible' : 'No se pudo cargar el dashboard'}
+            {sinConfigurar ? 'Este dashboard todavía no está disponible' : 'No pudimos cargar el dashboard'}
           </p>
           <p className={styles.estadoTexto}>
             {sinConfigurar
               ? 'Falta publicarlo en Metabase o configurar su id en el Backend (ver docs/metabase.md).'
-              : mensajeDeError(consulta.error, 'Intenta nuevamente en unos minutos.')}
+              : 'El servidor de dashboards no respondió. Puede estar iniciándose o tener un problema momentáneo; vuelve a intentarlo en unos segundos.'}
           </p>
           {!sinConfigurar && (
-            <button type="button" className={styles.reintentar} onClick={() => consulta.refetch()}>
-              <RefreshCw size={16} /> Reintentar
+            <button
+              type="button"
+              className={styles.reintentar}
+              onClick={() => consulta.refetch()}
+              disabled={reintentando}
+            >
+              <RefreshCw size={16} className={reintentando ? styles.girando : undefined} />
+              {reintentando ? 'Reintentando…' : 'Reintentar'}
             </button>
           )}
         </div>
@@ -42,11 +48,14 @@ function DashboardEmbebido({ tipo, periodo, titulo }) {
     )
   }
 
+  // Mientras Metabase arranca el Backend responde 503 y la consulta sigue reintentando
+  const arrancando = consulta.failureReason?.code === 'METABASE_NO_DISPONIBLE'
+
   return (
     <div className={styles.dashboardEmbebido}>
       {cargando && (
         <div className={styles.skeleton}>
-          <AvisoCarga texto="Cargando dashboard…" />
+          <AvisoCarga texto={arrancando ? 'Iniciando el servidor de dashboards…' : 'Cargando dashboard…'} />
           <div className={styles.fila}>
             <Skeleton className={styles.tarjeta} />
             <Skeleton className={styles.tarjeta} />

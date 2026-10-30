@@ -79,6 +79,14 @@ export const useEvidencia = (idEvidencia, { enabled = true } = {}) =>
 
 // La URL firmada del dashboard vence en una hora: se pide otra antes. Sin reintentos si Metabase no está configurado
 const RENOVAR_DASHBOARD_MS = 55 * 60_000
+// Metabase escala a 0 y tarda 1–2 min en arrancar: mientras tanto el Backend responde METABASE_NO_DISPONIBLE y se
+// reintenta cada 5 s (más los 5 s que espera el Backend) por unos 3 min antes de mostrar el error
+const REINTENTOS_ARRANQUE_METABASE = 18
+const ESPERA_ARRANQUE_METABASE_MS = 5000
+const reintentarDashboard = (intentos, error) => {
+  if (error?.code === 'METABASE_NO_DISPONIBLE') return intentos < REINTENTOS_ARRANQUE_METABASE
+  return error?.status !== 503 && error?.status !== 404 && intentos < 2
+}
 
 export const useDashboard = (tipo, periodo, { enabled = true } = {}) =>
   useQuery({
@@ -89,7 +97,9 @@ export const useDashboard = (tipo, periodo, { enabled = true } = {}) =>
     refetchInterval: RENOVAR_DASHBOARD_MS,
     // Volver a la pestaña no debe recargar el iframe (se perderían los filtros que el usuario movió)
     refetchOnWindowFocus: false,
-    retry: (intentos, error) => error?.status !== 503 && error?.status !== 404 && intentos < 2,
+    retry: reintentarDashboard,
+    retryDelay: (intentos, error) =>
+      error?.code === 'METABASE_NO_DISPONIBLE' ? ESPERA_ARRANQUE_METABASE_MS : Math.min(1000 * 2 ** intentos, 30_000),
   })
 
 export const useCargasEp = ({ enabled = true } = {}) => useQuery({ queryKey: CLAVES.cargasEp, queryFn: listarCargasEp, enabled })
