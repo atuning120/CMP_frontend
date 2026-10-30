@@ -56,6 +56,30 @@
     color: var(--text-tertiary);
   }
 
+  .lenta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--warning) 55%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+
+    .reintentar {
+      margin-top: 0;
+    }
+  }
+
+  .lentaTexto {
+    flex: 1 1 280px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-h);
+  }
+
   .estado {
     display: flex;
     flex-direction: column;
