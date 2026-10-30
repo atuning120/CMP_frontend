@@ -12,8 +12,8 @@ export const ESTADOS_MAQUINA = [
 const ESTADOS_SIN_OPERAR = ['EN_MANTENIMIENTO', 'EN_RESERVA', 'BAJA']
 export const operaEnEstado = (estado) => !ESTADOS_SIN_OPERAR.includes(estado)
 
-// Estados con fecha estimada de regreso: solo una reparación. Fuera de servicio no tiene fecha conocida
-export const conRegreso = (estado) => estado === 'EN_MANTENIMIENTO'
+// Estados con fecha estimada de regreso (una reparación, una falla mayor)
+export const conRegreso = (estado) => estado === 'EN_MANTENIMIENTO' || estado === 'BAJA'
 
 // Regreso estimado ya cumplido y la máquina sigue sin volver: el jefe de turno debe hacer seguimiento
 export const regresoVencido = (maquina, ahora = Date.now()) =>

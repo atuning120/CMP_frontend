@@ -429,7 +429,7 @@
     color: var(--text-h);
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(:disabled) {
       border-color: var(--input-border-hover);
       background: var(--surface-alt);
     }
@@ -437,6 +437,12 @@
     &:focus-visible {
       outline: none;
       box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    /* Reemplazar en una máquina que todavía opera: primero se cambia su estado */
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
