@@ -57,7 +57,7 @@ export const cambiarEstadoMaquina = (idMaquina, versionBase, estado, motivo, obs
   enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion, regresoEstimado, versionBase })
 
 // La entrante es de la flota (idMaquinaEntrante) o nueva (maquinaNueva). Sin idOperador, pasa el de la saliente.
-// estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO, solo con EN_MANTENIMIENTO; versionBase: la de la saliente
+// estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO; versionBase: la de la saliente
 export const reemplazarMaquina = (idSaliente, datos) => enviar('POST', `/maquinas/${idSaliente}/reemplazo`, datos)
 
 // La original vuelve a operar con el operador de su respaldo, y el respaldo vuelve a su estado anterior

@@ -87,12 +87,13 @@ const aLocal = (fecha) => {
   return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`
 }
 const aIso = (local) => (local ? new Date(local).toISOString() : null)
+const esFutura = (local) => new Date(local).getTime() > Date.now()
 
 // Respaldos posibles en un reemplazo (como en la app): no en mantenimiento ni cubriendo ya a otra. Primero los de
 // respaldo (en reserva o fuera de servicio), que quedan operativos al entrar
 const ESTADOS_RESPALDO = ['EN_RESERVA', 'BAJA', 'ACTIVA', 'BAJO_OBSERVACION']
 
-/** Fecha estimada de regreso de una máquina en mantenimiento (opcional). */
+/** Fecha estimada de regreso de una máquina en mantenimiento o fuera de servicio (opcional). */
 function CampoRegreso({ valor, onCambio, nombre }) {
   // Se fija al abrir el formulario: no hace falta que avance mientras se llena
   const [minimo] = useState(() => aLocal(Date.now()))
@@ -302,8 +303,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const [observacion, setObservacion] = useState('')
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
-  // Reemplazo: cómo queda la saliente. Si ya estaba fuera de servicio lo conserva; si no, va a mantenimiento
-  const [estadoSaliente, setEstadoSaliente] = useState(() => (maquina?.estado === 'BAJA' ? 'BAJA' : 'EN_MANTENIMIENTO'))
   const regresoInicial = maquina?.regresoEstimado ? aLocal(maquina.regresoEstimado) : ''
   const [regreso, setRegreso] = useState(tipo === 'editar' ? regresoInicial : '')
   const [horometroCierre, setHorometroCierre] = useState('')
@@ -312,13 +311,13 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
 
   // Devolver: el respaldo que cubre a la máquina (sus datos vienen de la flota)
   const respaldo = tipo === 'devolver' ? flota.find((m) => m.idMaquina === maquina.respaldo?.idMaquina) : null
-  // Estado al que queda la máquina tras la acción (para el regreso estimado y el cierre del turno)
-  const estadoDestino = { estado: nuevoEstado, editar: estadoEditado, reemplazar: estadoSaliente }[tipo] ?? null
+  // Estado al que queda la máquina tras la acción (para el regreso estimado). En un reemplazo la saliente ya salió
+  // de operación con "Estado" y conserva su estado y su regreso
+  const estadoDestino = { estado: nuevoEstado, editar: estadoEditado }[tipo] ?? null
   const pideRegreso = estadoDestino !== null && conRegreso(estadoDestino)
   // La máquina cuyo turno en curso hay que cerrar antes de sacarla de operación
   const conTurno = tipo === 'devolver' ? respaldo : maquina
   const sacaDeOperacion =
-    tipo === 'reemplazar' ||
     tipo === 'devolver' ||
     (tipo === 'estado' && nuevoEstado && !operaEnEstado(nuevoEstado)) ||
     (cambiaEstado && !operaEnEstado(estadoEditado))
@@ -369,7 +368,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
       if (huella(ficha, operador, estadoEditado) === original && !cambiaRegreso) return setError('No hay cambios que guardar.')
     }
     if (!motivo) return setError('Elige el motivo: queda registrado en la bitácora.')
-    if (pideRegreso && regreso && new Date(regreso).getTime() <= Date.now()) {
+    if (pideRegreso && regreso && !esFutura(regreso)) {
       return setError('El regreso estimado debe ser una fecha futura.')
     }
     const horometro = Number(horometroCierre)
@@ -432,8 +431,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             : { maquinaNueva: datosFicha(ficha, true) }),
           // Sin idOperador, el operador de la saliente pasa a la entrante
           ...(operador === 'mantener' ? {} : { idOperador }),
-          estadoSaliente,
-          ...(regresoEstimado ? { regresoEstimado } : {}),
           ...justificacion,
         }
         const { entrante: nueva } = await reemplazarMaquina(maquina.idMaquina, datos)
@@ -456,7 +453,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     incorporar: 'Incorporar',
     editar: 'Guardar cambios',
     estado: pideCierre ? 'Cerrar turno y cambiar estado' : 'Cambiar estado',
-    reemplazar: pideCierre ? 'Cerrar turno y reemplazar' : 'Reemplazar',
+    reemplazar: 'Reemplazar',
     devolver: pideCierre ? 'Cerrar turno y devolver' : 'Devolver',
   }[tipo]
 
@@ -514,30 +511,9 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           <>
             <p className={styles.aviso}>
               <Info size={16} className={styles.avisoIcono} />
-              Otra máquina toma el lugar de {maquina.nombre} y su operador. Cuando {maquina.nombre} vuelva, usa
-              "Devolver" para dejar todo como estaba.
+              Otra máquina toma el lugar de {maquina.nombre}, que sigue {estadoActual.etiqueta.toLowerCase()}, y de su
+              operador. Cuando {maquina.nombre} vuelva, usa "Devolver" para dejar todo como estaba.
             </p>
-            <fieldset className={styles.fieldset}>
-              <legend className={styles.label}>Cómo queda {maquina.nombre}</legend>
-              <div className={styles.segmentado}>
-                {[
-                  ['EN_MANTENIMIENTO', 'En mantenimiento'],
-                  ['BAJA', 'Fuera de servicio'],
-                ].map(([valor, texto]) => (
-                  <label key={valor} className={`${styles.segmento} ${estadoSaliente === valor ? styles.segmentoActivo : ''}`}>
-                    <input
-                      type="radio"
-                      name="estadoSaliente"
-                      className={styles.radio}
-                      checked={estadoSaliente === valor}
-                      onChange={() => setEstadoSaliente(valor)}
-                    />
-                    {texto}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            {pideRegreso && <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />}
             <fieldset className={styles.fieldset}>
               <legend className={styles.label}>Máquina que entra</legend>
               <div className={styles.segmentado}>

@@ -4,7 +4,7 @@ import { Activity, AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pen
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useCatalogos, useFlota } from '../../hooks/consultas.js'
-import { conRegreso, ESTADOS_MAQUINA, estadoDe, regresoVencido, sinOperador } from './estados.js'
+import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado, regresoVencido, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
 
 // Un filtro por estado más "Sin operador", que se combina con cualquiera de ellos
@@ -18,8 +18,10 @@ const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' })
 const formatoFechaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-// Se reemplaza una máquina que opera o que salió de operación por una falla; una en reserva no tiene a quién cubrir
-const reemplazable = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubreA
+// Se reemplaza una máquina que ya salió de operación con "Estado" (ahí se fija el regreso y se cierra el turno);
+// una en reserva no tiene a quién cubrir. Una que todavía opera muestra el botón deshabilitado
+const sinCobertura = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubreA
+const reemplazable = (m) => sinCobertura(m) && !operaEnEstado(m.estado)
 
 const SIN_MAQUINAS = []
 const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
@@ -47,7 +49,7 @@ function Flota() {
   const [aviso, setAviso] = useState(null)
 
   const conteos = useMemo(() => Object.fromEntries(FILTROS.map((f) => [f.id, flota.filter(f.incluye).length])), [flota])
-  // Ya pasó su regreso estimado y sigue en mantenimiento: el jefe de turno debe hacer seguimiento
+  // Ya pasó su regreso estimado y sigue en mantenimiento o fuera de servicio: el jefe de turno debe hacer seguimiento
   const atrasadas = useMemo(() => flota.filter((m) => regresoVencido(m, ahora)), [flota, ahora])
 
   const visibles = useMemo(() => {
@@ -255,12 +257,17 @@ function Flota() {
                         <Activity size={15} />
                         <span className={styles.accionTexto}>Estado</span>
                       </button>
-                      {reemplazable(m) && (
+                      {sinCobertura(m) && (
                         <button
                           type="button"
                           className={styles.accion}
                           onClick={() => setAccion({ tipo: 'reemplazar', maquina: m })}
-                          title="Otra máquina toma su lugar mientras se repara"
+                          disabled={!reemplazable(m)}
+                          title={
+                            reemplazable(m)
+                              ? 'Otra máquina toma su lugar mientras se repara'
+                              : 'Primero cambia su estado a en mantenimiento o fuera de servicio'
+                          }
                         >
                           <ArrowLeftRight size={15} />
                           <span className={styles.accionTexto}>Reemplazar</span>
