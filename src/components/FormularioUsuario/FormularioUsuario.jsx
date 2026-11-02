@@ -30,8 +30,8 @@ const formularioDe = (usuario) => ({
   email: usuario?.email ?? '',
   rut: usuario?.operador?.rut ?? '',
   telefono: usuario?.operador?.telefono ?? '',
-  // Al crear, lo habitual en la planta es la cuenta Microsoft de la organización
-  accesoMicrosoft: usuario ? usuario.proveedorAuth === 'MICROSOFT' : true,
+  // Al crear, entra con contraseña: el switch de Microsoft está bloqueado por ahora
+  accesoMicrosoft: usuario ? usuario.proveedorAuth === 'MICROSOFT' : false,
   password: '',
 })
 
@@ -186,7 +186,8 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
         <fieldset className={styles.acceso} disabled={esPropio}>
           <legend className={styles.label}>Acceso</legend>
 
-          <label className={`${styles.switch} ${esOperador ? styles.switchBloqueado : ''}`}>
+          {/* Bloqueado por ahora: solo deja ver cómo entra cada usuario */}
+          <label className={`${styles.switch} ${styles.switchBloqueado}`}>
             <span className={styles.switchTexto}>
               <span className={styles.switchTitulo}>Inicia sesión con Microsoft</span>
               <span className={styles.ayuda}>
@@ -202,7 +203,7 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
               role="switch"
               className={styles.switchInput}
               checked={microsoft}
-              disabled={esOperador}
+              disabled
               onChange={(e) => setForm((f) => ({ ...f, accesoMicrosoft: e.target.checked }))}
             />
             <span className={styles.switchPista} aria-hidden="true" />
