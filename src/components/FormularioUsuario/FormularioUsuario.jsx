@@ -4,6 +4,8 @@ import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import { crearUsuario, editarUsuario, ETIQUETA_ROL, ROLES_CREABLES } from '../../services/usuariosService.js'
 import styles from './FormularioUsuario.module.css'
 import { mensajeDeError } from '../../services/errores.js'
+import { formatearRut } from '../../services/rut.js'
+import { formatearTelefono } from '../../services/telefono.js'
 
 const LARGO_MINIMO_PASSWORD = 8
 // Sin caracteres que se confunden al dictarla o copiarla a mano (0/O, 1/l/I)
@@ -166,7 +168,13 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
           <div className={styles.dosColumnas}>
             <label className={styles.campo}>
               <span className={styles.label}>RUT *</span>
-              <input className={styles.input} value={form.rut} onChange={set('rut')} maxLength={12} placeholder="12.345.678-5" autoComplete="off" />
+              <input
+                className={styles.input}
+                value={form.rut}
+                onChange={(e) => setForm((f) => ({ ...f, rut: formatearRut(e.target.value) }))}
+                placeholder="12.345.678-5"
+                autoComplete="off"
+              />
             </label>
             <label className={styles.campo}>
               <span className={styles.label}>Teléfono</span>
@@ -174,8 +182,7 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
                 type="tel"
                 className={styles.input}
                 value={form.telefono}
-                onChange={set('telefono')}
-                maxLength={20}
+                onChange={(e) => setForm((f) => ({ ...f, telefono: formatearTelefono(e.target.value) }))}
                 placeholder="+56 9 1234 5678"
                 autoComplete="off"
               />
