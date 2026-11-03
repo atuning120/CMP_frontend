@@ -21,7 +21,7 @@ const DESCRIPCION_ROL = {
   VISOR: 'Solo ve el mapa y la flota en el panel web.',
   JEFE_TURNO: 'Gestiona la flota, el historial y las alertas. También usa la app móvil (con contraseña).',
   ADMIN: 'Todo lo del jefe de turno, más geocercas y usuarios.',
-  OPERADOR: 'Usa la app móvil para registrar sus turnos. Entra con su RUT o correo y contraseña.',
+  OPERADOR: 'Usa la app móvil para registrar sus turnos (entra con su RUT o correo y contraseña). En el panel web entra con su correo y ve lo mismo que un visor.',
 }
 
 const formularioDe = (usuario) => ({
