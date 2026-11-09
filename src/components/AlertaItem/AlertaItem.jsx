@@ -1,11 +1,13 @@
 import { Clock, MapPin, Timer } from 'lucide-react'
 import { formatearFecha } from '../../pages/Historial/fechas.js'
 import AtencionAlerta from '../AtencionAlerta/AtencionAlerta.jsx'
-import { describirAlerta } from './describirAlerta.js'
+import RegularizarHorometro from '../RegularizarHorometro/RegularizarHorometro.jsx'
+import { describirAlerta, faltaHorometroFinal } from './describirAlerta.js'
 import styles from './AlertaItem.module.css'
 
 // Una alerta en la lista de /alertas, con la misma forma que un evento del historial. `nueva`: llegó por WebSocket.
-// onAtendida recibe { idAlerta, atenciones } cuando se atiende o se le agrega una nota
+// onAtendida recibe { idAlerta, atenciones } cuando se atiende o se le agrega una nota, más horometroFinal si se
+// regularizó el horómetro
 function AlertaItem({ alerta, nueva, onAtendida }) {
   const { icono: Icono, tono, activa, frase, etiqueta, ubicacion, jornada } = describirAlerta(alerta)
 
@@ -42,6 +44,7 @@ function AlertaItem({ alerta, nueva, onAtendida }) {
           </span>
         </p>
 
+        {faltaHorometroFinal(alerta) && <RegularizarHorometro alerta={alerta} onRegularizado={onAtendida} />}
         <AtencionAlerta alerta={alerta} onGuardada={onAtendida} />
       </div>
 

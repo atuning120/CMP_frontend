@@ -6,6 +6,7 @@ import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import Skeleton from '../../components/Skeleton/Skeleton.jsx'
+import TextoFormateado from '../../components/TextoFormateado/TextoFormateado.jsx'
 import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
 import { puedeVerAlertas, suscribirEstadosOperacionales } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
@@ -283,7 +284,7 @@ function Mapa() {
           <span className={styles.tarjetaTipo}>{seleccion.tipo === 'area' ? 'Área' : 'Zona de trabajo'}</span>
           <strong className={styles.tarjetaTitulo}>{geocerca.nombre}</strong>
           {seleccion.tipo === 'zona' && <span>{nombreArea.get(geocerca.idArea)}</span>}
-          {geocerca.descripcion && <span>{geocerca.descripcion}</span>}
+          {geocerca.descripcion && <TextoFormateado texto={geocerca.descripcion} />}
           <span>
             {maquinasDentro === 0 ? 'Sin máquinas operando' : `${maquinasDentro} máquina${maquinasDentro === 1 ? '' : 's'} operando`}
           </span>

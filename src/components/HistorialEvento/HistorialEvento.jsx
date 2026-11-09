@@ -12,6 +12,7 @@ function HistorialEvento({ evento }) {
   const {
     presentacion,
     esTurno,
+    esRegularizacion,
     reemplazadaPor,
     estadoSaliente,
     respaldoDevuelto,
@@ -95,7 +96,7 @@ function HistorialEvento({ evento }) {
           </p>
         )}
 
-        {esTurno && (ubicacion || horometro !== null) && (
+        {(esTurno || esRegularizacion) && (ubicacion || horometro !== null) && (
           <p className={styles.meta}>
             {ubicacion && (
               <span className={styles.metaItem}>

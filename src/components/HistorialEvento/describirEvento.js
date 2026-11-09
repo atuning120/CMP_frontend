@@ -1,4 +1,4 @@
-import { Activity, ArrowLeftRight, Ban, Camera, CircleCheck, CirclePlus, Pencil, Play, RefreshCw, Square, Undo2 } from 'lucide-react'
+import { Activity, ArrowLeftRight, Ban, Camera, CircleCheck, CirclePlus, Pencil, Play, RefreshCw, Square, Timer, Undo2 } from 'lucide-react'
 import { ESTADOS_MAQUINA } from '../../pages/Flota/estados.js'
 
 // Igual que HistorialEventoCard de la app móvil
@@ -14,6 +14,7 @@ const PRESENTACION = {
   CAMBIAR_ESTADO: { icono: Activity, verbo: 'cambió el estado de', tono: 'primario' },
   REEMPLAZAR: { icono: RefreshCw, verbo: 'reemplazó', tono: 'aviso' },
   DEVOLVER: { icono: Undo2, verbo: 'devolvió a operación', tono: 'exito' },
+  REGULARIZAR: { icono: Timer, verbo: 'regularizó el horómetro de', tono: 'primario' },
 }
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
@@ -64,6 +65,8 @@ export function describirEvento(evento) {
   // El inicio y el cierre del turno son eventos separados, cada uno en su fecha
   const esTurno = evento.tipo === 'INICIO_TURNO' || evento.tipo === 'FIN_TURNO'
   const esCierre = evento.tipo === 'FIN_TURNO'
+  // El jefe de turno informó el horómetro de un turno que el sistema cerró sin él
+  const esRegularizacion = evento.tipo === 'REGULARIZAR'
   const reemplazadaPor = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.entrante) : null
   // Reemplazo: cómo quedó la saliente (los registros antiguos no lo traen). Devolución: el respaldo que sale
   const estadoSaliente = evento.tipo === 'REEMPLAZAR' ? texto(detalle?.despues?.estado) : null
@@ -80,10 +83,10 @@ export function describirEvento(evento) {
   // Inicio: dónde y con qué horómetro partió. Cierre: dónde terminó y cuánto avanzó el horómetro.
   // Cambio de área/zona: desde dónde y a dónde fue
   const ubicacion = [texto(detalle?.area), texto(detalle?.zona)].filter(Boolean).join(' · ')
-  const horometroInicial = esTurno ? numero(detalle?.horometroInicial) : null
-  const horometroFinal = esCierre ? numero(detalle?.horometroFinal) : null
+  const horometroInicial = esTurno || esRegularizacion ? numero(detalle?.horometroInicial) : null
+  const horometroFinal = esCierre || esRegularizacion ? numero(detalle?.horometroFinal) : null
   let horometro = horometroInicial !== null ? `${formatoHoras.format(horometroInicial)} hrs` : null
-  if (esCierre) {
+  if (esCierre || esRegularizacion) {
     horometro =
       horometroFinal === null
         ? 'Sin horómetro final'
@@ -99,6 +102,7 @@ export function describirEvento(evento) {
   return {
     presentacion,
     esTurno,
+    esRegularizacion,
     reemplazadaPor,
     estadoSaliente,
     respaldoDevuelto,

@@ -45,6 +45,16 @@ export const atenderAlerta = (idAlerta, comentario, idCliente, atencionesVistas)
     body: JSON.stringify({ comentario, idCliente, atencionesVistas }),
   })
 
+/**
+ * Informa el horómetro final de un turno que el sistema cerró sin él. La alerta queda atendida y la acción en el
+ * historial. Devuelve { idAlerta, atenciones, horometroFinal }. idCliente (UUID): el mismo en cada reintento.
+ */
+export const regularizarHorometro = (idAlerta, horometroFinal, comentario, idCliente) =>
+  apiJson(`/alertas/${encodeURIComponent(idAlerta)}/horometro-final`, {
+    method: 'POST',
+    body: JSON.stringify({ horometroFinal, comentario, idCliente }),
+  })
+
 // Tipos de alerta que muestra cada filtro de la página
 const TIPOS_DEL_FILTRO = {
   EXTENDIDOS: ['TURNO_EXTENDIDO', 'JORNADA_EXTENDIDA'],

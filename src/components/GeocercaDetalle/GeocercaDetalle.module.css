@@ -256,8 +256,14 @@
     }
   }
 
-  .input,
-  .textarea {
+  /* Hueco del editor de descripción mientras se descarga: mismo alto (etiqueta + barra + texto) */
+  .editorCargando {
+    height: 140px;
+    border-radius: 10px;
+    background: var(--surface-alt);
+  }
+
+  .input {
     box-sizing: border-box;
     width: 100%;
     padding: 9px 12px;
