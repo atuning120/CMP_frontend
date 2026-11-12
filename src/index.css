@@ -14,6 +14,9 @@
   --primary-shadow: rgba(26, 115, 232, 0.3);
   --on-primary: #fff;
   --success: #1e8e3e;
+  --success-text: #137333;
+  --success-bg: rgba(30, 142, 62, 0.1);
+  --success-border: rgba(30, 142, 62, 0.35);
   --danger: #d93025;
   --danger-bg: rgba(217, 48, 37, 0.1);
   --danger-border: rgba(217, 48, 37, 0.35);
@@ -102,6 +105,9 @@
   --input-border: #3c4043;
   --input-border-hover: #5f6368;
   --warning-text: #f9ab00;
+  --success-text: #81c995;
+  --success-bg: rgba(129, 201, 149, 0.12);
+  --success-border: rgba(129, 201, 149, 0.4);
   --danger-bg: rgba(242, 139, 130, 0.12);
   --danger-border: rgba(242, 139, 130, 0.4);
   --focus-ring: rgba(138, 180, 248, 0.6);

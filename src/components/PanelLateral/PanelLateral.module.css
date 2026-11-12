@@ -144,7 +144,7 @@
 
 
 @media (prefers-reduced-motion: reduce) {
-  .panleLateral {
+  .panelLateral {
     &[open] {
       animation: none;
     }

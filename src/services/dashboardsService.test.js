@@ -25,9 +25,9 @@ describe('permisos de dashboards por rol', () => {
 })
 
 describe('fechas del estado de pago', () => {
-  it('propone del 25 del mes anterior al 25 del mes, también en enero', () => {
-    expect(rangoSugerido('2026-06')).toEqual({ desde: '2026-05-25', hasta: '2026-06-25' })
-    expect(rangoSugerido('2026-01')).toEqual({ desde: '2025-12-25', hasta: '2026-01-25' })
+  it('propone del 26 del mes anterior al 25 del mes, también en enero', () => {
+    expect(rangoSugerido('2026-06')).toEqual({ desde: '2026-05-26', hasta: '2026-06-25' })
+    expect(rangoSugerido('2026-01')).toEqual({ desde: '2025-12-26', hasta: '2026-01-25' })
   })
 
   it('el período que se suele cargar es el mes anterior', () => {
