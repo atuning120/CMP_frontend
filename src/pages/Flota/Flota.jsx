@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Activity, AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
+import { AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useCatalogos, useFlota } from '../../hooks/consultas.js'
@@ -18,7 +18,8 @@ const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }
 const formatoFecha = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' })
 const formatoFechaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-// Se reemplaza una máquina que ya salió de operación con "Estado" (ahí se fija el regreso y se cierra el turno);
+// Se reemplaza una máquina que ya salió de operación (su estado se cambia en "Editar": ahí se fija el regreso y se
+// cierra el turno);
 // una en reserva no tiene a quién cubrir. Una que todavía opera muestra el botón deshabilitado
 const sinCobertura = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubreA
 const reemplazable = (m) => sinCobertura(m) && !operaEnEstado(m.estado)
@@ -177,7 +178,6 @@ function Flota() {
                     <div className={styles.botones}>
                       <Skeleton className={styles.skAccion} />
                       <Skeleton className={styles.skAccion} />
-                      <Skeleton className={styles.skAccion} />
                     </div>
                   </td>
                 </tr>
@@ -243,19 +243,10 @@ function Flota() {
                         type="button"
                         className={styles.accion}
                         onClick={() => setAccion({ tipo: 'editar', maquina: m })}
-                        title="Editar ficha"
+                        title="Editar la ficha, el operador o el estado"
                       >
                         <Pencil size={15} />
                         <span className={styles.accionTexto}>Editar</span>
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.accion}
-                        onClick={() => setAccion({ tipo: 'estado', maquina: m })}
-                        title="Cambiar el estado"
-                      >
-                        <Activity size={15} />
-                        <span className={styles.accionTexto}>Estado</span>
                       </button>
                       {sinCobertura(m) && (
                         <button
@@ -266,7 +257,7 @@ function Flota() {
                           title={
                             reemplazable(m)
                               ? 'Otra máquina toma su lugar mientras se repara'
-                              : 'Primero cambia su estado a en mantenimiento o fuera de servicio'
+                              : 'Primero, en Editar, cambia su estado a en mantenimiento o fuera de servicio'
                           }
                         >
                           <ArrowLeftRight size={15} />

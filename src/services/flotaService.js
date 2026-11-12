@@ -44,17 +44,13 @@ const enviar = (method, path, body) => apiJson(path, { method, body: JSON.string
 // datos: { nombre, marca, modelo, tipoMaquina, anio, patente, numeroChasis, horometroInicial, esContratista, idOperador, motivo, observacion }
 export const crearMaquina = (datos) => enviar('POST', '/maquinas', datos)
 
-// versionBase (en editar, cambiar estado, reemplazar y devolver): la `version` de la máquina que vio el jefe de turno.
+// versionBase (en editar, reemplazar y devolver): la `version` de la máquina que vio el jefe de turno.
 // Si otro la cambió mientras tanto, el Backend no aplica la acción y responde 409 con code MAQUINA_MODIFICADA
 export const MAQUINA_MODIFICADA = 'MAQUINA_MODIFICADA'
 
-// Ficha completa + motivo + versionBase. idOperador null deja la máquina sin operador
+// Ficha completa + motivo + versionBase, y el estado si cambia (con regresoEstimado ISO en mantenimiento o fuera de
+// servicio; undefined no lo toca). idOperador null deja la máquina sin operador
 export const editarMaquina = (idMaquina, datos) => enviar('PATCH', `/maquinas/${idMaquina}`, datos)
-
-// Habilitar / deshabilitar: el mismo PATCH enviando solo el estado. regresoEstimado (ISO) solo en mantenimiento
-// o fuera de servicio; undefined no lo toca
-export const cambiarEstadoMaquina = (idMaquina, versionBase, estado, motivo, observacion, regresoEstimado) =>
-  enviar('PATCH', `/maquinas/${idMaquina}`, { estado, motivo, observacion, regresoEstimado, versionBase })
 
 // La entrante es de la flota (idMaquinaEntrante) o nueva (maquinaNueva). Sin idOperador, pasa el de la saliente.
 // estadoSaliente: EN_MANTENIMIENTO o BAJA; regresoEstimado: ISO; versionBase: la de la saliente
