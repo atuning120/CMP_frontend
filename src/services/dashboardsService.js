@@ -23,14 +23,14 @@ export const nombrePeriodo = (periodo) => {
 export const fechaCorta = (fecha) => fecha.split('-').reverse().join('-')
 
 /**
- * Rango que se propone para el EP de un mes: del 25 del mes anterior al 25 del mes (así venía el EP de junio 2026,
- * del 25-05 al 25-06). Se puede corregir en el formulario.
+ * Rango que se propone para el EP de un mes: del 26 del mes anterior al 25 del mes (el EP de junio va del 26-05 al
+ * 25-06), así dos meses seguidos no comparten el día 25. Se puede corregir en el formulario.
  */
 export const rangoSugerido = (periodo) => {
   const [anio, mes] = periodo.split('-').map(Number)
   const anterior = new Date(anio, mes - 2, 1)
   return {
-    desde: `${anterior.getFullYear()}-${dosDigitos(anterior.getMonth() + 1)}-25`,
+    desde: `${anterior.getFullYear()}-${dosDigitos(anterior.getMonth() + 1)}-26`,
     hasta: `${anio}-${dosDigitos(mes)}-25`,
   }
 }
