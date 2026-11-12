@@ -4,7 +4,6 @@ import { Activity, AlertCircle, AlertTriangle, ArrowRight, Check, ClipboardList,
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import SelectorEstado from '../SelectorEstado/SelectorEstado.jsx'
 import {
-  cambiarEstadoMaquina,
   cerrarTurnoDeMaquina,
   crearMaquina,
   devolverMaquina,
@@ -343,7 +342,7 @@ function CampoOperador({ valor, onCambio, operadores, maquina, conMantener }) {
 
 /**
  * Formularios de gestión de la flota en un panel lateral. accion: { tipo, maquina? } con tipo
- * 'incorporar' | 'editar' | 'estado' | 'reemplazar' | 'devolver'. Al guardar llama onGuardado(mensaje).
+ * 'incorporar' | 'editar' | 'reemplazar' | 'devolver' (el estado se cambia en 'editar'). Al guardar llama onGuardado(mensaje).
  */
 function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const { tipo, maquina } = accion
@@ -352,10 +351,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   // flota y se adopta la nueva: volver a confirmar aplica el cambio sabiendo lo que hizo el otro
   const [versionBase, setVersionBase] = useState(() => maquina?.version)
   const estadoActual = maquina ? estadoDe(maquina) : null
-  // Estado elegido en el panel de cambio de estado
-  const [nuevoEstado, setNuevoEstado] = useState('')
-  const deshabilitar = tipo === 'estado' && nuevoEstado === 'BAJA'
-  const destino = ESTADOS_MAQUINA.find((e) => e.valor === nuevoEstado)
   // Editar: el estado operacional se cambia junto con la ficha, como en la app
   const [estadoEditado, setEstadoEditado] = useState(() => maquina?.estado ?? 'ACTIVA')
   const cambiaEstado = tipo === 'editar' && estadoEditado !== estadoActual.valor
@@ -378,14 +373,13 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   // Devolver: el respaldo que cubre a la máquina (sus datos vienen de la flota)
   const respaldo = tipo === 'devolver' ? flota.find((m) => m.idMaquina === maquina.respaldo?.idMaquina) : null
   // Estado al que queda la máquina tras la acción (para el regreso estimado). En un reemplazo la saliente ya salió
-  // de operación con "Estado" y conserva su estado y su regreso
-  const estadoDestino = { estado: nuevoEstado, editar: estadoEditado }[tipo] ?? null
+  // de operación (en "Editar") y conserva su estado y su regreso
+  const estadoDestino = tipo === 'editar' ? estadoEditado : null
   const pideRegreso = estadoDestino !== null && conRegreso(estadoDestino)
   // La máquina cuyo turno en curso hay que cerrar antes de sacarla de operación
   const conTurno = tipo === 'devolver' ? respaldo : maquina
   const sacaDeOperacion =
     tipo === 'devolver' ||
-    (tipo === 'estado' && nuevoEstado && !operaEnEstado(nuevoEstado)) ||
     (cambiaEstado && !operaEnEstado(estadoEditado))
   const pideCierre = Boolean(sacaDeOperacion && conTurno?.operadorActual && !turnoCerrado)
 
@@ -393,7 +387,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
     incorporar: MOTIVOS_INCORPORACION,
     // Si cambia el estado, el motivo explica el cambio de estado (queda en la ficha mientras dure)
     editar: cambiaEstado ? (MOTIVOS_POR_ESTADO[estadoEditado] ?? []) : MOTIVOS_EDICION,
-    estado: MOTIVOS_POR_ESTADO[nuevoEstado] ?? [],
     reemplazar: MOTIVOS_REEMPLAZO,
     devolver: MOTIVOS_DEVOLUCION,
   }[tipo]
@@ -401,7 +394,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const titulo = {
     incorporar: 'Incorporar máquina',
     editar: `Editar ${maquina?.nombre}`,
-    estado: `Cambiar estado de ${maquina?.nombre}`,
     reemplazar: `Reemplazar ${maquina?.nombre}`,
     devolver: `Devolver ${maquina?.nombre} a operación`,
   }[tipo]
@@ -423,7 +415,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const guardar = async (event) => {
     event.preventDefault()
     setError(null)
-    if (tipo === 'estado' && !nuevoEstado) return setError('Elige el nuevo estado de la máquina.')
     if (tipo === 'editar') {
       const faltante = [
         ['nombre', 'el código interno'],
@@ -477,16 +468,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
             ? `Se guardaron los cambios de ${nombre}, que quedó ${ESTADOS_MAQUINA.find((e) => e.valor === estadoEditado).etiqueta.toLowerCase()}.`
             : `Se guardaron los cambios de ${nombre}.`,
         )
-      } else if (tipo === 'estado') {
-        await cambiarEstadoMaquina(
-          maquina.idMaquina,
-          versionBase,
-          nuevoEstado,
-          justificacion.motivo,
-          justificacion.observacion,
-          regresoEstimado ?? undefined,
-        )
-        await onGuardado(`${maquina.nombre} quedó ${destino.etiqueta.toLowerCase()}.`)
       } else if (tipo === 'devolver') {
         const { respaldo: devuelto } = await devolverMaquina(maquina.idMaquina, versionBase, justificacion.motivo, justificacion.observacion)
         await onGuardado(`${maquina.nombre} volvió a operar; ${devuelto.nombre} quedó ${estadoDe(devuelto).etiqueta.toLowerCase()}.`)
@@ -523,7 +504,6 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   const textoConfirmar = {
     incorporar: 'Incorporar',
     editar: 'Guardar cambios',
-    estado: pideCierre ? 'Cerrar turno y cambiar estado' : 'Cambiar estado',
     reemplazar: 'Reemplazar',
     devolver: pideCierre ? 'Cerrar turno y devolver' : 'Devolver',
   }[tipo]
@@ -537,38 +517,11 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         texto: guardando ? 'Guardando…' : textoConfirmar,
         form: 'flota-accion',
         // Sacar una máquina de servicio va en ámbar, como en la app
-        variante: deshabilitar || tipo === 'reemplazar' || pideCierre || (cambiaEstado && estadoEditado === 'BAJA') ? 'ambar' : 'primario',
+        variante: tipo === 'reemplazar' || pideCierre || (cambiaEstado && estadoEditado === 'BAJA') ? 'ambar' : 'primario',
         ocupado: guardando,
       }}
     >
       <form id="flota-accion" className={styles.flotaAccion} onSubmit={guardar} noValidate>
-        {tipo === 'estado' && (
-          <>
-            <div className={styles.campo}>
-              <span className={styles.label}>Nuevo estado *</span>
-              <SelectorEstado
-                etiqueta="Nuevo estado"
-                valor={nuevoEstado}
-                opciones={ESTADOS_MAQUINA.filter((e) => e.valor !== estadoActual.valor)}
-                onCambio={(estado) => {
-                  setNuevoEstado(estado)
-                  setMotivo('') // los motivos dependen del estado
-                }}
-              />
-              <span className={styles.ayuda}>Estado actual: {estadoActual.etiqueta}</span>
-            </div>
-            {nuevoEstado && (
-              <p className={styles.aviso}>
-                <Info size={16} className={styles.avisoIcono} />
-                {operaEnEstado(nuevoEstado)
-                  ? 'La máquina queda disponible para iniciar turnos.'
-                  : 'La máquina dejará de estar disponible para iniciar turnos. Si necesitas que otra la cubra, usa "Reemplazar".'}
-              </p>
-            )}
-            {pideRegreso && <CampoRegreso valor={regreso} onCambio={setRegreso} nombre={maquina.nombre} />}
-          </>
-        )}
-
         {tipo === 'devolver' && respaldo && (
           <p className={styles.aviso}>
             <Info size={16} className={styles.avisoIcono} />

@@ -83,10 +83,16 @@ function Alertas() {
 
   // Atención propia o de otro jefe de turno: se actualiza la alerta donde esté (aunque ya no calce con el filtro,
   // para que no desaparezca mientras se mira)
-  const aplicarAtencion = useCallback(({ idAlerta, atenciones }) => {
+  const aplicarAtencion = useCallback(({ idAlerta, atenciones, horometroFinal }) => {
+    const conAtencion = (a) => ({
+      ...a,
+      atenciones,
+      // Viene si se regularizó el horómetro: la alerta deja de ofrecer la acción
+      turno: horometroFinal === undefined ? a.turno : { ...a.turno, horometroFinal },
+    })
     setResultado((r) =>
       r.alertas.some((a) => a.id === idAlerta)
-        ? { ...r, alertas: r.alertas.map((a) => (a.id === idAlerta ? { ...a, atenciones } : a)) }
+        ? { ...r, alertas: r.alertas.map((a) => (a.id === idAlerta ? conAtencion(a) : a)) }
         : r,
     )
   }, [])

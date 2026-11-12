@@ -32,6 +32,9 @@ const ESTILO = {
 
 const VACIO = { type: 'FeatureCollection', features: [] }
 const CAPAS_SELECCIONABLES = ['zonas-relleno', 'areas-relleno']
+const esTipo = (tipo) => ['==', ['get', 'tipo'], tipo]
+const formatoHoraPunto = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+const formatoVelocidad = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
 
 // Los colores salen de los tokens del tema (src/index.css)
 const token = (nombre) => getComputedStyle(document.documentElement).getPropertyValue(nombre).trim()
@@ -67,10 +70,11 @@ const puntosEnDibujo = (draw) => {
 }
 
 /**
- * Mapa satelital de la planta con áreas (borde discontinuo), zonas de trabajo (borde continuo) y
- * máquinas. Expone por `ref` el control del dibujo (Terra Draw) para el modo administrador.
+ * Mapa satelital de la planta con áreas (borde discontinuo), zonas de trabajo (borde continuo),
+ * máquinas y, si se pide, el trayecto de una (GeoJSON de geojsonRecorrido). Expone por `ref` el
+ * control del dibujo (Terra Draw) para el modo administrador.
  */
-function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, editando, popup, overlay }) {
+function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay }) {
   const contenedorRef = useRef(null)
   const mapRef = useRef(null)
   const drawRef = useRef(null)
@@ -113,6 +117,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     const contornoArea = token('--map-area-casing')
     const zona = token('--map-zona')
     const sel = token('--map-seleccion')
+    const trayecto = token('--map-recorrido')
 
     map.once('load', () => {
       map.addSource('areas', { type: 'geojson', data: VACIO })
@@ -159,6 +164,68 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
         source: 'zonas',
         paint: { 'line-color': ['case', seleccionado, sel, zona], 'line-width': ['case', seleccionado, 3, 2.2] },
       })
+
+      // Trayecto de una máquina, sobre las geocercas (las máquinas son HTML y quedan encima)
+      map.addSource('recorrido', { type: 'geojson', data: VACIO })
+      const redondeada = { 'line-join': 'round', 'line-cap': 'round' }
+      map.addLayer({
+        id: 'recorrido-contorno',
+        type: 'line',
+        source: 'recorrido',
+        filter: esTipo('tramo'),
+        layout: redondeada,
+        paint: { 'line-color': contornoArea, 'line-width': 6.5, 'line-opacity': 0.7 },
+      })
+      map.addLayer({
+        id: 'recorrido-linea',
+        type: 'line',
+        source: 'recorrido',
+        filter: esTipo('tramo'),
+        layout: redondeada,
+        paint: { 'line-color': trayecto, 'line-width': 3.5 },
+      })
+      // Sin señal: la recta entre las dos posiciones no es el camino real
+      map.addLayer({
+        id: 'recorrido-salto',
+        type: 'line',
+        source: 'recorrido',
+        filter: esTipo('salto'),
+        layout: redondeada,
+        paint: { 'line-color': trayecto, 'line-width': 2.5, 'line-opacity': 0.85, 'line-dasharray': [0.5, 2] },
+      })
+      // Cada posición, solo de cerca (de lejos sería una mancha)
+      map.addLayer({
+        id: 'recorrido-puntos',
+        type: 'circle',
+        source: 'recorrido',
+        filter: esTipo('punto'),
+        minzoom: 15,
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 2.5, 19, 5],
+          'circle-color': trayecto,
+          'circle-stroke-color': contornoArea,
+          'circle-stroke-width': 1,
+        },
+      })
+      map.addLayer({
+        id: 'recorrido-inicio',
+        type: 'circle',
+        source: 'recorrido',
+        filter: esTipo('inicio'),
+        paint: { 'circle-radius': 6.5, 'circle-color': area, 'circle-stroke-color': trayecto, 'circle-stroke-width': 3.5 },
+      })
+
+      // Hora y velocidad de la posición bajo el cursor
+      const popupPunto = new Popup({ closeButton: false, closeOnClick: false, offset: 10, className: styles.popupPunto })
+      map.on('mousemove', 'recorrido-puntos', (e) => {
+        const [punto] = e.features
+        if (!punto) return
+        const { fechaHora, velocidad } = punto.properties
+        const texto = formatoHoraPunto.format(new Date(fechaHora))
+        const conVelocidad = typeof velocidad === 'number' ? `${texto} · ${formatoVelocidad.format(velocidad)} km/h` : texto
+        popupPunto.setLngLat(punto.geometry.coordinates).setText(conVelocidad).addTo(map)
+      })
+      map.on('mouseleave', 'recorrido-puntos', () => popupPunto.remove())
 
       // Clic en una zona (tiene prioridad) o en un área. Mientras se dibuja, el clic es de Terra Draw
       map.on('click', (e) => {
@@ -242,6 +309,12 @@ function MapaPlanta({ ref, areas, zonas, maquinas, seleccion, onSeleccionar, edi
     map.getSource('areas').setData(coleccion(areas, 'idArea', editando?.tipo === 'area' ? editando.id : null))
     map.getSource('zonas').setData(coleccion(zonas, 'idZona', editando?.tipo === 'zona' ? editando.id : null))
   }, [listo, areas, zonas, editando])
+
+  // Trayecto de la máquina (o nada)
+  useEffect(() => {
+    if (!listo) return
+    mapRef.current.getSource('recorrido').setData(recorrido ?? VACIO)
+  }, [listo, recorrido])
 
   // Resaltado de la selección con feature-state (no hace falta regenerar los datos)
   useEffect(() => {

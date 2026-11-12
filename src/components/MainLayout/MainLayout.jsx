@@ -4,6 +4,7 @@ import { NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import { useAlertasEnVivo } from '../../hooks/alertasEnVivo.js'
+import { useAvisosSegundoPlano } from '../../hooks/avisosSegundoPlano.js'
 import { useAlertasActivas } from '../../hooks/consultas.js'
 import { puedeGestionarFlota, puedeVerAlertas } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
@@ -11,6 +12,7 @@ import { puedeVerDashboards } from '../../services/dashboardsService.js'
 import { salir } from '../../services/authService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import AvisosAlertas from '../AvisosAlertas/AvisosAlertas.jsx'
+import BotonAvisos from '../BotonAvisos/BotonAvisos.jsx'
 import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
 import styles from './MainLayout.module.css'
@@ -41,6 +43,8 @@ function MainLayout() {
   const conAlertas = puedeVerAlertas(sesion)
   const enAlertas = useMatch('/alertas') !== null
   const { avisos, descartarAviso } = useAlertasEnVivo(conAlertas, enAlertas)
+  // Y cuando el panel no está a la vista: título, sonido y notificación del navegador
+  const avisosSegundoPlano = useAvisosSegundoPlano(conAlertas)
   const activas = useAlertasActivas(conAlertas).data ?? 0
 
   const handleLogout = () => {
@@ -100,6 +104,14 @@ function MainLayout() {
         </nav>
 
         <div className={styles.cuenta}>
+          {conAlertas && (
+            <BotonAvisos
+              activados={avisosSegundoPlano.activados}
+              permiso={avisosSegundoPlano.permiso}
+              onActivar={avisosSegundoPlano.activar}
+              onDesactivar={avisosSegundoPlano.desactivar}
+            />
+          )}
           <ThemeToggle variante="marca" />
           <span className={styles.user}>
             <span className={styles.avatar} aria-hidden="true">

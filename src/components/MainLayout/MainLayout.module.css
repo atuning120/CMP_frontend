@@ -286,11 +286,16 @@
     }
   }
 }
-/* Teléfonos muy angostos (320 px): las cuatro pestañas caben sin cortarse */
+/* Teléfonos muy angostos (320 px): las cuatro pestañas caben sin cortarse, y el logo y la cuenta (con el botón de
+   avisos) siguen en una fila sin el ícono de GeoPlanta */
 @media (max-width: 360px) {
   .layout {
     .nav .link {
       padding: 0 8px;
+    }
+
+    .product {
+      display: none;
     }
   }
 }

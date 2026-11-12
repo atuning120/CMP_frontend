@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { coincideTipo } from './alertasService.js'
-import { describirAlerta, textoAlerta } from '../components/AlertaItem/describirAlerta.js'
+import { describirAlerta, faltaHorometroFinal, textoAlerta } from '../components/AlertaItem/describirAlerta.js'
 
 // Las alertas que llegan por WebSocket se suman a la lista solo si calzan con el filtro de tipo visible
 describe('coincideTipo', () => {
@@ -41,5 +41,16 @@ describe('describirAlerta: mantención o falla', () => {
     const { activa, etiqueta } = describirAlerta(alerta('2026-10-27T10:45:00Z'))
     expect(activa).toBe(false)
     expect(etiqueta).toBe('Detenida 45 min')
+  })
+})
+
+describe('faltaHorometroFinal', () => {
+  it.each([
+    ['CIERRE_AUTOMATICO', null, true],
+    ['CIERRE_AUTOMATICO', 1010, false],
+    ['TURNO_EXTENDIDO', null, false],
+    ['MANTENCION', null, false],
+  ])('alerta %s con horómetro %s: %s', (tipo, horometroFinal, esperado) => {
+    expect(faltaHorometroFinal({ tipo, turno: { horometroFinal } })).toBe(esperado)
   })
 })

@@ -23,6 +23,8 @@ export const CLAVES = {
   catalogos: ['catalogos'],
   geocercas: ['geocercas'],
   gps: ['gps'],
+  // Trayecto de una máquina: ['recorrido', 'turno' | 'hoy', idTurno | idMaquina, desde]
+  recorrido: ['recorrido'],
   usuarios: ['usuarios'],
   evidencias: ['evidencias'],
   dashboards: ['dashboards'],

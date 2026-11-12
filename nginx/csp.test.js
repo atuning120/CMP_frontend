@@ -13,3 +13,21 @@ describe('Content-Security-Policy', () => {
     expect(leer('./seguridad.conf')).toContain(hash)
   })
 })
+
+describe('Headers de seguridad', () => {
+  it('fija HSTS y Permissions-Policy', () => {
+    const conf = leer('./seguridad.conf')
+    expect(conf).toMatch(/add_header Strict-Transport-Security "max-age=\d{7,}" always;/)
+    expect(conf).toMatch(/add_header Permissions-Policy "[^"]*camera=\(\)[^"]*geolocation=\(\)[^"]*" always;/)
+  })
+
+  // nginx descarta los add_header del server en una location que define los suyos: cada una debe incluir el snippet
+  it('cada location que sirve la app incluye seguridad.conf', () => {
+    const locations = [...leer('./default.conf').matchAll(/location\s+([^{]+)\{([^}]*)\}/g)]
+    const sinHeaders = locations
+      .filter(([, ruta, cuerpo]) => ruta.trim() !== '= /healthz' && !cuerpo.includes('include /etc/nginx/snippets/seguridad.conf;'))
+      .map(([, ruta]) => ruta.trim())
+    expect(locations.length).toBeGreaterThan(1)
+    expect(sinHeaders).toEqual([])
+  })
+})

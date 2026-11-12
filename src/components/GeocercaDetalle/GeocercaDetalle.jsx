@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import {
   AlertCircle,
   AlertTriangle,
@@ -17,7 +18,11 @@ import {
 import { fueraDeFaena, malUbicado } from '../../pages/Mapa/geo.js'
 import DistintivoArea from '../DistintivoArea/DistintivoArea.jsx'
 import { ICONOS_AREA } from '../DistintivoArea/iconosArea.js'
+import TextoFormateado from '../TextoFormateado/TextoFormateado.jsx'
 import styles from './GeocercaDetalle.module.css'
+
+// El editor visual (TipTap) solo lo usa ADMIN al editar: se descarga recién cuando hace falta
+const EditorDescripcion = lazy(() => import('../EditorDescripcion/EditorDescripcion.jsx'))
 
 const MINIMO_PUNTOS = 3
 const NOMBRE_PASO = { dibujando: 'Dibuja la forma', ajustando: 'Ajusta los bordes', datos: 'Ponle nombre' }
@@ -172,15 +177,14 @@ function GeocercaDetalle({
                 </div>
               </fieldset>
             )}
-            <label className={styles.campo}>
-              <span className={styles.label}>Descripción (opcional)</span>
-              <textarea
-                className={styles.textarea}
-                rows={2}
+            <Suspense fallback={<div className={styles.editorCargando} aria-hidden="true" />}>
+              <EditorDescripcion
+                label="Descripción (opcional)"
                 value={form.descripcion}
-                onChange={(e) => onForm((f) => ({ ...f, descripcion: e.target.value }))}
+                onChange={(descripcion) => onForm((f) => ({ ...f, descripcion }))}
+                disabled={guardando}
               />
-            </label>
+            </Suspense>
           </>
         )}
         {error && (
@@ -260,7 +264,7 @@ function GeocercaDetalle({
         </button>
       </header>
       <h3 className={styles.nombre}>{geocerca.nombre}</h3>
-      {geocerca.descripcion && <p className={styles.ayuda}>{geocerca.descripcion}</p>}
+      {geocerca.descripcion && <TextoFormateado texto={geocerca.descripcion} className={styles.ayuda} />}
       {(!geocerca.poligono || fuera) && (
         <p className={styles.alerta}>
           <AlertTriangle size={14} />

@@ -1,0 +1,24 @@
+/* Descripción con formato: hereda tamaño y color de quien la contiene */
+.textoFormateado {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-wrap: anywhere;
+
+  .parrafo {
+    margin: 0;
+  }
+
+  .lista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .negrita {
+    font-weight: 700;
+    color: var(--text-h);
+  }
+}

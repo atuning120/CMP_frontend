@@ -62,6 +62,9 @@ export function describirAlerta(alerta) {
   }
 }
 
+// El sistema cerró el turno sin horómetro final: el jefe de turno puede regularizarlo desde la alerta
+export const faltaHorometroFinal = (alerta) => alerta.tipo === 'CIERRE_AUTOMATICO' && alerta.turno.horometroFinal == null
+
 // La frase completa en texto plano (avisos emergentes y lectores de pantalla)
 export function textoAlerta(alerta) {
   const { frase } = describirAlerta(alerta)
