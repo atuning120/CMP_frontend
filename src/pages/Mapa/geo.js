@@ -41,7 +41,7 @@ export function aUtm(lon, lat) {
   return { zona, hemisferio: lat < 0 ? 'S' : 'N', este, norte }
 }
 
-const distanciaKm = ([lon1, lat1], [lon2, lat2]) => {
+export const distanciaKm = ([lon1, lat1], [lon2, lat2]) => {
   const dLat = (lat2 - lat1) * RAD
   const dLon = (lon2 - lon1) * RAD
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * RAD) * Math.cos(lat2 * RAD) * Math.sin(dLon / 2) ** 2

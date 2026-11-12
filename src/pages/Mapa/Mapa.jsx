@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Truck } from 'lucide-react'
+import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck, X } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
@@ -11,7 +11,14 @@ import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } f
 import { puedeVerAlertas, suscribirEstadosOperacionales } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
-import { obtenerUltimasPosiciones, suscribirPosiciones } from '../../services/trackingService.js'
+import { mensajeDeError } from '../../services/errores.js'
+import {
+  obtenerRecorridoMaquina,
+  obtenerRecorridoTurno,
+  obtenerUltimasPosiciones,
+  suscribirPosiciones,
+} from '../../services/trackingService.js'
+import { agregarAlRecorrido, distanciaRecorridoKm, geojsonRecorrido, inicioDelDia } from './recorrido.js'
 import {
   actualizarEstadoOperacional,
   actualizarGps,
@@ -47,6 +54,28 @@ const SIN_GPS = new Map()
 const haceCuanto = (fechaHora, ahora) => {
   const minutos = Math.floor((ahora - Date.parse(fechaHora)) / 60_000)
   return minutos < 1 ? 'hace menos de 1 min' : `hace ${minutos} min`
+}
+
+const formatoHora = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' })
+const formatoDiaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+const formatoKm = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
+const formatoEntero = new Intl.NumberFormat('es-CL')
+// Hora de un extremo del trayecto; con el día si no es hoy (un turno de noche empieza el día anterior)
+const horaTrayecto = (fecha) => {
+  const valor = new Date(fecha)
+  return valor.toDateString() === new Date().toDateString() ? formatoHora.format(valor) : formatoDiaHora.format(valor)
+}
+
+// Texto de la barra del trayecto: qué período cubre, cuánto recorrió y con cuántas posiciones
+function resumenTrayecto(consulta, distanciaKm) {
+  if (consulta.isPending) return 'Cargando trayecto…'
+  if (consulta.error && !consulta.data) return mensajeDeError(consulta.error, 'No se pudo cargar el trayecto.')
+  const { desde, hasta, puntos, truncado } = consulta.data
+  const periodo = `${horaTrayecto(desde)} – ${hasta ? horaTrayecto(hasta) : 'ahora'}`
+  if (puntos.length === 0) return `${periodo} · sin posiciones GPS en este período`
+  const partes = [periodo, `${formatoKm.format(distanciaKm)} km`, `${formatoEntero.format(puntos.length)} posiciones`]
+  if (truncado) partes.push('muestra solo las primeras')
+  return partes.join(' · ')
 }
 
 function Mapa() {
@@ -87,6 +116,25 @@ function Mapa() {
   const [editando, setEditando] = useState(null)
   const [filtro, setFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
+  // Trayecto que se dibuja: { idMaquina, nombre, tipo: 'turno' | 'hoy', idTurno, desde } o null
+  const [trayecto, setTrayecto] = useState(null)
+  const encuadradoRef = useRef(null)
+  const claveTrayecto = trayecto
+    ? [...CLAVES.recorrido, trayecto.tipo, trayecto.idTurno ?? trayecto.idMaquina, trayecto.desde]
+    : CLAVES.recorrido
+  const trayectoQuery = useQuery({
+    queryKey: claveTrayecto,
+    queryFn: () =>
+      trayecto.tipo === 'turno'
+        ? obtenerRecorridoTurno(trayecto.idTurno)
+        : obtenerRecorridoMaquina(trayecto.idMaquina, trayecto.desde),
+    enabled: Boolean(trayecto),
+    // Mientras está abierto lo mantiene al día el WebSocket; al volver a abrirlo se pide de nuevo
+    refetchOnWindowFocus: false,
+  })
+  const puntosTrayecto = trayecto ? trayectoQuery.data?.puntos : undefined
+  const geojsonTrayecto = useMemo(() => (puntosTrayecto ? geojsonRecorrido(puntosTrayecto) : null), [puntosTrayecto])
+  const kmTrayecto = useMemo(() => (puntosTrayecto ? distanciaRecorridoKm(puntosTrayecto) : 0), [puntosTrayecto])
 
   useEffect(() => {
     const intervalo = setInterval(() => setAhora(Date.now()), REFRESCO_FLOTA_MS)
@@ -99,11 +147,17 @@ function Mapa() {
     const agregar = (posiciones) => {
       if (!vigente) return
       queryClient.setQueryData(CLAVES.gps, (actual) => actualizarGps(actual ?? SIN_GPS, posiciones))
+      // El trayecto abierto ("hasta ahora") crece con la máquina
+      queryClient.setQueriesData({ queryKey: CLAVES.recorrido }, (recorrido) => agregarAlRecorrido(recorrido, posiciones))
       setAhora(Date.now())
     }
     const desuscribir = suscribirPosiciones({
       alRecibir: agregar,
-      alReconectar: () => queryClient.invalidateQueries({ queryKey: CLAVES.gps }),
+      alReconectar: () => {
+        queryClient.invalidateQueries({ queryKey: CLAVES.gps })
+        // Lo que llegó durante el corte no pasó por el WebSocket
+        queryClient.invalidateQueries({ queryKey: CLAVES.recorrido })
+      },
     })
     return () => {
       vigente = false
@@ -124,6 +178,42 @@ function Mapa() {
       alReconectar: () => queryClient.invalidateQueries({ queryKey: CLAVES.flota }),
     })
   }, [queryClient])
+
+  // Al terminar el turno del trayecto (la flota ya no lo trae como actual) se pide de nuevo: el Backend lo devuelve
+  // cerrado en su hora de término y deja de sumar las posiciones del turno siguiente
+  const turnoVigente = trayecto?.tipo === 'turno' && flota.find((m) => m.idMaquina === trayecto.idMaquina)?.idTurnoActual
+  useEffect(() => {
+    if (trayecto?.tipo !== 'turno' || flotaQuery.isPending || turnoVigente === trayecto.idTurno) return
+    if (trayectoQuery.data?.hasta === null) queryClient.invalidateQueries({ queryKey: claveTrayecto })
+    // claveTrayecto se deriva de trayecto
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trayecto, turnoVigente, flotaQuery.isPending, trayectoQuery.data?.hasta, queryClient])
+
+  // Encuadra el trayecto la primera vez que llega (no con cada posición nueva, para no mover el mapa al usuario)
+  useEffect(() => {
+    if (!trayecto || !geojsonTrayecto || puntosTrayecto.length === 0) return
+    const clave = claveTrayecto.join('|')
+    if (encuadradoRef.current === clave) return
+    encuadradoRef.current = clave
+    mapaRef.current?.enfocar(geojsonTrayecto)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trayecto, geojsonTrayecto, puntosTrayecto])
+
+  const verTrayecto = (maquina, tipo) => {
+    encuadradoRef.current = null
+    setTrayecto({
+      idMaquina: maquina.idMaquina,
+      nombre: maquina.nombre,
+      tipo,
+      idTurno: tipo === 'turno' ? maquina.idTurnoActual : null,
+      desde: tipo === 'hoy' ? inicioDelDia() : null,
+    })
+  }
+
+  const cerrarTrayecto = () => {
+    encuadradoRef.current = null
+    setTrayecto(null)
+  }
 
   const { areas, zonas } = geocercas
   const nombreArea = useMemo(() => new Map(areas.map((a) => [a.idArea, a.nombre])), [areas])
@@ -265,6 +355,29 @@ function Mapa() {
               </span>
             )}
             <span className={`${styles.tarjetaEstado} ${styles[estado]}`}>{ETIQUETA_ESTADO[estado]}</span>
+            <div className={styles.tarjetaTrayecto} role="group" aria-label="Ver trayecto">
+              <Route size={14} className={styles.tarjetaTrayectoIcono} />
+              <span>Trayecto</span>
+              {[
+                maquina.idTurnoActual && { tipo: 'turno', etiqueta: 'Del turno' },
+                { tipo: 'hoy', etiqueta: 'De hoy' },
+              ]
+                .filter(Boolean)
+                .map(({ tipo, etiqueta }) => {
+                  const activo = trayecto?.idMaquina === maquina.idMaquina && trayecto.tipo === tipo
+                  return (
+                    <button
+                      key={tipo}
+                      type="button"
+                      className={`${styles.tarjetaTrayectoBoton} ${activo ? styles.tarjetaTrayectoActivo : ''}`}
+                      aria-pressed={activo}
+                      onClick={() => (activo ? cerrarTrayecto() : verTrayecto(maquina, tipo))}
+                    >
+                      {etiqueta}
+                    </button>
+                  )
+                })}
+            </div>
           </div>
         ),
       }
@@ -291,7 +404,7 @@ function Mapa() {
         </div>
       ),
     }
-  }, [seleccion, editando, marcadores, items, areas, zonas, modo, nombreArea, ahora])
+  }, [seleccion, editando, marcadores, items, areas, zonas, modo, nombreArea, ahora, trayecto])
 
   const overlay = (
     <>
@@ -463,6 +576,7 @@ function Mapa() {
           areas={areas}
           zonas={zonas}
           maquinas={marcadores}
+          recorrido={geojsonTrayecto}
           seleccion={seleccion}
           onSeleccionar={setSeleccion}
           editando={editando}
@@ -471,6 +585,27 @@ function Mapa() {
         />
         {/* Tarjeta flotante de la geocerca seleccionada (la llena GeocercasPanel con un portal) */}
         <div ref={setDestinoDetalle} className={styles.detalleGeocerca} />
+        {trayecto && (
+          <div className={styles.trayecto} role="region" aria-label={`Trayecto de ${trayecto.nombre}`}>
+            <span className={styles.trayectoIcono}>
+              <Route size={16} />
+            </span>
+            <span className={styles.trayectoTexto}>
+              <strong className={styles.trayectoTitulo}>
+                {trayecto.nombre} · {trayecto.tipo === 'turno' ? 'trayecto del turno' : 'trayecto de hoy'}
+                {trayectoQuery.data?.hasta === null && trayectoQuery.data.puntos.length > 0 && (
+                  <span className={styles.trayectoEnVivo}>en vivo</span>
+                )}
+              </strong>
+              <span className={styles.trayectoResumen} aria-live="polite">
+                {resumenTrayecto(trayectoQuery, kmTrayecto)}
+              </span>
+            </span>
+            <button type="button" className={styles.trayectoCerrar} onClick={cerrarTrayecto} aria-label="Cerrar trayecto">
+              <X size={16} />
+            </button>
+          </div>
+        )}
         {error && (
           <p className={styles.error} role="alert">
             <AlertCircle size={16} /> {error}

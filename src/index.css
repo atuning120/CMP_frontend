@@ -67,6 +67,8 @@
   --map-overlay-text: #f1f3f4;
   --map-sombra: 0 2px 6px rgba(0, 0, 0, 0.45);
   --map-alerta-halo: rgba(249, 171, 0, 0.4);
+  /* Trayecto de una máquina: cian, distinto del azul de las zonas y del ámbar de la selección */
+  --map-recorrido: #22d3ee;
 
   /* Dashboards de Metabase: el modo oscuro invierte el iframe (blanco -> gris de --surface, texto oscuro -> claro) */
   --dashboard-filtro: none;

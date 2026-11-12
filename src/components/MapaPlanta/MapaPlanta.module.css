@@ -171,6 +171,27 @@
   .popup :global(.maplibregl-popup-tip) {
     display: none;
   }
+
+  /* Hora de una posición del trayecto bajo el cursor: una etiqueta como las de las zonas */
+  .popupPunto {
+    pointer-events: none;
+
+    :global(.maplibregl-popup-content) {
+      padding: 4px 8px;
+      border: 1px solid var(--map-label-border);
+      border-radius: 6px;
+      background: var(--map-label-bg);
+      box-shadow: var(--map-sombra);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--map-overlay-text);
+    }
+
+    :global(.maplibregl-popup-tip) {
+      display: none;
+    }
+  }
 }
 
 /* Pantallas táctiles: no hay cursor, así que las coordenadas UTM del cursor no aplican */
