@@ -10,6 +10,7 @@ import { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } from 'terra-draw
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import { aUtm, LOS_COLORADOS, puntoInterior } from '../../pages/Mapa/geo.js'
 import Skeleton from '../Skeleton/Skeleton.jsx'
+import puntoEstado from '../PuntoEstado/PuntoEstado.module.css'
 import styles from './MapaPlanta.module.css'
 
 setWorkerUrl(workerUrl)
@@ -74,6 +75,14 @@ const puntosEnDibujo = (draw) => {
  * máquinas y, si se pide, el trayecto de una (GeoJSON de geojsonRecorrido). Expone por `ref` el
  * control del dibujo (Terra Draw) para el modo administrador.
  */
+// Lo que anuncia un lector de pantalla al llegar a una máquina: código, estado operacional y si tiene alerta
+function etiquetaMaquina(maquina, estado) {
+  if (!maquina.operadorActual) return `Máquina ${maquina.nombre}, sin turno en curso`
+  const partes = [`Máquina ${maquina.nombre}`, maquina.estadoOperacional?.nombre ?? 'turno sin estado operacional']
+  if (estado === 'alerta') partes.push('con alerta: turno de más de 10 h')
+  return partes.join(', ')
+}
+
 function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay }) {
   const contenedorRef = useRef(null)
   const mapRef = useRef(null)
@@ -364,13 +373,16 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       const activa = seleccion?.tipo === 'maquina' && seleccion.id === maquina.idMaquina
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${styles[categoria] ?? ''} ${activa ? styles.maquinaActiva : ''}`
-      el.setAttribute('aria-label', `Máquina ${maquina.nombre}`)
+      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${activa ? styles.maquinaActiva : ''}`
+      el.setAttribute('aria-label', etiquetaMaquina(maquina, estado))
       el.setAttribute('aria-pressed', String(activa))
+      // Mismo punto de color que la leyenda (PuntoEstado)
       const punto = document.createElement('span')
-      punto.className = styles.punto
+      punto.className = `${styles.punto} ${puntoEstado.puntoEstado} ${puntoEstado[categoria] ?? ''}`
+      punto.setAttribute('aria-hidden', 'true')
       const codigo = document.createElement('span')
       codigo.className = styles.codigo
+      codigo.setAttribute('aria-hidden', 'true')
       codigo.textContent = maquina.nombre
       el.append(punto, codigo)
       // Un segundo clic sobre la máquina ya seleccionada la deselecciona (y cierra su tarjeta)

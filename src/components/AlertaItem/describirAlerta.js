@@ -13,6 +13,7 @@ function describirDetencion(alerta) {
   const duracion = formatearDuracion(minutosEntre(detencion.inicio, detencion.fin))
   const etiqueta = activa ? `Detenida hace ${duracion}` : `Detenida ${duracion}`
   return {
+    tipo: 'Mantención o falla',
     icono: Wrench,
     tono: 'peligro',
     activa,
@@ -52,6 +53,8 @@ export function describirAlerta(alerta) {
         : `Turno de ${duracion}${turno.estado === 'CERRADO_AUTO' ? ' · se cerró automáticamente' : ''}`
 
   return {
+    // Qué tipo de alerta es, en palabras: el icono y el color lo dicen solo a la vista
+    tipo: esCierreAutomatico ? 'Cierre automático' : jornada ? 'Jornada extendida' : 'Turno extendido',
     icono: esCierreAutomatico ? AlarmClockOff : jornada ? Layers : AlertTriangle,
     tono: esCierreAutomatico ? 'peligro' : 'aviso',
     activa,

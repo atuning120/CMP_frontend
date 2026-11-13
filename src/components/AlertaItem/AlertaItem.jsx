@@ -1,5 +1,5 @@
 import { Clock, MapPin, Timer } from 'lucide-react'
-import { formatearFecha } from '../../pages/Historial/fechas.js'
+import { fechaCompleta, formatearFecha } from '../../pages/Historial/fechas.js'
 import AtencionAlerta from '../AtencionAlerta/AtencionAlerta.jsx'
 import RegularizarHorometro from '../RegularizarHorometro/RegularizarHorometro.jsx'
 import { describirAlerta, faltaHorometroFinal } from './describirAlerta.js'
@@ -9,16 +9,18 @@ import styles from './AlertaItem.module.css'
 // onAtendida recibe { idAlerta, atenciones } cuando se atiende o se le agrega una nota, más horometroFinal si se
 // regularizó el horómetro
 function AlertaItem({ alerta, nueva, onAtendida }) {
-  const { icono: Icono, tono, activa, frase, etiqueta, ubicacion, jornada } = describirAlerta(alerta)
+  const { tipo, icono: Icono, tono, activa, frase, etiqueta, ubicacion, jornada } = describirAlerta(alerta)
 
   return (
     <li className={`${styles.alertaItem} ${styles[tono]} ${activa ? styles.activa : ''} ${nueva ? styles.nueva : ''}`}>
-      <span className={styles.icono}>
+      <span className={styles.icono} aria-hidden="true">
         <Icono size={18} />
       </span>
 
       <div className={styles.cuerpo}>
         <p className={styles.titulo}>
+          {/* El tipo lo muestran el icono y el color; el lector de pantalla lo anuncia primero */}
+          <span className={styles.visuallyHidden}>Alerta de {tipo.toLowerCase()}: </span>
           {frase.antes}
           <strong className={styles.actor}>{alerta.operador}</strong>
           {frase.despues}
@@ -48,8 +50,9 @@ function AlertaItem({ alerta, nueva, onAtendida }) {
         <AtencionAlerta alerta={alerta} onGuardada={onAtendida} />
       </div>
 
-      <time className={styles.fecha} dateTime={alerta.fecha} title={new Date(alerta.fecha).toLocaleString('es-CL')}>
-        {formatearFecha(alerta.fecha)}
+      <time className={styles.fecha} dateTime={alerta.fecha} title={fechaCompleta(alerta.fecha)}>
+        <span aria-hidden="true">{formatearFecha(alerta.fecha)}</span>
+        <span className={styles.visuallyHidden}>{fechaCompleta(alerta.fecha)}</span>
       </time>
     </li>
   )

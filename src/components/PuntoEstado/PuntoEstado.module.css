@@ -1,0 +1,24 @@
+/* Punto de color del estado operacional. El tamaño lo pone quien lo usa (leyenda, marcador del mapa, ficha).
+   Va sobre imagen satelital y en la leyenda: usa los tokens --map-*, que no cambian con el tema */
+.puntoEstado {
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--map-detenida);
+
+  &.productivo {
+    background: var(--map-productivo);
+  }
+
+  &.demora {
+    background: var(--map-demora);
+  }
+
+  &.mantencion {
+    background: var(--map-mantencion);
+  }
+
+  &.sinEstado {
+    background: var(--map-detenida);
+  }
+}
