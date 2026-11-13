@@ -54,7 +54,7 @@
     position: absolute;
     top: var(--tarjeta-y, 50%);
     left: var(--tarjeta-x, 50%);
-    width: min(360px, calc(100vw - 24px));
+    width: min(380px, calc(100vw - 24px));
     box-sizing: border-box;
     padding: 18px 18px 16px;
     border: 1px solid var(--border);
@@ -103,6 +103,10 @@
   }
 
   .contador {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
     margin-right: auto;
     font-size: 12px;
     font-weight: 800;
@@ -110,6 +114,15 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text);
+  }
+
+  /* Sección del panel en que está el paso (recorridos de varias páginas) */
+  .seccion {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--selection-bg);
+    letter-spacing: 0.02em;
+    color: var(--primary);
   }
 
   .cerrar {
@@ -285,7 +298,8 @@
   .recorridoGuiado {
 
     .foco,
-    .tarjeta {
+    .tarjeta,
+    .segmento {
       transition: none;
     }
 

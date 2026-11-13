@@ -25,6 +25,7 @@ function BotonAvisos({ activados, permiso, onActivar, onDesactivar }) {
       className={`${styles.botonAvisos} ${activados ? '' : styles.apagado}`}
       onClick={activados && !faltaPermiso ? onDesactivar : onActivar}
       aria-pressed={activados}
+      data-recorrido="avisos"
       aria-label={etiqueta}
       title={etiqueta}
     >

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react'
 import { pasosDePantalla } from '../../services/recorridos.js'
 import styles from './RecorridoGuiado.module.css'
@@ -64,16 +65,19 @@ function ubicarTarjeta(foco, ancho, alto, preferido, vw, vh) {
 /**
  * Recorrido guiado sobre la interfaz real: oscurece la pantalla, destaca el elemento de cada paso
  * (data-recorrido="<objetivo>") y explica qué hace en una tarjeta junto a él. Bloquea el resto del panel mientras
- * dura (#root inerte). Teclado: → siguiente, ← anterior, Esc omitir.
- * pasos: [{ objetivo, lado, icono, titulo, texto }]. onTerminar('completado' | 'omitido')
+ * dura (#root inerte). Si un paso es de otra página, navega a ella. Teclado: → siguiente, ← anterior, Esc omitir.
+ * recorrido: ver services/recorridos.js. onTerminar('completado' | 'omitido')
  */
-function RecorridoGuiado({ pasos: todos, onTerminar }) {
+function RecorridoGuiado({ recorrido, onTerminar }) {
+  const navigate = useNavigate()
   // Solo los pasos de esta pantalla (p. ej. contraer el panel no existe en teléfono): la numeración no salta
-  const [pasos] = useState(() => pasosDePantalla(todos))
+  const [pasos] = useState(() => pasosDePantalla(recorrido))
   const [indice, setIndice] = useState(0)
   // Elemento destacado del paso actual (null mientras se busca)
   const [objetivo, setObjetivo] = useState(null)
   const direccionRef = useRef(1)
+  // El paso actual cambió de página y su elemento aún no aparece: el velo cubre toda la pantalla mientras carga
+  const navegandoRef = useRef(false)
   const capaRef = useRef(null)
   const tarjetaRef = useRef(null)
   const primarioRef = useRef(null)
@@ -109,6 +113,10 @@ function RecorridoGuiado({ pasos: todos, onTerminar }) {
 
   // Busca el elemento del paso (puede tardar en aparecer); si no aparece, salta el paso en la dirección en que se iba
   useEffect(() => {
+    if (paso.ruta && window.location.pathname !== paso.ruta) {
+      navegandoRef.current = true
+      navigate(paso.ruta)
+    }
     if (!paso.objetivo) return
     const inicio = performance.now()
     let marco
@@ -116,10 +124,16 @@ function RecorridoGuiado({ pasos: todos, onTerminar }) {
       const encontrado = buscarObjetivo(paso.objetivo)
       const el = encontrado?.el
       if (el) {
+        // Fuera de la pantalla en vertical: al centro. Si no, 'nearest' solo mueve lo justo, también dentro de
+        // contenedores con scroll propio que lo recortan (p. ej. la fila de pestañas del teléfono)
         const r = el.getBoundingClientRect()
-        if (r.top < 0 || r.bottom > innerHeight || r.left < 0 || r.right > innerWidth) {
-          el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: sinMovimiento() ? 'auto' : 'smooth' })
-        }
+        const fueraVertical = r.top < 0 || r.bottom > innerHeight
+        el.scrollIntoView({
+          block: fueraVertical ? 'center' : 'nearest',
+          inline: 'nearest',
+          behavior: sinMovimiento() ? 'auto' : 'smooth',
+        })
+        navegandoRef.current = false
         setObjetivo(el)
         return
       }
@@ -134,7 +148,7 @@ function RecorridoGuiado({ pasos: todos, onTerminar }) {
     }
     marco = requestAnimationFrame(intentar)
     return () => cancelAnimationFrame(marco)
-  }, [paso.objetivo, indice, pasos.length])
+  }, [paso.objetivo, paso.ruta, indice, pasos.length, navigate])
 
   // Sigue al elemento cuadro a cuadro (scroll, cambios de tamaño, paneles que se expanden) y ubica foco y tarjeta.
   // Las coordenadas van en variables CSS de la capa; el CSS dibuja con ellas
@@ -149,21 +163,21 @@ function RecorridoGuiado({ pasos: todos, onTerminar }) {
     let marco
     const ubicar = () => {
       marco = requestAnimationFrame(ubicar)
-      // Buscando el elemento del paso: el foco queda donde estaba y la tarjeta se oculta, para no mostrar un paso
-      // sin su elemento ni un foco vacío
-      if (paso.objetivo && !objetivo) {
-        delete capa.dataset.visible
-        return
-      }
       const vw = innerWidth
       const vh = innerHeight
-      const foco = calcularFoco(objetivo, vw, vh)
+      const buscando = paso.objetivo && !objetivo
+      // Buscando el elemento del paso: la tarjeta se oculta, para no mostrar un paso sin su elemento. En la misma
+      // página el foco queda donde estaba; tras cambiar de página se cierra al centro (el velo cubre todo)
+      if (buscando) delete capa.dataset.visible
+      if (buscando && !navegandoRef.current) return
+      const foco = calcularFoco(buscando ? null : objetivo, vw, vh)
       fijar('--foco-x', `${Math.round(foco.left)}px`)
       fijar('--foco-y', `${Math.round(foco.top)}px`)
       fijar('--foco-ancho', `${Math.round(foco.width)}px`)
       fijar('--foco-alto', `${Math.round(foco.height)}px`)
       if (foco.width > 0) capa.dataset.conFoco = ''
       else delete capa.dataset.conFoco
+      if (buscando) return
       const tarjeta = tarjetaRef.current
       if (matchMedia(MOVIL).matches) {
         // Hoja: donde no tape el foco
@@ -224,6 +238,7 @@ function RecorridoGuiado({ pasos: todos, onTerminar }) {
               <Icono size={18} />
             </span>
             <span className={styles.contador}>
+              {paso.seccion && <span className={styles.seccion}>{paso.seccion}</span>}
               Paso {indice + 1} de {pasos.length}
             </span>
             <button

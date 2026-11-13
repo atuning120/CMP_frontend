@@ -65,7 +65,7 @@ function BienvenidaRecorrido({ recorrido, onComenzar, onOmitir }) {
       <footer className={styles.pie}>
         <span className={styles.duracion}>
           <Clock3 size={14} />
-          {pasosDePantalla(recorrido.pasos).length} pasos · {recorrido.duracion}
+          {pasosDePantalla(recorrido).length} pasos · {recorrido.duracion}
         </span>
         <div className={styles.acciones}>
           <button type="button" className={styles.secundario} onClick={onOmitir}>
