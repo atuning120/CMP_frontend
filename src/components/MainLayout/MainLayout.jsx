@@ -14,11 +14,9 @@ import { salir } from '../../services/authService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import AvisosAlertas from '../AvisosAlertas/AvisosAlertas.jsx'
 import BienvenidaRecorrido from '../BienvenidaRecorrido/BienvenidaRecorrido.jsx'
-import BotonRecorrido from '../BotonRecorrido/BotonRecorrido.jsx'
 import RecorridoGuiado from '../RecorridoGuiado/RecorridoGuiado.jsx'
-import BotonAvisos from '../BotonAvisos/BotonAvisos.jsx'
 import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
-import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
+import MenuCuenta from '../MenuCuenta/MenuCuenta.jsx'
 import styles from './MainLayout.module.css'
 
 const ROL_LABEL = {
@@ -109,36 +107,26 @@ function MainLayout() {
           )}
         </nav>
 
+        {/* Cuenta, avisos, recorrido guiado, tema y cerrar sesión: todo en el menú del avatar, así el header cabe en
+            una fila en cualquier pantalla aunque estén todas las pestañas */}
         <div className={styles.cuenta}>
-          {conAlertas && (
-            <BotonAvisos
-              activados={avisosSegundoPlano.activados}
-              permiso={avisosSegundoPlano.permiso}
-              onActivar={avisosSegundoPlano.activar}
-              onDesactivar={avisosSegundoPlano.desactivar}
-            />
-          )}
-          {recorrido && <BotonRecorrido onClick={comenzar} />}
-          <ThemeToggle variante="marca" />
-          <span className={styles.user}>
-            <span className={styles.avatar} aria-hidden="true">
-              {iniciales(sesion?.email)}
-            </span>
-            <span className={styles.userText}>
-              <span className={styles.userEmail}>{sesion?.email}</span>
-              <span className={styles.userRole}>{ROL_LABEL[sesion?.rol] ?? sesion?.rol}</span>
-            </span>
-          </span>
-          <button
-            type="button"
-            className={styles.logout}
-            onClick={() => setConfirmandoSalida(true)}
-            aria-label="Cerrar sesión"
-            title="Cerrar sesión"
-            aria-haspopup="dialog"
-          >
-            <LogOut size={16} />
-          </button>
+          <MenuCuenta
+            email={sesion?.email}
+            rol={ROL_LABEL[sesion?.rol] ?? sesion?.rol}
+            iniciales={iniciales(sesion?.email)}
+            avisos={
+              conAlertas
+                ? {
+                    activados: avisosSegundoPlano.activados,
+                    permiso: avisosSegundoPlano.permiso,
+                    onActivar: avisosSegundoPlano.activar,
+                    onDesactivar: avisosSegundoPlano.desactivar,
+                  }
+                : null
+            }
+            onRecorrido={recorrido ? comenzar : null}
+            onCerrarSesion={() => setConfirmandoSalida(true)}
+          />
         </div>
       </header>
 

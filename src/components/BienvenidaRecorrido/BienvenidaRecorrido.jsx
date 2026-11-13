@@ -77,7 +77,7 @@ function BienvenidaRecorrido({ recorrido, onComenzar, onOmitir }) {
           </button>
         </div>
       </footer>
-      <p className={styles.nota}>Puedes repetirlo cuando quieras desde el botón de ayuda del menú superior.</p>
+      <p className={styles.nota}>Puedes repetirlo cuando quieras desde el menú de tu avatar, arriba a la derecha.</p>
     </dialog>
   )
 }
