@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
-import { aUtm, LOS_COLORADOS, puntoInterior } from '../../pages/Mapa/geo.js'
+import { aUtm, CENTRO_VISTA_INICIAL, puntoInterior } from '../../pages/Mapa/geo.js'
 import Skeleton from '../Skeleton/Skeleton.jsx'
 import puntoEstado from '../PuntoEstado/PuntoEstado.module.css'
 import styles from './MapaPlanta.module.css'
@@ -56,7 +56,7 @@ const desplazamiento = (indice) => {
 
 // Última vista del mapa (centro, zoom y rotación): sobrevive a la navegación entre páginas para que
 // al volver a /mapa quede encuadrado donde estaba; al recargar la pestaña se parte de la vista inicial
-let ultimaVista = { center: LOS_COLORADOS, zoom: 14.2, bearing: 0 }
+let ultimaVista = { center: CENTRO_VISTA_INICIAL, zoom: 14.2, bearing: 0 }
 
 const formatoUtm = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
 
