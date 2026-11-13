@@ -10,9 +10,13 @@ import styles from './AlertaItem.module.css'
 // regularizó el horómetro
 function AlertaItem({ alerta, nueva, onAtendida }) {
   const { tipo, icono: Icono, tono, activa, frase, etiqueta, ubicacion, jornada } = describirAlerta(alerta)
+  // Marcada con su color mientras requiere acción: sigue en curso o, en un cierre automático, falta el horómetro final
+  const marcada = activa || faltaHorometroFinal(alerta)
 
   return (
-    <li className={`${styles.alertaItem} ${styles[tono]} ${activa ? styles.activa : ''} ${nueva ? styles.nueva : ''}`}>
+    <li
+      className={`${styles.alertaItem} ${styles[tono]} ${activa ? styles.activa : ''} ${marcada ? '' : styles.terminada} ${nueva ? styles.nueva : ''}`}
+    >
       <span className={styles.icono} aria-hidden="true">
         <Icono size={18} />
       </span>
