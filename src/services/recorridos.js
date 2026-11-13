@@ -1,7 +1,6 @@
 import {
   ArrowLeftRight,
   BarChart3,
-  Bell,
   CircleHelp,
   Eye,
   FileSpreadsheet,
@@ -21,6 +20,19 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
+
+// Último paso: el menú del avatar, desde donde se repite el recorrido (y se activan los avisos, en los roles con
+// alertas). Va en la página donde terminó el recorrido
+const pasoAyuda = (ruta, cierre, conAvisos) => ({
+  ruta,
+  objetivo: 'menu-cuenta',
+  lado: 'abajo',
+  icono: CircleHelp,
+  titulo: 'Tu menú',
+  texto: conAvisos
+    ? `Desde tu avatar activas los avisos de alertas (sonido y notificación aunque el panel no esté a la vista), repites este recorrido, cambias entre modo claro y oscuro o cierras sesión. ${cierre}`
+    : `Desde tu avatar repites este recorrido, cambias entre modo claro y oscuro o cierras sesión. ${cierre}`,
+})
 
 /**
  * Recorrido guiado del primer ingreso, uno por rol del panel web (un OPERADOR entra a la web como VISOR).
@@ -100,28 +112,12 @@ const VISOR = {
       texto:
         'Puedes consultar todo lo que ves. Los cambios en la flota, los turnos y las geocercas los hacen los jefes de turno y los administradores.',
     },
-    {
-      objetivo: 'ayuda',
-      lado: 'abajo',
-      icono: CircleHelp,
-      titulo: 'Repasa cuando quieras',
-      texto: 'Este botón vuelve a abrir el recorrido. Ya estás listo para seguir la operación de la planta.',
-    },
+    pasoAyuda('/mapa', 'Ya estás listo para seguir la operación de la planta.', false),
   ],
 }
 
 // Pasos de una sección del panel: todos llevan su página y su nombre (se muestra en la tarjeta)
 const seccion = (nombre, ruta, pasos) => pasos.map((p) => ({ seccion: nombre, ruta, ...p }))
-
-// Último paso de los recorridos de varias secciones: el botón de ayuda, en la página donde terminó el recorrido
-const pasoAyuda = (ruta, cierre) => ({
-  ruta,
-  objetivo: 'ayuda',
-  lado: 'abajo',
-  icono: CircleHelp,
-  titulo: 'Repasa cuando quieras',
-  texto: `Este botón vuelve a abrir el recorrido. ${cierre}`,
-})
 
 // Secciones que comparten el jefe de turno y el administrador. Cada una (salvo el mapa, donde empieza el recorrido)
 // parte en su pestaña: el foco se posa en ella mientras la página cambia debajo, para que quede claro dónde está
@@ -235,14 +231,6 @@ const ALERTAS = seccion('Alertas', '/alertas', [
     texto:
       'Turnos y jornadas de más de 10 h, cierres automáticos y equipos detenidos por mantención. Llegan en tiempo real y, al atenderlas, queda registrado quién, cuándo y con qué comentario.',
   },
-  {
-    objetivo: 'avisos',
-    lado: 'abajo',
-    icono: Bell,
-    titulo: 'Avisos aunque estés en otra pestaña',
-    texto:
-      'Activa el sonido y la notificación del navegador para enterarte de una alerta nueva aunque el panel no esté a la vista.',
-  },
 ])
 
 // Jefe de turno: recorre las secciones en el orden del menú
@@ -265,7 +253,7 @@ const JEFE_TURNO = {
     ...FLOTA,
     ...HISTORIAL,
     ...ALERTAS,
-    pasoAyuda('/alertas', 'Ya estás listo para supervisar la operación de la planta.'),
+    pasoAyuda('/alertas', 'Ya estás listo para supervisar la operación de la planta.', true),
   ],
 }
 
@@ -324,7 +312,7 @@ const ADMIN = {
           'Cambia el rol de cada usuario desde su fila, edita sus datos o restablece su contraseña. Desactivar una cuenta corta su acceso sin borrar su historial.',
       },
     ]),
-    pasoAyuda('/admin', 'Ya estás listo para administrar GeoPlanta.'),
+    pasoAyuda('/admin', 'Ya estás listo para administrar GeoPlanta.', true),
   ],
 }
 
