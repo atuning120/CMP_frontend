@@ -55,31 +55,18 @@
     border-top: 3px solid var(--map-zona);
   }
 
-  .productivo,
-  .demora,
-  .mantencion,
-  .sinEstado,
-  .alerta {
+  /* Punto del estado (PuntoEstado): mismo color que en el mapa, a tamaño de leyenda */
+  .punto {
+    justify-self: center;
     width: 10px;
     height: 10px;
-    border-radius: 50%;
-    background: var(--map-productivo);
-  }
-
-  .demora {
-    background: var(--map-demora);
-  }
-
-  .mantencion {
-    background: var(--map-mantencion);
-  }
-
-  .sinEstado {
-    background: var(--map-detenida);
   }
 
   /* La alerta es un halo alrededor del punto, sea cual sea su estado */
   .alerta {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
     background: var(--map-detenida);
     box-shadow: 0 0 0 3px var(--map-alerta-halo);
   }

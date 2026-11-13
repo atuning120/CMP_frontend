@@ -103,12 +103,11 @@
       border-radius: 6px;
     }
 
+    /* Relleno según el estado operacional: PuntoEstado.module.css (border-box: 20 px en total, como siempre) */
     .punto {
-      width: 14px;
-      height: 14px;
+      width: 20px;
+      height: 20px;
       border: 3px solid var(--map-overlay-text);
-      border-radius: 50%;
-      background: var(--map-detenida);
       box-shadow: var(--map-sombra);
     }
 
@@ -123,32 +122,11 @@
       color: var(--map-overlay-text);
     }
 
-    &.operando .punto {
-      background: var(--map-operando);
-    }
-
+    /* Turno de más de 10 h: halo alrededor del punto, sea cual sea su estado */
     &.alerta .punto {
-      background: var(--map-alerta);
       box-shadow:
         var(--map-sombra),
         0 0 0 6px var(--map-alerta-halo);
-    }
-
-    /* Con turno en curso el relleno es el del estado operacional; la alerta conserva su halo */
-    &.productivo .punto {
-      background: var(--map-productivo);
-    }
-
-    &.demora .punto {
-      background: var(--map-demora);
-    }
-
-    &.mantencion .punto {
-      background: var(--map-mantencion);
-    }
-
-    &.sinEstado .punto {
-      background: var(--map-detenida);
     }
 
     &.maquinaActiva .codigo {

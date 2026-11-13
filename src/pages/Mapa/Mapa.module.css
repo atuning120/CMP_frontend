@@ -489,23 +489,10 @@
     gap: 6px;
     font-weight: 600;
 
+    /* Mismo punto de color que el marcador y la leyenda (PuntoEstado) */
     .tarjetaPunto {
       width: 9px;
       height: 9px;
-      border-radius: 50%;
-      background: var(--map-detenida);
-    }
-
-    &.productivo .tarjetaPunto {
-      background: var(--map-productivo);
-    }
-
-    &.demora .tarjetaPunto {
-      background: var(--map-demora);
-    }
-
-    &.mantencion .tarjetaPunto {
-      background: var(--map-mantencion);
     }
   }
 

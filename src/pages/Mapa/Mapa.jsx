@@ -6,6 +6,7 @@ import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
 import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
+import PuntoEstado from '../../components/PuntoEstado/PuntoEstado.jsx'
 import Skeleton from '../../components/Skeleton/Skeleton.jsx'
 import TextoFormateado from '../../components/TextoFormateado/TextoFormateado.jsx'
 import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
@@ -345,8 +346,8 @@ function Mapa() {
             </strong>
             <span>Operador: {maquina.operadorActual}</span>
             {maquina.operadorActual && (
-              <span className={`${styles.tarjetaCategoria} ${styles[categoriaMaquina(maquina)]}`}>
-                <span className={styles.tarjetaPunto} />
+              <span className={styles.tarjetaCategoria}>
+                <PuntoEstado categoria={categoriaMaquina(maquina)} className={styles.tarjetaPunto} />
                 {maquina.estadoOperacional?.nombre ?? 'Sin estado operacional registrado'}
               </span>
             )}

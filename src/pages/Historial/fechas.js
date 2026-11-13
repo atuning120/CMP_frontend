@@ -69,6 +69,10 @@ export function agruparPorDia(eventos) {
 }
 
 // "hace 5 min", "hace 3 h", "hoy 14:30", "ayer 14:30" o "05/10 14:30"
+// Fecha y hora completas ("13 de noviembre de 2026, 08:24"): la que leen los lectores de pantalla junto a la relativa
+const formatoCompleto = new Intl.DateTimeFormat('es-CL', { dateStyle: 'long', timeStyle: 'short' })
+export const fechaCompleta = (iso) => formatoCompleto.format(new Date(iso))
+
 export function formatearFecha(iso) {
   const fecha = new Date(iso)
   const minutos = Math.floor((Date.now() - fecha.getTime()) / 60000)

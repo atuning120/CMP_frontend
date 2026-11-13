@@ -1,6 +1,6 @@
 import { AlarmClockOff, Clock, MapPin, UserCheck } from 'lucide-react'
 import GaleriaEvidencias from '../GaleriaEvidencias/GaleriaEvidencias.jsx'
-import { formatearFecha } from '../../pages/Historial/fechas.js'
+import { fechaCompleta, formatearFecha } from '../../pages/Historial/fechas.js'
 import { describirEvento, etiquetaEstado } from './describirEvento.js'
 import styles from './HistorialEvento.module.css'
 
@@ -30,7 +30,7 @@ function HistorialEvento({ evento }) {
 
   return (
     <li className={`${styles.historialEvento} ${styles[tono]}`}>
-      <span className={styles.icono}>
+      <span className={styles.icono} aria-hidden="true">
         <Icono size={18} />
       </span>
 
@@ -130,8 +130,9 @@ function HistorialEvento({ evento }) {
         )}
       </div>
 
-      <time className={styles.fecha} dateTime={evento.fecha} title={new Date(evento.fecha).toLocaleString('es-CL')}>
-        {formatearFecha(evento.fecha)}
+      <time className={styles.fecha} dateTime={evento.fecha} title={fechaCompleta(evento.fecha)}>
+        <span aria-hidden="true">{formatearFecha(evento.fecha)}</span>
+        <span className={styles.visuallyHidden}>{fechaCompleta(evento.fecha)}</span>
       </time>
     </li>
   )

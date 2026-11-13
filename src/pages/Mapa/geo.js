@@ -2,6 +2,9 @@ import pointOnFeature from '@turf/point-on-feature'
 
 // Centro del rajo de Mina Los Colorados (WGS84)
 export const LOS_COLORADOS = [-70.8085, -28.2999]
+// Centro de la vista inicial del mapa: ~1,4 km al norte del centro de la faena, para que se vea la planta (donde se
+// trabaja) y no el rajo. LOS_COLORADOS sigue siendo la referencia para detectar geocercas mal ubicadas
+export const CENTRO_VISTA_INICIAL = [-70.8088, -28.2874]
 // Límite de la faena: rectángulo en UTM 19S entre las esquinas suroeste y noreste de la mina
 export const LIMITE_FAENA = { zona: 19, hemisferio: 'S', este: [318188, 326929], norte: [6865281, 6871216] }
 // Más allá de esta distancia el polígono está mal ubicado (p. ej. latitud con el signo invertido):

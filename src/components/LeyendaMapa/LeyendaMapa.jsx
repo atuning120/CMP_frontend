@@ -1,13 +1,16 @@
+import { useId } from 'react'
 import { Info } from 'lucide-react'
+import PuntoEstado from '../PuntoEstado/PuntoEstado.jsx'
 import styles from './LeyendaMapa.module.css'
 
+// estado: el punto de la máquina (PuntoEstado, igual que en el mapa); si no, una muestra propia (línea o halo)
 const ELEMENTOS = [
   { clase: 'area', texto: 'Límite de área', detalle: 'Polígono mayor' },
   { clase: 'zona', texto: 'Zona de trabajo', detalle: 'Geocerca activa' },
-  { clase: 'productivo', texto: 'Productivo', detalle: 'Estado del turno' },
-  { clase: 'demora', texto: 'Demora', detalle: 'Estado del turno' },
-  { clase: 'mantencion', texto: 'Mantención o falla', detalle: 'Estado del turno' },
-  { clase: 'sinEstado', texto: 'Sin estado', detalle: 'Turno recién iniciado' },
+  { estado: 'productivo', texto: 'Productivo', detalle: 'Estado del turno' },
+  { estado: 'demora', texto: 'Demora', detalle: 'Estado del turno' },
+  { estado: 'mantencion', texto: 'Mantención o falla', detalle: 'Estado del turno' },
+  { estado: 'sinEstado', texto: 'Sin estado', detalle: 'Turno recién iniciado' },
   { clase: 'alerta', texto: 'Alerta', detalle: 'Halo: turno de más de 10 h' },
 ]
 
@@ -16,17 +19,22 @@ const ELEMENTOS = [
  * conAlertas: sin acceso a alertas (VISOR) no se muestra su fila.
  */
 function LeyendaMapa({ conAlertas, id, className = '' }) {
+  const idTitulo = useId()
   const elementos = conAlertas ? ELEMENTOS : ELEMENTOS.filter((e) => e.clase !== 'alerta')
   return (
     <div id={id} className={`${styles.leyendaMapa} ${className}`}>
-      <h3 className={styles.titulo}>
+      <h3 id={idTitulo} className={styles.titulo}>
         <Info size={14} />
         Leyenda del mapa
       </h3>
-      <ul className={styles.lista}>
+      <ul className={styles.lista} aria-labelledby={idTitulo}>
         {elementos.map((e) => (
-          <li key={e.clase} className={styles.item}>
-            <span className={`${styles.muestra} ${styles[e.clase]}`} />
+          <li key={e.estado ?? e.clase} className={styles.item}>
+            {e.estado ? (
+              <PuntoEstado categoria={e.estado} className={styles.punto} />
+            ) : (
+              <span className={`${styles.muestra} ${styles[e.clase]}`} aria-hidden="true" />
+            )}
             <span className={styles.texto}>{e.texto}</span>
             <span className={styles.detalle}>{e.detalle}</span>
           </li>
