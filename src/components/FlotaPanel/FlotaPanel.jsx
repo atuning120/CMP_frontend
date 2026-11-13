@@ -47,7 +47,7 @@ function FlotaPanel({
           </h2>
           {esqueleto ? <Skeleton className={styles.skCounter} /> : <span className={styles.counter}>{total} equipos</span>}
         </div>
-        <label className={styles.search}>
+        <label className={styles.search} data-recorrido="flota-busqueda">
           <Search size={16} className={styles.searchIcon} />
           <input
             type="search"
@@ -57,7 +57,7 @@ function FlotaPanel({
             onChange={(e) => onBusqueda(e.target.value)}
           />
         </label>
-        <div className={styles.filtros} role="tablist" aria-label="Filtrar flota">
+        <div className={styles.filtros} role="tablist" aria-label="Filtrar flota" data-recorrido="flota-filtros">
           {filtros.map((f) => (
             <button
               key={f.id}
@@ -78,8 +78,9 @@ function FlotaPanel({
       <ul className={styles.lista}>
         {esqueleto && TARJETAS_SKELETON.map((n) => <SkeletonMaquina key={n} />)}
         {!cargando && items.length === 0 && <li className={styles.vacio}>No hay máquinas que coincidan.</li>}
-        {items.map(({ maquina, estado, ubicacion, enMapa }) => (
-          <li key={maquina.idMaquina}>
+        {items.map(({ maquina, estado, ubicacion, enMapa }, i) => (
+          // El primer equipo es el ejemplo del recorrido guiado
+          <li key={maquina.idMaquina} data-recorrido={i === 0 ? 'flota-equipo' : undefined}>
             <button
               type="button"
               className={`${styles.tarjeta} ${seleccionada === maquina.idMaquina ? styles.tarjetaActiva : ''}`}
@@ -118,7 +119,7 @@ function FlotaPanel({
         ))}
       </ul>
 
-      <footer className={styles.leyenda}>
+      <footer className={styles.leyenda} data-recorrido="flota-leyenda">
         <LeyendaMapa conAlertas={conAlertas} />
       </footer>
     </aside>

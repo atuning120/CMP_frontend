@@ -1,0 +1,303 @@
+/* Capa del recorrido guiado. Las coordenadas (--foco-*, --tarjeta-*) las fija RecorridoGuiado.jsx en cada cuadro */
+.recorridoGuiado {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  /* Atrapa los clics fuera de la tarjeta: el panel no se usa a medio recorrido */
+  .velo {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* El hueco del foco: su sombra gigante es el velo oscuro; el anillo ámbar es el de la pestaña activa */
+  .foco {
+    position: absolute;
+    top: var(--foco-y, 50%);
+    left: var(--foco-x, 50%);
+    width: var(--foco-ancho, 0);
+    height: var(--foco-alto, 0);
+    border-radius: 12px;
+    /* Sin elemento destacado (aún no se ubica o el paso no tiene uno): solo el velo, sin anillo */
+    box-shadow: 0 0 0 200vmax var(--recorrido-velo);
+    pointer-events: none;
+    transition:
+      top 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+      left 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+      width 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+      height 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Respira suave para atraer la mirada al elemento */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      box-shadow: 0 0 0 0 var(--recorrido-halo);
+      animation: pulso 2.2s ease-out 0.4s infinite;
+    }
+
+  }
+
+  &[data-con-foco] .foco {
+    box-shadow:
+      0 0 0 2px var(--recorrido-anillo),
+      0 0 0 6px var(--recorrido-halo),
+      0 0 0 200vmax var(--recorrido-velo);
+  }
+
+  &:not([data-con-foco]) .foco::after {
+    animation: none;
+  }
+
+  .tarjeta {
+    position: absolute;
+    top: var(--tarjeta-y, 50%);
+    left: var(--tarjeta-x, 50%);
+    width: min(360px, calc(100vw - 24px));
+    box-sizing: border-box;
+    padding: 18px 18px 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow-raised);
+    color: var(--text-h);
+    text-align: left;
+    opacity: 0;
+    transition:
+      top 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+      left 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 0.2s ease-out;
+  }
+
+  /* Oculta mientras se busca el elemento del paso */
+  &[data-visible] .tarjeta {
+    opacity: 1;
+  }
+
+  &:not([data-visible]) .tarjeta {
+    pointer-events: none;
+  }
+
+  /* Cada paso entra con un leve desplazamiento */
+  .contenido {
+    animation: entrar 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .cabecera {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .icono {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--selection-bg);
+    color: var(--primary);
+  }
+
+  .contador {
+    margin-right: auto;
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .cerrar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-alt);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .titulo {
+    margin: 0 0 6px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .texto {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  /* Avance: un segmento por paso */
+  .progreso {
+    display: flex;
+    gap: 4px;
+    margin: 16px 0 14px;
+  }
+
+  .segmento {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+    transition: background 0.3s ease-out;
+
+    &.segmentoHecho {
+      background: var(--primary);
+    }
+  }
+
+  .pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .primario,
+  .secundario,
+  .enlace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out,
+      color 0.15s ease-out,
+      transform 0.1s ease-out;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .primario {
+    padding: 0 16px;
+    background: var(--primary);
+    box-shadow: 0 2px 8px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  .secundario {
+    border-color: var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+  }
+
+  .enlace {
+    padding: 0 6px;
+    background: none;
+    color: var(--text);
+
+    &:hover {
+      color: var(--text-h);
+    }
+  }
+}
+
+@keyframes entrar {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+}
+
+@keyframes pulso {
+  0% {
+    box-shadow: 0 0 0 0 var(--recorrido-halo);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+}
+
+
+/* Teléfono: la tarjeta es una hoja a todo el ancho, arriba o abajo según dónde quede el foco */
+@media (max-width: 640px) {
+  .recorridoGuiado {
+    .tarjeta {
+      top: auto;
+      right: 12px;
+      bottom: 12px;
+      left: 12px;
+      width: auto;
+      transition: opacity 0.2s ease-out;
+    }
+
+    &[data-hoja='arriba'] .tarjeta {
+      top: 12px;
+      bottom: auto;
+    }
+
+    .primario,
+    .secundario,
+    .enlace {
+      height: 44px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recorridoGuiado {
+
+    .foco,
+    .tarjeta {
+      transition: none;
+    }
+
+    .foco::after,
+    .contenido {
+      animation: none;
+    }
+
+    .primario:active,
+    .secundario:active,
+    .enlace:active {
+      transform: none;
+    }
+  }
+}

@@ -1,0 +1,266 @@
+.bienvenidaRecorrido {
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  color: var(--text-h);
+  text-align: left;
+
+  &::backdrop {
+    background: var(--recorrido-velo);
+    backdrop-filter: blur(2px);
+  }
+
+  &[open] {
+    animation: aparecer 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Portada: la misma foto de la mina del login, bajo el degradado de marca */
+  .portada {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    height: 132px;
+    box-sizing: border-box;
+    padding: 18px 22px;
+    background:
+      var(--hero-overlay),
+      center 60% / cover image-set(url('../../assets/Mina_fondo.webp') type('image/webp'), url('../../assets/Mina_fondo.jpg') type('image/jpeg'));
+    color: var(--on-hero);
+  }
+
+  .marca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .logo {
+    width: 40px;
+    height: auto;
+  }
+
+  .perfil {
+    padding: 4px 10px;
+    border: 1px solid var(--hero-rule);
+    border-radius: 999px;
+    background: var(--map-overlay-bg);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .cuerpo {
+    padding: 22px 22px 4px;
+  }
+
+  .antetitulo {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warning-text);
+  }
+
+  .titulo {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .resumen {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  .subtitulo {
+    margin: 20px 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .lista {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-h);
+  }
+
+  .itemIcono {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--selection-bg);
+    color: var(--primary);
+  }
+
+  .pie {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 22px 8px;
+  }
+
+  .duracion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .acciones {
+    display: flex;
+    gap: 8px;
+  }
+
+  .primario,
+  .secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out,
+      transform 0.1s ease-out;
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .secundario {
+    border-color: var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+  }
+
+  .primario {
+    background: var(--primary);
+    box-shadow: 0 2px 8px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  .nota {
+    padding: 0 22px 18px;
+    font-size: 12px;
+    color: var(--text);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    transform: translateY(12px) scale(0.97);
+    opacity: 0;
+  }
+}
+
+
+@media (max-width: 480px) {
+  .bienvenidaRecorrido {
+    .portada {
+      height: 112px;
+      padding: 14px 18px;
+    }
+    
+    .cuerpo {
+      padding: 18px 18px 4px;
+    }
+    
+    .titulo {
+      font-size: 20px;
+    }
+    
+    .pie {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 18px 18px 8px;
+    }
+    
+    .acciones {
+      flex-direction: column-reverse;
+    }
+    
+    .primario,
+    .secundario {
+      height: 46px;
+    }
+    
+    .nota {
+      padding: 0 18px 16px;
+      text-align: center;
+    }
+    
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bienvenidaRecorrido {
+    &[open] {
+      animation: none;
+    }
+
+    .primario,
+    .secundario {
+      &:active {
+        transform: none;
+      }
+    }
+  }
+}

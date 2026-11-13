@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useOutletContext } from 'react-router-dom'
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck, X } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
@@ -110,7 +111,10 @@ function Mapa() {
   // Hora de referencia para descartar posiciones GPS viejas; avanza cada minuto y con cada posición nueva
   const [ahora, setAhora] = useState(() => Date.now())
   const [modo, setModo] = useState('flota')
-  const [contraido, setContraido] = useState(leerContraido)
+  const [preferenciaContraido, setContraido] = useState(leerContraido)
+  // Durante el recorrido guiado el panel se muestra expandido (sin tocar la preferencia guardada)
+  const recorridoActivo = useOutletContext()?.recorridoActivo ?? false
+  const contraido = preferenciaContraido && !recorridoActivo
   const [seleccion, setSeleccion] = useState(null)
   const [destinoDetalle, setDestinoDetalle] = useState(null)
   const [editando, setEditando] = useState(null)
@@ -436,7 +440,7 @@ function Mapa() {
         </span>
       )}
       {sesion?.rol === 'VISOR' && (
-        <span className={styles.chip}>
+        <span className={styles.chip} data-recorrido="solo-lectura">
           <Eye size={14} /> Solo lectura
         </span>
       )}
@@ -556,7 +560,7 @@ function Mapa() {
         )}
       </div>
 
-      <section ref={seccionMapaRef} className={styles.mapa} aria-label="Mapa de la planta">
+      <section ref={seccionMapaRef} className={styles.mapa} aria-label="Mapa de la planta" data-recorrido="mapa">
         {/* Un único control para contraer y expandir, siempre en el mismo lugar: la pestaña del borde.
             Mientras se dibuja una geocerca no se contrae (se perdería el dibujo) */}
         <button
@@ -567,6 +571,7 @@ function Mapa() {
           aria-controls="panel-lateral-mapa"
           aria-label={contraido ? 'Expandir panel lateral' : 'Contraer panel lateral'}
           data-tooltip={contraido ? 'Expandir panel' : 'Contraer panel'}
+          data-recorrido="panel-alternar"
           disabled={!contraido && Boolean(editando)}
         >
           {contraido ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
