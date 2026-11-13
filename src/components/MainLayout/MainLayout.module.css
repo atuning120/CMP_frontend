@@ -135,7 +135,11 @@
     min-width: 0;
   }
 
+  /* El único scroll de las páginas. position: relative lo hace la referencia de los elementos con position: absolute
+     (p. ej. el texto oculto para lectores de pantalla): sin ella se ubican respecto de la página entera, la alargan
+     y aparece un segundo scroll con espacio vacío */
   .content {
+    position: relative;
     min-height: 0;
     overflow: auto;
     background: var(--page-bg);
