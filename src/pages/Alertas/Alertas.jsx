@@ -42,6 +42,8 @@ const ordenar = (a, b) => b.fecha.localeCompare(a.fecha) || b.id.localeCompare(a
  * y se suman arriba, marcadas como nuevas. Cada una se puede atender (y después agregarle notas); lo que atiende otro
  * jefe de turno también llega en tiempo real.
  */
+const REFRESCO_TIEMPOS_MS = 30_000
+
 function Alertas() {
   const [tipo, setTipo] = useState('TODO')
   const [estado, setEstado] = useState('TODAS')
@@ -49,6 +51,13 @@ function Alertas() {
   const [personalizado, setPersonalizado] = useState(() => ({ desde: hoyMasDias(-6), hasta: hoyMasDias(0) }))
   const [recargas, setRecargas] = useState(0)
   const [resultado, setResultado] = useState(RESULTADO_VACIO)
+  // "Detenida hace 3 min", "hace 5 min", "Turno abierto hace…": se calculan al dibujar, así que la página se vuelve a
+  // dibujar cada 30 s para que avancen solas sin esperar otro cambio
+  const [, setReloj] = useState(0)
+  useEffect(() => {
+    const intervalo = setInterval(() => setReloj((n) => n + 1), REFRESCO_TIEMPOS_MS)
+    return () => clearInterval(intervalo)
+  }, [])
   const [cargandoMas, setCargandoMas] = useState(false)
   const [nuevas, setNuevas] = useState(() => new Set())
   const activasQuery = useAlertasActivas(true)
@@ -97,6 +106,18 @@ function Alertas() {
     )
   }, [])
 
+  // Alertas ya listadas que cambiaron de estado (la máquina salió de la falla, el turno se cerró): se reemplazan donde
+  // estén. Se conservan las atenciones más completas, por si una atención llegó por su propio evento antes
+  const aplicarActualizadas = useCallback((actualizadas) => {
+    const porId = new Map(actualizadas.map((a) => [a.id, a]))
+    const conCambios = (a) => {
+      const nueva = porId.get(a.id)
+      if (!nueva) return a
+      return { ...nueva, atenciones: nueva.atenciones.length >= a.atenciones.length ? nueva.atenciones : a.atenciones }
+    }
+    setResultado((r) => (r.alertas.some((a) => porId.has(a.id)) ? { ...r, alertas: r.alertas.map(conCambios) } : r))
+  }, [])
+
   // Alertas en tiempo real: solo caben en un rango que llega hasta ahora, si son del tipo elegido y si el filtro
   // admite pendientes (una alerta nueva nunca está atendida)
   const enVivoRef = useRef({ clave, tipo, estado, rango })
@@ -118,11 +139,12 @@ function Alertas() {
           })
           setNuevas((actuales) => new Set([...actuales, ...caben.map((a) => a.id)]))
         },
+        alActualizar: aplicarActualizadas,
         alAtender: aplicarAtencion,
         // Lo que llegó durante el corte se perdió: se vuelve a pedir la lista
         alReconectar: () => setRecargas((n) => n + 1),
       }),
-    [aplicarAtencion],
+    [aplicarAtencion, aplicarActualizadas],
   )
 
   const cargarMas = useCallback(async () => {
