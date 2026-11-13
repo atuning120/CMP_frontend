@@ -5,6 +5,7 @@ import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import { useAlertasEnVivo } from '../../hooks/alertasEnVivo.js'
 import { useAvisosSegundoPlano } from '../../hooks/avisosSegundoPlano.js'
+import { useRecorridoGuiado } from '../../hooks/recorridoGuiado.js'
 import { useAlertasActivas } from '../../hooks/consultas.js'
 import { puedeGestionarFlota, puedeVerAlertas } from '../../services/flotaService.js'
 import { puedeVerHistorial } from '../../services/historialService.js'
@@ -12,6 +13,9 @@ import { puedeVerDashboards } from '../../services/dashboardsService.js'
 import { salir } from '../../services/authService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import AvisosAlertas from '../AvisosAlertas/AvisosAlertas.jsx'
+import BienvenidaRecorrido from '../BienvenidaRecorrido/BienvenidaRecorrido.jsx'
+import BotonRecorrido from '../BotonRecorrido/BotonRecorrido.jsx'
+import RecorridoGuiado from '../RecorridoGuiado/RecorridoGuiado.jsx'
 import BotonAvisos from '../BotonAvisos/BotonAvisos.jsx'
 import DialogoConfirmacion from '../DialogoConfirmacion/DialogoConfirmacion.jsx'
 import ThemeToggle from '../ThemeToggle/ThemeToggle.jsx'
@@ -46,6 +50,8 @@ function MainLayout() {
   // Y cuando el panel no está a la vista: título, sonido y notificación del navegador
   const avisosSegundoPlano = useAvisosSegundoPlano(conAlertas)
   const activas = useAlertasActivas(conAlertas).data ?? 0
+  // Recorrido guiado del rol: se ofrece en el primer ingreso y se repite desde el botón de ayuda
+  const { recorrido, fase, comenzar, cerrar } = useRecorridoGuiado(sesion)
 
   const handleLogout = () => {
     salir()
@@ -112,6 +118,7 @@ function MainLayout() {
               onDesactivar={avisosSegundoPlano.desactivar}
             />
           )}
+          {recorrido && <BotonRecorrido onClick={comenzar} />}
           <ThemeToggle variante="marca" />
           <span className={styles.user}>
             <span className={styles.avatar} aria-hidden="true">
@@ -148,8 +155,12 @@ function MainLayout() {
 
       {avisos.length > 0 && <AvisosAlertas avisos={avisos} onCerrar={descartarAviso} />}
 
+      {fase === 'bienvenida' && <BienvenidaRecorrido recorrido={recorrido} onComenzar={comenzar} onOmitir={cerrar} />}
+      {fase === 'recorrido' && <RecorridoGuiado pasos={recorrido.pasos} onTerminar={cerrar} />}
+
       <main className={styles.content}>
-        <Outlet />
+        {/* Las páginas leen si el recorrido está en curso (el mapa expande su panel lateral para mostrarlo) */}
+        <Outlet context={{ recorridoActivo: fase === 'recorrido' }} />
       </main>
     </div>
   )
