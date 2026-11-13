@@ -1,5 +1,5 @@
 .bienvenidaRecorrido {
-  width: min(480px, calc(100vw - 32px));
+  width: min(520px, calc(100vw - 32px));
   max-width: none;
   max-height: calc(100svh - 32px);
   margin: auto;
@@ -126,8 +126,10 @@
     color: var(--primary);
   }
 
+  /* Si la duración no cabe junto a los botones, pasa arriba en vez de partirse */
   .pie {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
@@ -140,12 +142,14 @@
     gap: 6px;
     font-size: 13px;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
     color: var(--text);
   }
 
   .acciones {
     display: flex;
     gap: 8px;
+    margin-left: auto;
   }
 
   .primario,
@@ -161,6 +165,7 @@
     font: inherit;
     font-size: 14px;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
     transition:
       background 0.15s ease-out,

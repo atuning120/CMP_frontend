@@ -39,6 +39,7 @@ export function useRecorridoGuiado(sesion) {
     marcarRecorridoVisto(recorrido.id).catch(() => {})
   }
 
+  // Cada paso lleva a su página; aquí solo se parte en la del recorrido para no mostrar la actual un instante
   const comenzar = () => {
     if (!recorrido) return
     if (pathname !== recorrido.ruta) navigate(recorrido.ruta)

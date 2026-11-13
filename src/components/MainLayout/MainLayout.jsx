@@ -77,22 +77,22 @@ function MainLayout() {
             Mapa
           </NavLink>
           {puedeVerDashboards(sesion) && (
-            <NavLink to="/dashboards" className={navLinkClass}>
+            <NavLink to="/dashboards" className={navLinkClass} data-recorrido="nav-dashboards">
               Dashboards
             </NavLink>
           )}
           {puedeGestionarFlota(sesion) && (
-            <NavLink to="/flota" className={navLinkClass}>
+            <NavLink to="/flota" className={navLinkClass} data-recorrido="nav-flota">
               Flota
             </NavLink>
           )}
           {puedeVerHistorial(sesion) && (
-            <NavLink to="/historial" className={navLinkClass}>
+            <NavLink to="/historial" className={navLinkClass} data-recorrido="nav-historial">
               Historial
             </NavLink>
           )}
           {conAlertas && (
-            <NavLink to="/alertas" className={navLinkClass}>
+            <NavLink to="/alertas" className={navLinkClass} data-recorrido="nav-alertas">
               Alertas
               {activas > 0 && (
                 <span className={styles.badge} title={`${activas} alertas activas: operadores con más de 10 h trabajadas o máquinas detenidas por mantención o falla`}>
@@ -156,7 +156,7 @@ function MainLayout() {
       {avisos.length > 0 && <AvisosAlertas avisos={avisos} onCerrar={descartarAviso} />}
 
       {fase === 'bienvenida' && <BienvenidaRecorrido recorrido={recorrido} onComenzar={comenzar} onOmitir={cerrar} />}
-      {fase === 'recorrido' && <RecorridoGuiado pasos={recorrido.pasos} onTerminar={cerrar} />}
+      {fase === 'recorrido' && <RecorridoGuiado recorrido={recorrido} onTerminar={cerrar} />}
 
       <main className={styles.content}>
         {/* Las páginas leen si el recorrido está en curso (el mapa expande su panel lateral para mostrarlo) */}

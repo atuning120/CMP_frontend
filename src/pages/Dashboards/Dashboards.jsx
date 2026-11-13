@@ -58,7 +58,7 @@ function Dashboards() {
             Indicadores de la operación registrada en la app y comparación con el estado de pago mensual del contratista.
           </p>
         </div>
-        <div className={styles.grupo} role="tablist" aria-label="Dashboard">
+        <div className={styles.grupo} role="tablist" aria-label="Dashboard" data-recorrido="dashboards-vistas">
           {VISTAS.map(({ id, etiqueta, icono: Icono }) => (
             <button
               key={id}

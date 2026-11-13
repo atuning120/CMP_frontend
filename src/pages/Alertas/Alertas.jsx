@@ -192,7 +192,7 @@ function Alertas() {
         </button>
       </header>
 
-      <div className={styles.toolbar}>
+      <div className={styles.toolbar} data-recorrido="alertas-filtros">
         <div className={styles.grupo} role="tablist" aria-label="Tipo de alerta">
           {TIPOS.map(({ id, etiqueta, icono: Icono }) => (
             <button

@@ -103,6 +103,10 @@
   }
 
   .contador {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
     margin-right: auto;
     font-size: 12px;
     font-weight: 800;
@@ -110,6 +114,15 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--text);
+  }
+
+  /* Sección del panel en que está el paso (recorridos de varias páginas) */
+  .seccion {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--selection-bg);
+    letter-spacing: 0.04em;
+    color: var(--primary);
   }
 
   .cerrar {
@@ -285,7 +298,8 @@
   .recorridoGuiado {
 
     .foco,
-    .tarjeta {
+    .tarjeta,
+    .segmento {
       transition: none;
     }
 

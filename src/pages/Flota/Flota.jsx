@@ -84,7 +84,12 @@ function Flota() {
           </h1>
           <p className={styles.subtitle}>Incorpora, edita, cambia el estado y reemplaza las máquinas de la planta.</p>
         </div>
-        <button type="button" className={styles.primario} onClick={() => setAccion({ tipo: 'incorporar' })}>
+        <button
+          type="button"
+          className={styles.primario}
+          onClick={() => setAccion({ tipo: 'incorporar' })}
+          data-recorrido="gestion-incorporar"
+        >
           <Plus size={18} /> Incorporar máquina
         </button>
       </header>
@@ -189,7 +194,7 @@ function Flota() {
                 </td>
               </tr>
             )}
-            {visibles.map((m) => {
+            {visibles.map((m, i) => {
               const estado = estadoDe(m)
               const vencido = regresoVencido(m, ahora)
               return (
@@ -237,7 +242,8 @@ function Flota() {
                     {m.respaldo && <span className={styles.secundario}>Cubierta por {m.respaldo.nombre}</span>}
                     {m.cubreA && <span className={styles.respaldoDe}>Respaldo de {m.cubreA.nombre}</span>}
                   </td>
-                  <td className={`${styles.td} ${styles.acciones}`}>
+                  {/* Las acciones de la primera fila son el ejemplo del recorrido guiado */}
+                  <td className={`${styles.td} ${styles.acciones}`} data-recorrido={i === 0 ? 'gestion-acciones' : undefined}>
                     <div className={styles.botones}>
                       <button
                         type="button"

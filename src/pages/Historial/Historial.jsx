@@ -163,6 +163,7 @@ function Historial() {
             type="button"
             className={styles.boton}
             onClick={exportarExcel}
+            data-recorrido="historial-excel"
             disabled={!rango || exportando || (vigente && eventos.length === 0)}
             title="Descargar el historial del rango y tipo elegidos en Excel (no aplica la búsqueda)"
           >
@@ -189,7 +190,7 @@ function Historial() {
         </p>
       )}
 
-      <div className={styles.busqueda}>
+      <div className={styles.busqueda} data-recorrido="historial-busqueda">
         <label className={styles.search}>
           <Search size={16} className={styles.searchIcon} />
           <input
