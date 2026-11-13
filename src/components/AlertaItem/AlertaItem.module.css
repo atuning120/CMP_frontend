@@ -23,6 +23,12 @@
     box-shadow: inset 3px 0 0 var(--acento);
   }
 
+  /* Ya no requiere acción (la máquina salió de la falla, el turno se cerró, el horómetro se regularizó): queda como
+     registro en gris, sin el color de alerta. Va después de los tonos para ganarles */
+  &.terminada {
+    --acento: var(--text);
+  }
+
   /* Llegó por WebSocket mientras la página estaba abierta */
   &.nueva {
     background: color-mix(in srgb, var(--warning) 8%, transparent);

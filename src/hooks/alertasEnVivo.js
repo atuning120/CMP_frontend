@@ -11,8 +11,9 @@ const oyentes = new Set()
 
 /**
  * Recibe las alertas en tiempo real que llegan a la conexión del layout: `alRecibir(nuevas)` con cada lote,
- * `alAtender({ idAlerta, atenciones })` cuando alguien atiende una alerta y `alReconectar()` cuando la conexión
- * vuelve tras un corte (lo que llegó mientras tanto se perdió).
+ * `alActualizar(actualizadas)` con las ya conocidas que cambiaron de estado (p. ej. la máquina salió de la falla: deja
+ * de estar activa), `alAtender({ idAlerta, atenciones })` cuando alguien atiende una alerta y `alReconectar()` cuando
+ * la conexión vuelve tras un corte (lo que llegó mientras tanto se perdió).
  * Devuelve la función para dejar de escuchar.
  */
 export function escucharAlertas(oyente) {
@@ -45,10 +46,19 @@ export function useAlertasEnVivo(habilitado, silenciar) {
   useEffect(() => {
     if (!habilitado) return
     const desuscribir = suscribirAlertas({
-      alRecibir: ({ nuevas, activas }) => {
+      // actualizadas: un Backend anterior no lo manda
+      alRecibir: ({ nuevas, actualizadas = [], activas }) => {
         queryClient.setQueryData(CLAVES.alertasActivas, activas)
         // El contador cambia también cuando un turno extendido se cierra: el mapa vuelve a pedir sus máquinas con alerta
         queryClient.invalidateQueries({ queryKey: CLAVES.alertas, exact: true })
+        if (actualizadas.length > 0) {
+          oyentes.forEach((o) => o.alActualizar?.(actualizadas))
+          // Un aviso emergente a la vista también deja de decir "Activa"
+          const porId = new Map(actualizadas.map((a) => [a.id, a]))
+          setAvisos((actuales) =>
+            actuales.some((a) => porId.has(a.id)) ? actuales.map((a) => porId.get(a.id) ?? a) : actuales,
+          )
+        }
         if (nuevas.length === 0) return
         oyentes.forEach((o) => o.alRecibir(nuevas))
         if (silenciarRef.current) return
