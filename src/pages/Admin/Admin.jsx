@@ -169,12 +169,17 @@ function Admin() {
           </h1>
           <p className={styles.subtitle}>Crea y edita cuentas, restablece contraseñas y asigna roles.</p>
         </div>
-        <button type="button" className={styles.primario} onClick={() => setFormulario('nuevo')}>
+        <button
+          type="button"
+          className={styles.primario}
+          onClick={() => setFormulario('nuevo')}
+          data-recorrido="admin-nuevo"
+        >
           <Plus size={18} /> Nuevo usuario
         </button>
       </header>
 
-      <p className={styles.nota}>
+      <p className={styles.nota} data-recorrido="admin-roles">
         <Info size={16} className={styles.notaIcono} />
         {/* En un span: dentro del flex, el texto y el <strong> serían columnas separadas */}
         <span>

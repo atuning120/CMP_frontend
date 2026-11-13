@@ -418,7 +418,7 @@ function Mapa() {
       </span>
       {/* Qué muestra la columna izquierda: la flota o, para un administrador, la edición de geocercas */}
       {admin && (
-        <span className={styles.modos} role="radiogroup" aria-label="Contenido del panel lateral">
+        <span className={styles.modos} role="radiogroup" aria-label="Contenido del panel lateral" data-recorrido="mapa-modos">
           <button
             type="button"
             role="radio"

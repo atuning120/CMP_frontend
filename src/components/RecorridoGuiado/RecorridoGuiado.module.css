@@ -54,7 +54,7 @@
     position: absolute;
     top: var(--tarjeta-y, 50%);
     left: var(--tarjeta-x, 50%);
-    width: min(360px, calc(100vw - 24px));
+    width: min(380px, calc(100vw - 24px));
     box-sizing: border-box;
     padding: 18px 18px 16px;
     border: 1px solid var(--border);
@@ -121,7 +121,7 @@
     padding: 2px 8px;
     border-radius: 999px;
     background: var(--selection-bg);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: var(--primary);
   }
 

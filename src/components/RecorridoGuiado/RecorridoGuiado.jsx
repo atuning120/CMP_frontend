@@ -124,10 +124,15 @@ function RecorridoGuiado({ recorrido, onTerminar }) {
       const encontrado = buscarObjetivo(paso.objetivo)
       const el = encontrado?.el
       if (el) {
+        // Fuera de la pantalla en vertical: al centro. Si no, 'nearest' solo mueve lo justo, también dentro de
+        // contenedores con scroll propio que lo recortan (p. ej. la fila de pestañas del teléfono)
         const r = el.getBoundingClientRect()
-        if (r.top < 0 || r.bottom > innerHeight || r.left < 0 || r.right > innerWidth) {
-          el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: sinMovimiento() ? 'auto' : 'smooth' })
-        }
+        const fueraVertical = r.top < 0 || r.bottom > innerHeight
+        el.scrollIntoView({
+          block: fueraVertical ? 'center' : 'nearest',
+          inline: 'nearest',
+          behavior: sinMovimiento() ? 'auto' : 'smooth',
+        })
         navegandoRef.current = false
         setObjetivo(el)
         return

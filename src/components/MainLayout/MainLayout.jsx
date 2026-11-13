@@ -103,7 +103,7 @@ function MainLayout() {
             </NavLink>
           )}
           {esAdmin(sesion) && (
-            <NavLink to="/admin" className={navLinkClass}>
+            <NavLink to="/admin" className={navLinkClass} data-recorrido="nav-admin">
               Administración
             </NavLink>
           )}
