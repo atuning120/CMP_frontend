@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { TerraDraw, TerraDrawPolygonMode, TerraDrawSelectMode } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
-import { aUtm, CENTRO_VISTA_INICIAL, puntoInterior } from '../../pages/Mapa/geo.js'
+import { aUtm, CENTRO_VISTA_INICIAL, puntoBordeNorte, puntoInterior } from '../../pages/Mapa/geo.js'
 import Skeleton from '../Skeleton/Skeleton.jsx'
 import puntoEstado from '../PuntoEstado/PuntoEstado.module.css'
 import styles from './MapaPlanta.module.css'
@@ -358,8 +358,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
     areas.forEach((a) => {
       if (!a.poligono || (editando?.tipo === 'area' && editando.id === a.idArea)) return
       // Etiqueta del área sobre su borde norte
-      const [oeste, , este, norte] = bbox(a.poligono)
-      etiqueta(a.nombre, styles.areaLabel, [(oeste + este) / 2, norte], 'bottom', () =>
+      etiqueta(a.nombre, styles.areaLabel, puntoBordeNorte(a.poligono), 'bottom', () =>
         onSeleccionarRef.current({ tipo: 'area', id: a.idArea }),
       )
     })

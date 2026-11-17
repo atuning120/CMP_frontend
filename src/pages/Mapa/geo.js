@@ -54,6 +54,28 @@ export const distanciaKm = ([lon1, lat1], [lon2, lat2]) => {
 // Punto garantizado dentro del polígono (el centroide puede caer fuera en formas cóncavas)
 export const puntoInterior = (poligono) => pointOnFeature(poligono).geometry.coordinates
 
+// Latitudes donde la vertical de longitud `lon` corta los bordes del polígono
+const crucesVerticales = (poligono, lon) =>
+  poligono.coordinates.flatMap((anillo) =>
+    anillo.slice(1).flatMap((b, i) => {
+      const a = anillo[i]
+      if (a[0] === b[0]) return a[0] === lon ? [a[1], b[1]] : []
+      if ((a[0] - lon) * (b[0] - lon) > 0) return []
+      return [a[1] + ((lon - a[0]) / (b[0] - a[0])) * (b[1] - a[1])]
+    }),
+  )
+
+/**
+ * Punto del borde norte del polígono donde va su etiqueta: el borde más alto en la longitud central del
+ * polígono (esa vertical siempre lo corta). No usa el norte del bbox: en un polígono diagonal esa esquina
+ * queda lejos de la forma.
+ */
+export function puntoBordeNorte(poligono) {
+  const lons = poligono.coordinates[0].map(([lon]) => lon)
+  const lon = (Math.min(...lons) + Math.max(...lons)) / 2
+  return [lon, Math.max(...crucesVerticales(poligono, lon))]
+}
+
 const dentroDeFaena = ([lon, lat]) => {
   const { zona, hemisferio, este, norte } = aUtm(lon, lat)
   const { este: [oeste, esteMax], norte: [sur, norteMax] } = LIMITE_FAENA
