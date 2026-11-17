@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { actualizarGps, aUtm, estadoMaquina, fueraDeFaena, malUbicado, posicionarMaquinas, puntoInterior } from './geo.js'
+import {
+  actualizarGps,
+  aUtm,
+  estadoMaquina,
+  fueraDeFaena,
+  malUbicado,
+  posicionarMaquinas,
+  puntoBordeNorte,
+  puntoInterior,
+} from './geo.js'
 
 const cuadrado = (lon, lat, lado = 0.002) => ({
   type: 'Polygon',
@@ -61,6 +70,32 @@ describe('fueraDeFaena', () => {
 
   it('sin polígono no se considera fuera', () => {
     expect(fueraDeFaena(null)).toBe(false)
+  })
+})
+
+describe('puntoBordeNorte', () => {
+  it('en un cuadrado queda al centro del borde norte', () => {
+    const [lon, lat] = puntoBordeNorte(cuadrado(0, 0, 2))
+    expect(lon).toBeCloseTo(1)
+    expect(lat).toBeCloseTo(2)
+  })
+
+  it('en un polígono diagonal queda sobre el borde y no en la esquina norte del bbox', () => {
+    // Franja delgada del suroeste al noreste
+    const diagonal = { type: 'Polygon', coordinates: [[[0, 0], [10, 9], [10, 10], [0, 1], [0, 0]]] }
+    const [lon, lat] = puntoBordeNorte(diagonal)
+    expect(lon).toBeCloseTo(5)
+    expect(lat).toBeCloseTo(5.5)
+  })
+
+  it('en una forma en U abierta al norte queda en el fondo de la U, sobre el borde', () => {
+    const u = {
+      type: 'Polygon',
+      coordinates: [[[0, 0], [10, 0], [10, 10], [8, 10], [8, 2], [2, 2], [2, 10], [0, 10], [0, 0]]],
+    }
+    const [lon, lat] = puntoBordeNorte(u)
+    expect(lon).toBeCloseTo(5)
+    expect(lat).toBeCloseTo(2)
   })
 })
 
