@@ -201,7 +201,7 @@ function CargaEstadoPago({ onCerrar, onCargado }) {
               />
             </label>
           </div>
-          <span className={styles.ayuda}>Días que cubre el EP (ambos incluidos). Se propone del 26 del mes anterior al 25 del mes.</span>
+          <span className={styles.ayuda}>Días que cubre el EP (ambos incluidos). Se propone del 25 del mes anterior al 26 del mes.</span>
         </Paso>
 
         <Paso numero={2} titulo="Archivo Excel" estado={archivo ? 'completo' : 'pendiente'}>
