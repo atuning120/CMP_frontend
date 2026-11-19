@@ -33,6 +33,35 @@
     border-bottom: 1px solid var(--border);
   }
 
+  .icono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--selection-bg);
+    color: var(--primary);
+  }
+
+  .encabezado {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .etiqueta {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--selection-bg);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
   .titulo {
     margin: 0 0 2px;
     font-size: 19px;
