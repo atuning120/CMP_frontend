@@ -369,7 +369,7 @@ function VistaPrevia({ vista, periodo }) {
             </caption>
             <thead>
               <tr>
-                <th scope="col" className={styles.celdaTitulo}>Equipo</th>
+                <th scope="col" className={styles.celdaTitulo}>N° Interno</th>
                 <th scope="col" className={`${styles.celdaTitulo} ${styles.numero}`}>Registros</th>
                 <th scope="col" className={`${styles.celdaTitulo} ${styles.numero}`}>Horas</th>
               </tr>
@@ -390,19 +390,14 @@ function VistaPrevia({ vista, periodo }) {
         </div>
       )}
 
-      {(sinFlota.length > 0 || vista.actividadesSinArea.length > 0) && (
+      {sinFlota.length > 0 && (
         <div className={styles.bloqueInfo}>
           <Info size={16} className={styles.bloqueIcono} />
           <div>
-            {sinFlota.length > 0 && (
-              <p className={styles.parrafo}>
-                {sinFlota.length === 1 ? 'Un equipo no coincide' : `${sinFlota.length} equipos no coinciden`} con el código
-                interno de ninguna máquina: se cargan igual, pero en la comparación aparecerán solo en el Excel.
-              </p>
-            )}
-            {vista.actividadesSinArea.length > 0 && (
-              <p className={styles.parrafo}>Actividades sin área en la app: {vista.actividadesSinArea.join(', ')}. Se cargan igual, sin área asociada.</p>
-            )}
+            <p className={styles.parrafo}>
+              {sinFlota.length === 1 ? 'Un N° Interno no coincide' : `${sinFlota.length} N° Interno no coinciden`} con el
+              código de ninguna máquina de la flota: se cargan igual. Revisa que no estén mal escritos.
+            </p>
           </div>
         </div>
       )}

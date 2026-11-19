@@ -63,7 +63,7 @@ const formularioCarga = ({ periodo, fechaDesde, fechaHasta, archivo }, reemplaza
 }
 
 /**
- * Revisa el Excel sin guardarlo: { filasValidas, horas, equipos, actividadesSinArea, errores, totalErrores,
+ * Revisa el Excel sin guardarlo: { filasValidas, horas, equipos, errores, totalErrores,
  * cargaExistente, puedeConfirmar, ... }
  */
 export const previsualizarCargaEp = (carga) =>
