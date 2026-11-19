@@ -55,7 +55,7 @@ function Dashboards() {
             Dashboards
           </h1>
           <p className={styles.subtitle}>
-            Indicadores de la operación registrada en la app y comparación con el estado de pago mensual del contratista.
+            Indicadores de la operación registrada en la app y del estado de pago mensual del contratista.
           </p>
         </div>
         <div className={styles.grupo} role="tablist" aria-label="Dashboard" data-recorrido="dashboards-vistas">
@@ -122,8 +122,8 @@ function Dashboards() {
               <p className={styles.vacioTitulo}>Aún no hay estados de pago cargados</p>
               <p className={styles.vacioTexto}>
                 {puedeCargar
-                  ? 'Sube el Excel mensual del contratista para compararlo con las horas registradas en la app.'
-                  : 'Cuando un jefe de turno o administrador suba el Excel del mes, la comparación aparecerá aquí.'}
+                  ? 'Sube el Excel mensual del contratista para ver sus indicadores.'
+                  : 'Cuando un jefe de turno o administrador suba el Excel del mes, sus indicadores aparecerán aquí.'}
               </p>
             </div>
           )}
