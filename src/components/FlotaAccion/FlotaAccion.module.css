@@ -54,7 +54,7 @@
     }
   }
 
-  /* Editar: secciones numeradas como en la app (estado, datos, justificación) */
+  /* Secciones numeradas como en la app (datos, operador, justificación…) */
   .seccion {
     display: flex;
     flex-direction: column;
@@ -70,6 +70,8 @@
     align-items: center;
     gap: 8px;
     margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.06em;
@@ -105,13 +107,268 @@
     color: var(--text-tertiary);
   }
 
-  .check {
+  .contador {
+    align-self: flex-end;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-tertiary);
+  }
+
+  /* Valor con su unidad dentro del campo (horómetro en horas) */
+  .conUnidad {
+    position: relative;
+    display: block;
+
+    .input {
+      padding-right: 32px;
+      appearance: textfield;
+    }
+
+    .input::-webkit-inner-spin-button,
+    .input::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+  }
+
+  .unidad {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  /* Origen de los datos: dos tarjetas como en la app (desde cero o desde un modelo registrado) */
+  .origenes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .origen {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    background: var(--surface);
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease-out,
+      background 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:has(:focus-visible) {
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .origenActivo {
+    border-color: var(--primary);
+    background: var(--selection-bg);
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    .origenIcono {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .origenTitulo {
+      color: var(--primary);
+    }
+  }
+
+  .origenIcono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  .origenTextos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .origenTitulo {
+    font-size: 14px;
+    color: var(--text-h);
+  }
+
+  .origenDetalle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* Modelos registrados ("Datos previos") */
+  .plantillas {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px dashed var(--input-border);
+    border-radius: 12px;
+  }
+
+  .plantillasAyuda {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+  }
+
+  .plantillasLista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    max-height: 196px;
+    overflow-y: auto;
+  }
+
+  .plantilla {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 14px;
-    color: var(--text-h);
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    text-align: left;
     cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .plantillaAplicada {
+    border-color: var(--primary);
+    background: var(--selection-bg);
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    .plantillaNombre {
+      color: var(--primary);
+    }
+  }
+
+  .plantillaIcono {
+    flex: none;
+    color: var(--primary);
+  }
+
+  .plantillaTextos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .plantillaNombre,
+  .plantillaTipo {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .plantillaNombre {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .plantillaTipo {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* Contratista: interruptor como el de la app */
+  .interruptor {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    cursor: pointer;
+  }
+
+  .interruptorTextos {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .interruptorTitulo {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-h);
+  }
+
+  .switch {
+    position: relative;
+    flex: none;
+    width: 40px;
+    height: 22px;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--input-border-hover);
+    appearance: none;
+    cursor: pointer;
+    transition: background 0.15s ease-out;
+
+    &::before {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      content: '';
+      transition: transform 0.15s ease-out;
+    }
+
+    &:checked {
+      background: var(--primary);
+    }
+
+    &:checked::before {
+      transform: translateX(18px);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
   }
 
   .aviso {
@@ -440,6 +697,10 @@
     .cambioFlecha {
       justify-self: center;
       transform: rotate(90deg);
+    }
+
+    .origenes {
+      grid-template-columns: 1fr;
     }
   }
 }

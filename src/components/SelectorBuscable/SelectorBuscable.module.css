@@ -1,0 +1,269 @@
+.selectorBuscable {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+
+  .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-h);
+  }
+
+  .campo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 6px 0 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface-alt);
+    transition:
+      border-color 0.15s ease-out,
+      box-shadow 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .campoAbierto {
+    border-color: var(--primary);
+    background: var(--surface);
+
+    .lupa {
+      color: var(--primary);
+    }
+
+    .chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  .lupa {
+    flex: none;
+    color: var(--text-tertiary);
+  }
+
+  .input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 14px;
+    color: var(--text-h);
+    caret-color: var(--primary);
+    text-overflow: ellipsis;
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .icono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--selection-bg);
+      color: var(--text-h);
+    }
+
+    &.chevron {
+      transition: transform 0.15s ease-out;
+    }
+  }
+
+  .ayuda {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* Flota sobre el formulario: la posición la calcula el componente (variables --arriba, --izquierda…) */
+  .lista {
+    position: fixed;
+    top: var(--arriba, auto);
+    bottom: var(--abajo, auto);
+    left: var(--izquierda, 0);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: var(--ancho, auto);
+    max-height: min(var(--alto-maximo, 340px), 340px);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow-raised);
+    animation: desplegar 0.12s ease-out;
+  }
+
+  .encabezado {
+    display: flex;
+    justify-content: space-between;
+    flex: none;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-alt);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+
+  .opciones {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+  }
+
+  .opcion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &.opcionActiva {
+      background: var(--surface-alt);
+    }
+
+    &.opcionElegida {
+      background: var(--selection-bg);
+      font-weight: 600;
+      color: var(--primary);
+    }
+  }
+
+  .opcionTextos {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .opcionEtiqueta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .opcionDescripcion {
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .resaltado {
+    background: none;
+    font-weight: 800;
+    color: var(--primary);
+  }
+
+  .check {
+    flex: none;
+    color: var(--primary);
+  }
+
+  .estado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 16px;
+    font-size: 13px;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .estadoIcono {
+    color: var(--text-tertiary);
+  }
+
+  .accion {
+    display: flex;
+    align-items: center;
+    flex: none;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: left;
+    cursor: pointer;
+
+    &.accionActiva {
+      background: var(--selection-bg);
+    }
+  }
+
+  .accionIcono {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--selection-bg);
+  }
+
+  .accionConsulta {
+    overflow: hidden;
+    font-weight: 400;
+    color: var(--text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@keyframes desplegar {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selectorBuscable {
+    .lista {
+      animation: none;
+    }
+  }
+}

@@ -6,8 +6,9 @@ import styles from './PanelLateral.module.css'
  * Panel lateral modal (<dialog> nativo: foco dentro del panel, Esc para cerrar y fondo inerte).
  * Se monta abierto; el padre lo desmonta en onCerrar.
  * confirmar: { texto, form, variante: 'primario' | 'ambar', ocupado } -> botón submit del form indicado
+ * icono (opcional): elemento que acompaña al título; etiqueta (opcional): texto breve sobre el título (p. ej. el rol)
  */
-function PanelLateral({ titulo, subtitulo, onCerrar, children, confirmar }) {
+function PanelLateral({ titulo, subtitulo, icono, etiqueta, onCerrar, children, confirmar }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -27,7 +28,9 @@ function PanelLateral({ titulo, subtitulo, onCerrar, children, confirmar }) {
       }}
     >
       <header className={styles.header}>
-        <div>
+        {icono && <span className={styles.icono}>{icono}</span>}
+        <div className={styles.encabezado}>
+          {etiqueta && <span className={styles.etiqueta}>{etiqueta}</span>}
           <h2 id="panel-lateral-titulo" className={styles.titulo}>
             {titulo}
           </h2>

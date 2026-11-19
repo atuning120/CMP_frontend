@@ -1,8 +1,26 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Activity, AlertCircle, AlertTriangle, ArrowRight, Check, ClipboardList, Info, PlusCircle, Truck, UserRound } from 'lucide-react'
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  ArrowLeftRight,
+  ArrowRight,
+  Check,
+  ClipboardList,
+  Copy,
+  Info,
+  Pencil,
+  PlusCircle,
+  Truck,
+  Undo2,
+  UserRound,
+  Zap,
+} from 'lucide-react'
 import PanelLateral from '../PanelLateral/PanelLateral.jsx'
 import SelectorEstado from '../SelectorEstado/SelectorEstado.jsx'
+import SelectorBuscable from '../SelectorBuscable/SelectorBuscable.jsx'
+import SelectorConCreacion from '../SelectorConCreacion/SelectorConCreacion.jsx'
 import {
   cerrarTurnoDeMaquina,
   crearMaquina,
@@ -87,6 +105,14 @@ const aLocal = (fecha) => {
 }
 const aIso = (local) => (local ? new Date(local).toISOString() : null)
 const esFutura = (local) => new Date(local).getTime() > Date.now()
+
+// Ícono del encabezado del panel, el mismo del botón de cada acción
+const ICONOS = {
+  incorporar: <PlusCircle size={20} />,
+  editar: <Pencil size={20} />,
+  reemplazar: <ArrowLeftRight size={20} />,
+  devolver: <Undo2 size={20} />,
+}
 
 // Respaldos posibles en un reemplazo (como en la app): no en mantenimiento ni cubriendo ya a otra. Primero los de
 // respaldo (en reserva o fuera de servicio), que quedan operativos al entrar
@@ -214,72 +240,181 @@ function ListaCandidatas({ candidatas, valor, onCambio, onNueva }) {
   )
 }
 
-const etiquetaOperador = (op, idMaquina) =>
-  `${op.nombre} · ${op.rut}${op.maquinaAsignada && op.maquinaAsignada.idMaquina !== idMaquina ? ` (hoy en ${op.maquinaAsignada.nombre})` : ''}`
+// Un valor que no está en la lista (sin importar mayúsculas) se escribe como opción nueva
+const existeEn = (opciones, valor) => opciones.some((o) => o.toUpperCase() === valor.trim().toUpperCase())
+const esNuevo = (opciones, valor) => valor.trim() !== '' && !existeEn(opciones, valor)
+
+const ORIGENES = [
+  { valor: 'NUEVO', titulo: 'Desde cero', detalle: 'Formulario en blanco', Icono: PlusCircle },
+  { valor: 'PLANTILLA', titulo: 'Datos previos', detalle: 'Parte de un modelo registrado', Icono: Copy },
+]
+
+/** "Datos previos" como en la app: un modelo registrado rellena tipo, marca y modelo con un clic. */
+function OrigenDatos({ modelos, ficha, onAplicar }) {
+  const [origen, setOrigen] = useState('NUEVO')
+  return (
+    <div className={styles.grupo}>
+      <div className={styles.origenes} role="radiogroup" aria-label="Origen de los datos">
+        {ORIGENES.map(({ valor, titulo, detalle, Icono }) => (
+          <label key={valor} className={origen === valor ? `${styles.origen} ${styles.origenActivo}` : styles.origen}>
+            <input type="radio" name="origen-datos" className={styles.radio} checked={origen === valor} onChange={() => setOrigen(valor)} />
+            <span className={styles.origenIcono}>
+              <Icono size={18} />
+            </span>
+            <span className={styles.origenTextos}>
+              <strong className={styles.origenTitulo}>{titulo}</strong>
+              <span className={styles.origenDetalle}>{detalle}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+      {origen === 'PLANTILLA' && (
+        <div className={styles.plantillas}>
+          <span className={styles.plantillasAyuda}>Modelos registrados · un clic rellena tipo, marca y modelo</span>
+          <div className={styles.plantillasLista}>
+            {modelos.map((m) => {
+              const aplicada = ficha.marca === m.marca && ficha.modelo === m.modelo && ficha.tipoMaquina === m.tipoMaquina
+              return (
+                <button
+                  key={m.idModelo}
+                  type="button"
+                  aria-pressed={aplicada}
+                  className={aplicada ? `${styles.plantilla} ${styles.plantillaAplicada}` : styles.plantilla}
+                  onClick={() => onAplicar(m)}
+                >
+                  {aplicada ? <Check size={15} className={styles.plantillaIcono} /> : <Zap size={15} className={styles.plantillaIcono} />}
+                  <span className={styles.plantillaTextos}>
+                    <span className={styles.plantillaNombre}>{m.nombre}</span>
+                    <span className={styles.plantillaTipo}>{m.tipoMaquina}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 /**
  * Campos de la ficha de una máquina (incorporar, editar o máquina nueva de un reemplazo).
  * obligatorios: patente, tipo, marca y modelo con * (editar, como en la app).
  * horometroActual: al editar se muestra de solo lectura (se actualiza con los turnos).
+ * alGuardar: cuándo se registran una marca o un tipo nuevos (texto de ayuda).
  */
-function CamposFicha({ ficha, onCambio, catalogos, conHorometro, conPlantilla, obligatorios = false, horometroActual }) {
+function CamposFicha({
+  ficha,
+  onCambio,
+  catalogos,
+  conHorometro,
+  conPlantilla,
+  obligatorios = false,
+  horometroActual,
+  alGuardar = 'al incorporar la máquina',
+}) {
   const req = obligatorios ? ' *' : ''
   const set = (campo) => (e) =>
     onCambio({ ...ficha, [campo]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
+  const setValor = (campo) => (valor) => onCambio({ ...ficha, [campo]: valor })
 
-  // "Datos previos": un modelo del catálogo pre-carga tipo, marca y modelo
-  const aplicarPlantilla = (e) => {
-    const modelo = catalogos.modelos.find((m) => String(m.idModelo) === e.target.value)
-    if (modelo) onCambio({ ...ficha, tipoMaquina: modelo.tipoMaquina, marca: modelo.marca, modelo: modelo.modelo })
+  // Marca o tipo nuevo: el campo pasa a texto libre y el Backend lo registra al guardar. Un valor que no está en
+  // el catálogo (p. ej. al editar una máquina antigua) también se muestra así
+  const [creandoMarca, setCreandoMarca] = useState(false)
+  const [creandoTipo, setCreandoTipo] = useState(false)
+
+  const aplicarPlantilla = (modelo) => {
+    setCreandoMarca(false)
+    setCreandoTipo(false)
+    // El horómetro es propio de cada máquina: la plantilla no lo toca
+    onCambio({ ...ficha, tipoMaquina: modelo.tipoMaquina, marca: modelo.marca, modelo: modelo.modelo })
   }
 
   return (
     <div className={styles.grupo}>
       {conPlantilla && catalogos.modelos.length > 0 && (
-        <label className={styles.campo}>
-          <span className={styles.label}>Datos previos (opcional)</span>
-          <select className={styles.input} defaultValue="" onChange={aplicarPlantilla}>
-            <option value="">Elegir un modelo registrado…</option>
-            {catalogos.modelos.map((m) => (
-              <option key={m.idModelo} value={m.idModelo}>
-                {m.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
+        <OrigenDatos modelos={catalogos.modelos} ficha={ficha} onAplicar={aplicarPlantilla} />
       )}
       <div className={styles.dosColumnas}>
         <label className={styles.campo}>
           <span className={styles.label}>Código interno *</span>
-          <input className={`${styles.input} ${styles.mayusculas}`} value={ficha.nombre} onChange={set('nombre')} maxLength={100} required placeholder="CF-07" />
+          <input className={`${styles.input} ${styles.mayusculas}`} value={ficha.nombre} onChange={set('nombre')} maxLength={100} required placeholder="Ej. CF-07" />
         </label>
         <label className={styles.campo}>
           <span className={styles.label}>Patente{req}</span>
-          <input className={`${styles.input} ${styles.mayusculas}`} value={ficha.patente} onChange={set('patente')} maxLength={15} />
+          <input className={`${styles.input} ${styles.mayusculas}`} value={ficha.patente} onChange={set('patente')} maxLength={15} placeholder="Ej. AABB11" />
         </label>
       </div>
-      <label className={styles.campo}>
-        <span className={styles.label}>Tipo de máquina{req}</span>
-        <input className={styles.input} value={ficha.tipoMaquina} onChange={set('tipoMaquina')} maxLength={50} list="flota-tipos" placeholder="Cargador Frontal" />
-      </label>
+      <SelectorConCreacion
+        etiqueta={`Tipo de máquina${req}`}
+        etiquetaNueva={`Nuevo tipo de máquina${req}`}
+        placeholder="Buscar o seleccionar tipo…"
+        placeholderNuevo="Ej. Pala hidráulica"
+        textoCrear="Crear nuevo tipo de máquina"
+        ayudaNueva={`Se guardará como tipo nuevo, junto con la marca y el modelo, ${alGuardar}.`}
+        vacio="Aún no hay tipos de máquina registrados"
+        opciones={catalogos.tipos}
+        valor={ficha.tipoMaquina}
+        onCambio={setValor('tipoMaquina')}
+        creando={creandoTipo || esNuevo(catalogos.tipos, ficha.tipoMaquina)}
+        onCreandoCambio={setCreandoTipo}
+      />
+      <SelectorConCreacion
+        etiqueta={`Marca${req}`}
+        etiquetaNueva={`Nueva marca${req}`}
+        placeholder="Buscar o seleccionar marca…"
+        placeholderNuevo="Ej. Liebherr"
+        textoCrear="Crear nueva marca"
+        ayudaNueva={`Se guardará como marca nueva, junto con el modelo y el tipo, ${alGuardar}.`}
+        vacio="Aún no hay marcas registradas"
+        opciones={catalogos.marcas}
+        valor={ficha.marca}
+        onCambio={setValor('marca')}
+        creando={creandoMarca || esNuevo(catalogos.marcas, ficha.marca)}
+        onCreandoCambio={setCreandoMarca}
+      />
       <div className={styles.dosColumnas}>
         <label className={styles.campo}>
-          <span className={styles.label}>Marca{req}</span>
-          <input className={styles.input} value={ficha.marca} onChange={set('marca')} maxLength={50} list="flota-marcas" />
+          <span className={styles.label}>Modelo y versión{req}</span>
+          <input className={styles.input} value={ficha.modelo} onChange={set('modelo')} maxLength={50} placeholder="Ej. 992K" />
         </label>
         <label className={styles.campo}>
-          <span className={styles.label}>Modelo{req}</span>
-          <input className={styles.input} value={ficha.modelo} onChange={set('modelo')} maxLength={50} />
+          <span className={styles.label}>Año de fabricación</span>
+          <input
+            className={styles.input}
+            type="number"
+            inputMode="numeric"
+            min={1950}
+            max={new Date().getFullYear() + 1}
+            value={ficha.anio}
+            onChange={set('anio')}
+            placeholder="Opcional"
+          />
         </label>
       </div>
-      <div className={styles.dosColumnas}>
+      <div className={conHorometro ? styles.dosColumnas : styles.grupo}>
+        {conHorometro && (
+          <label className={styles.campo}>
+            <span className={styles.label}>Horómetro inicial *</span>
+            <span className={styles.conUnidad}>
+              <input
+                className={styles.input}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.1"
+                value={ficha.horometroInicial}
+                onChange={set('horometroInicial')}
+                required
+                placeholder="0,0"
+              />
+              <span className={styles.unidad}>h</span>
+            </span>
+          </label>
+        )}
         <label className={styles.campo}>
-          <span className={styles.label}>Año</span>
-          <input className={styles.input} type="number" inputMode="numeric" min={1950} max={new Date().getFullYear() + 1} value={ficha.anio} onChange={set('anio')} />
-        </label>
-        <label className={styles.campo}>
-          <span className={styles.label}>N° de chasis</span>
-          <input className={styles.input} value={ficha.numeroChasis} onChange={set('numeroChasis')} maxLength={50} />
+          <span className={styles.label}>N° chasis / serie (VIN)</span>
+          <input className={styles.input} value={ficha.numeroChasis} onChange={set('numeroChasis')} maxLength={50} placeholder="Opcional" />
         </label>
       </div>
       {horometroActual !== undefined && (
@@ -293,52 +428,65 @@ function CamposFicha({ ficha, onCambio, catalogos, conHorometro, conPlantilla, o
           <span className={styles.ayuda}>Se actualiza con los turnos de los operadores.</span>
         </label>
       )}
-      {conHorometro && (
-        <label className={styles.campo}>
-          <span className={styles.label}>Horómetro inicial (h) *</span>
-          <input className={styles.input} type="number" inputMode="decimal" min={0} step="0.1" value={ficha.horometroInicial} onChange={set('horometroInicial')} required />
-        </label>
-      )}
-      <label className={styles.check}>
-        <input type="checkbox" checked={ficha.esContratista} onChange={set('esContratista')} />
-        Equipo de contratista
+      <label className={styles.interruptor}>
+        <span className={styles.interruptorTextos}>
+          <span className={styles.interruptorTitulo}>Equipo de contratista / arriendo</span>
+          <span className={styles.ayuda}>Pertenece a una empresa externa a la planta.</span>
+        </span>
+        <input type="checkbox" role="switch" className={styles.switch} checked={ficha.esContratista} onChange={set('esContratista')} />
       </label>
-      <datalist id="flota-tipos">
-        {catalogos.tipos.map((t) => (
-          <option key={t} value={t} />
-        ))}
-      </datalist>
-      <datalist id="flota-marcas">
-        {catalogos.marcas.map((m) => (
-          <option key={m} value={m} />
-        ))}
-      </datalist>
     </div>
   )
 }
 
 /** Operador asignado. En un reemplazo, 'mantener' = el de la saliente pasa a la entrante. */
 function CampoOperador({ valor, onCambio, operadores, maquina, conMantener }) {
+  const opciones = useMemo(
+    () => [
+      ...(conMantener
+        ? [
+            {
+              clave: 'mantener',
+              etiqueta: `Mantener el de ${maquina.nombre}`,
+              descripcion: maquina.operadorAsignado?.nombre ?? 'Sin operador',
+            },
+          ]
+        : []),
+      { clave: '', etiqueta: 'Sin operador', descripcion: 'La máquina queda sin operador asignado' },
+      ...operadores.map((op) => ({
+        clave: String(op.idOperador),
+        etiqueta: op.nombre,
+        descripcion: [
+          op.rut,
+          op.maquinaAsignada && op.maquinaAsignada.idMaquina !== maquina?.idMaquina ? `hoy en ${op.maquinaAsignada.nombre}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      })),
+    ],
+    [operadores, maquina, conMantener],
+  )
   return (
-    <label className={styles.campo}>
-      <span className={styles.label}>Operador asignado</span>
-      <select className={styles.input} value={valor} onChange={(e) => onCambio(e.target.value)}>
-        {conMantener && (
-          <option value="mantener">
-            Mantener el de {maquina.nombre} ({maquina.operadorAsignado?.nombre ?? 'sin operador'})
-          </option>
-        )}
-        <option value="">Sin operador</option>
-        {operadores.map((op) => (
-          <option key={op.idOperador} value={op.idOperador}>
-            {etiquetaOperador(op, maquina?.idMaquina)}
-          </option>
-        ))}
-      </select>
-      <span className={styles.ayuda}>Si el operador estaba a cargo de otra máquina, pasa a esta.</span>
-    </label>
+    <SelectorBuscable
+      etiqueta="Operador asignado"
+      placeholder="Buscar operador por nombre…"
+      opciones={opciones}
+      valor={valor}
+      onCambio={(v) => onCambio(v ?? '')}
+      claveDe={claveOpcion}
+      etiquetaDe={etiquetaOpcion}
+      descripcionDe={descripcionOpcion}
+      vacio="No hay operadores asignables"
+      ayuda="Si el operador estaba a cargo de otra máquina, pasa a esta."
+      limpiable={false}
+    />
   )
 }
+
+// Accesores estables para SelectorBuscable (evitan recalcular la búsqueda en cada render)
+const claveOpcion = (o) => o.clave
+const etiquetaOpcion = (o) => o.etiqueta
+const descripcionOpcion = (o) => o.descripcion
 
 /**
  * Formularios de gestión de la flota en un panel lateral. accion: { tipo, maquina? } con tipo
@@ -409,8 +557,8 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
 
   // Reemplazar: la candidata elegida, para el resumen "sale → entra"
   const elegida = candidatas.find((m) => String(m.idMaquina) === entrante.idMaquina)
-  // Editar y reemplazar se arman en secciones numeradas, como en la app
-  const conSecciones = tipo === 'editar' || tipo === 'reemplazar'
+  // Incorporar, editar y reemplazar se arman en secciones numeradas, como en la app
+  const conSecciones = tipo !== 'devolver'
 
   const guardar = async (event) => {
     event.preventDefault()
@@ -511,7 +659,9 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   return (
     <PanelLateral
       titulo={titulo}
-      subtitulo={maquina ? [maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' · ') : 'Nueva máquina de la planta'}
+      subtitulo={maquina ? [maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' · ') : 'Suma una máquina nueva a la flota activa'}
+      icono={ICONOS[tipo]}
+      etiqueta="Jefe de turno"
       onCerrar={onCerrar}
       confirmar={{
         texto: guardando ? 'Guardando…' : textoConfirmar,
@@ -589,7 +739,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
                   onNueva={() => setEntrante((e) => ({ ...e, origen: 'nueva' }))}
                 />
               ) : (
-                <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla />
+                <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla alGuardar="al reemplazar" />
               )}
             </section>
 
@@ -646,6 +796,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
                 conPlantilla={false}
                 obligatorios
                 horometroActual={maquina.horometroActual ?? null}
+                alGuardar="al guardar los cambios"
               />
               <CampoOperador
                 valor={operador}
@@ -660,8 +811,18 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
 
         {tipo === 'incorporar' && (
           <>
-            <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla />
-            <CampoOperador valor={operador} onCambio={setOperador} operadores={catalogos.operadores} maquina={maquina} conMantener={false} />
+            <section className={styles.seccion}>
+              <h3 className={styles.seccionTitulo}>
+                <Truck size={16} className={styles.seccionIcono} /> 1. Datos de la máquina
+              </h3>
+              <CamposFicha ficha={ficha} onCambio={setFicha} catalogos={catalogos} conHorometro conPlantilla />
+            </section>
+            <section className={styles.seccion}>
+              <h3 className={styles.seccionTitulo}>
+                <UserRound size={16} className={styles.seccionIcono} /> 2. Operador
+              </h3>
+              <CampoOperador valor={operador} onCambio={setOperador} operadores={catalogos.operadores} maquina={maquina} conMantener={false} />
+            </section>
           </>
         )}
 
@@ -671,20 +832,25 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
               <ClipboardList size={16} className={styles.seccionIconoAmbar} /> 3. Justificación del jefe de turno
             </h3>
           )}
-          <label className={styles.campo}>
-            <span className={styles.label}>Motivo *</span>
-            <select className={styles.input} value={motivo} onChange={(e) => setMotivo(e.target.value)} required>
-              <option value="">Elegir motivo…</option>
-              {motivos.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectorBuscable
+            etiqueta="Motivo *"
+            placeholder="Buscar o seleccionar motivo…"
+            opciones={motivos}
+            valor={motivo}
+            onCambio={(m) => setMotivo(m ?? '')}
+            vacio="No hay motivos para esta acción"
+          />
           <label className={styles.campo}>
             <span className={styles.label}>Observación (opcional)</span>
-            <textarea className={styles.input} rows={3} maxLength={500} value={observacion} onChange={(e) => setObservacion(e.target.value)} />
+            <textarea
+              className={styles.input}
+              rows={3}
+              maxLength={500}
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Detalle que quedará en la bitácora junto al motivo"
+            />
+            <span className={styles.contador}>{observacion.length}/500</span>
           </label>
         </div>
 
