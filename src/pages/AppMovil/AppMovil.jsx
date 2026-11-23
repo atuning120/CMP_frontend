@@ -196,7 +196,7 @@ function AppMovil() {
       <header className={styles.barra}>
         <span className={styles.marca}>
           <img src={cmpLogoDark} alt="CMP" className={styles.marcaCmp} />
-          <img src={geoPlantaLogo} alt="" className={styles.marcaLogo} width="256" height="249" />
+          <img src={geoPlantaLogo} alt="" className={styles.marcaLogo} width="256" height="249"/>
           <span className={styles.marcaNombre}>GeoPlanta</span>
         </span>
         <Link to={sesion ? '/mapa' : '/login'} className={styles.barraBoton}>

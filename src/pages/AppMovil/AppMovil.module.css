@@ -10,14 +10,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 12px 24px;
-    background: var(--brand-deep);
+    gap: 24px;
+    min-height: 60px;
+    padding: 0px 20px;
+    background: var(--brand);
     color: var(--on-hero);
-
-    @media (max-width: 520px) {
-      padding: 10px 16px;
-    }
+    box-shadow: var(--shadow-raised);
+    /* Sobre todo el contenido, para que el menú de la cuenta que se despliega desde aquí tape el mapa y sus controles,
+       los paneles y los avisos de alertas (z-index 20). Solo quedan encima los <dialog> y el recorrido guiado */
+    position: relative;
+    z-index: 30;
   }
 
   .marca {
@@ -28,21 +30,18 @@
   }
 
   .marcaCmp {
-    height: 28px;
-    width: auto;
+
+    width: 84px;
+    height: auto;
     padding-right: 12px;
     border-right: 1px solid var(--hero-rule);
-
-    /* En un teléfono no cabe junto al botón: queda la marca GeoPlanta */
-    @media (max-width: 440px) {
-      display: none;
-    }
   }
 
   .marcaLogo {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
+
+
+    width: 50px;
+    height: auto;
   }
 
   .marcaNombre {
@@ -84,10 +83,6 @@
     margin: 0 auto;
     padding: 32px 24px 48px;
     flex: 1;
-
-    @media (max-width: 520px) {
-      padding: 24px 16px 40px;
-    }
   }
 
   .title {
@@ -114,22 +109,12 @@
     background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
     box-shadow: var(--shadow-raised);
     color: var(--on-hero);
-
-    @media (max-width: 760px) {
-      grid-template-columns: minmax(0, 1fr);
-      padding: 24px 20px;
-    }
   }
 
   .ficha {
     display: flex;
     gap: 24px;
     align-items: flex-start;
-
-    @media (max-width: 520px) {
-      flex-direction: column;
-      gap: 16px;
-    }
   }
 
   .icono,
@@ -251,12 +236,6 @@
     align-items: center;
     gap: 12px;
     width: 252px;
-
-    @media (max-width: 760px) {
-      width: 100%;
-      padding-top: 20px;
-      border-top: 1px solid var(--hero-rule);
-    }
   }
 
   .qrMarco {
@@ -379,10 +358,6 @@
     border-radius: 16px;
     background: var(--surface);
     box-shadow: var(--shadow);
-
-    @media (max-width: 520px) {
-      padding: 20px 16px;
-    }
   }
 
   .lista {
@@ -392,10 +367,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-
-    @media (max-width: 760px) {
-      grid-template-columns: minmax(0, 1fr);
-    }
   }
 
   .paso {
@@ -523,5 +494,53 @@
     font-size: 13px;
     text-align: center;
     color: var(--text-tertiary);
+  }
+}
+
+@media (max-width: 760px) {
+  .appMovil {
+    .producto {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 24px 20px;
+    }
+    .qr {
+      width: 100%;
+      padding-top: 20px;
+      border-top: 1px solid var(--hero-rule);
+    }
+
+    .lista {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+
+@media (max-width: 520px) {
+  .appMovil {
+    padding: 10px 16px;
+    
+    .contenido {
+      padding: 24px 16px 40px;
+    }
+    
+    .ficha {
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .pasos,
+    .historial {
+      padding: 20px 16px;
+    }
+  }
+}
+
+/* En un teléfono no cabe junto al botón: queda la marca GeoPlanta */
+@media (max-width: 440px) {
+  .appMovil {
+    .marcaCmp {
+      display: none;
+    }
   }
 }
