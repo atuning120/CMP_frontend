@@ -12,6 +12,7 @@ import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 import { obtenerEvidencia } from '../services/evidenciasService.js'
 import { listarCargasEp, obtenerDashboard } from '../services/dashboardsService.js'
+import { listarVersionesAdmin, listarVersionesPublicas } from '../services/appMovilService.js'
 import { mensajeDeError } from '../services/errores.js'
 
 // Claves de la caché: las páginas que piden lo mismo (la flota en el mapa y en /flota) comparten la respuesta
@@ -30,6 +31,10 @@ export const CLAVES = {
   dashboards: ['dashboards'],
   // Dentro de 'dashboards': confirmar una carga refresca la lista y las URL firmadas
   cargasEp: ['dashboards', 'cargas'],
+  // Dentro de 'app-movil': publicar, retirar o eliminar refresca las dos listas
+  versionesApp: ['app-movil', 'publicas'],
+  versionesAppAdmin: ['app-movil', 'admin'],
+  appMovil: ['app-movil'],
 }
 
 // Las geocercas casi no cambian y sus polígonos son lo más pesado: se dan por vigentes 5 minutos
@@ -105,3 +110,7 @@ export const useDashboard = (tipo, periodo, { enabled = true } = {}) =>
   })
 
 export const useCargasEp = ({ enabled = true } = {}) => useQuery({ queryKey: CLAVES.cargasEp, queryFn: listarCargasEp, enabled })
+
+// Versiones de la app móvil: la lista pública (página /app-movil, sin sesión) y la del administrador (con las retiradas)
+export const useVersionesApp = () => useQuery({ queryKey: CLAVES.versionesApp, queryFn: listarVersionesPublicas })
+export const useVersionesAppAdmin = () => useQuery({ queryKey: CLAVES.versionesAppAdmin, queryFn: listarVersionesAdmin })

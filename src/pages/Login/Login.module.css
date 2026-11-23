@@ -442,6 +442,31 @@
     font-size: 13px;
     color: var(--text-tertiary);
   }
+
+  /* Acceso a la página pública de descarga de la app móvil */
+  .appMovil {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+
+    &:hover {
+      border-color: var(--primary);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
 }
 
 /* Adaptación a pantallas pequeñas: el panel de marca desaparece y el panel de login ocupa toda la pantalla */

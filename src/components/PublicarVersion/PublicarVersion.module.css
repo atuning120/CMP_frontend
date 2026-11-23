@@ -1,0 +1,234 @@
+.publicarVersion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+
+  .titulo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-h);
+  }
+
+  /* Zona del archivo: el <label> entero abre el selector */
+  .archivo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border: 2px dashed var(--input-border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--primary);
+    }
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .archivoElegido {
+    border-style: solid;
+    border-color: var(--success-border);
+    background: var(--success-bg);
+  }
+
+  /* Archivo arrastrado encima: va después de archivoElegido para ganarle */
+  .archivoArrastrando {
+    border-style: solid;
+    border-color: var(--primary);
+    background: var(--selection-bg);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .archivoIcono {
+    flex: none;
+    color: var(--primary);
+  }
+
+  .archivoTexto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .archivoNombre {
+    overflow: hidden;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-h);
+  }
+
+  /* Oculto pero accesible: lo abre el <label> */
+  .inputArchivo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .campos {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 16px;
+
+    @media (max-width: 700px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .etiqueta {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .input,
+  .textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 15px;
+    color: var(--text-h);
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--danger-border);
+    }
+  }
+
+  .textarea {
+    resize: vertical;
+    min-height: 96px;
+    line-height: 1.5;
+  }
+
+  .ayuda {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .errorCampo {
+    margin: 0;
+    font-size: 12px;
+    color: var(--danger-text);
+  }
+
+  .avance {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .barra {
+    width: 100%;
+    height: 10px;
+    accent-color: var(--primary);
+  }
+
+  .avanceTexto {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-h);
+  }
+
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--danger-border);
+    border-radius: 10px;
+    background: var(--danger-bg);
+    font-size: 14px;
+    color: var(--danger-text);
+  }
+
+  .botones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .primario,
+  .secundario {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .primario {
+    border: none;
+    background: var(--primary);
+    color: var(--on-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+  }
+
+  .secundario {
+    border: 1px solid var(--input-border);
+    background: var(--surface);
+    color: var(--text-h);
+  }
+
+  .girando {
+    animation: girar 1s linear infinite;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

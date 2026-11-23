@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Bell, BellOff, ChevronDown, CircleHelp, LogOut, Moon, Sun } from 'lucide-react'
+import { Bell, BellOff, ChevronDown, CircleHelp, LogOut, Moon, Smartphone, Sun } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme.js'
 import styles from './MenuCuenta.module.css'
 
@@ -15,9 +15,9 @@ const estadoAvisos = ({ activados, permiso }) => {
  * Menú de la cuenta, en el header en todas las pantallas: el avatar (con correo y rol si hay espacio) abre debajo las
  * opciones del usuario: avisos de alertas, recorrido guiado, tema y cerrar sesión. Así el header cabe en una fila
  * aunque estén todas las pestañas.
- * avisos: { activados, permiso, onActivar, onDesactivar } o null (sin acceso a alertas). onRecorrido: o null.
+ * avisos: { activados, permiso, onActivar, onDesactivar } o null (sin acceso a alertas). onRecorrido y onAppMovil: o null.
  */
-function MenuCuenta({ email, rol, iniciales, avisos, onRecorrido, onCerrarSesion }) {
+function MenuCuenta({ email, rol, iniciales, avisos, onRecorrido, onAppMovil, onCerrarSesion }) {
   const [abierto, setAbierto] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const raizRef = useRef(null)
@@ -125,6 +125,26 @@ function MenuCuenta({ email, rol, iniciales, avisos, onRecorrido, onCerrarSesion
               <span className={styles.texto}>
                 Recorrido guiado
                 <span className={styles.detalle}>Repasa las funciones del panel</span>
+              </span>
+            </button>
+          )}
+
+          {onAppMovil && (
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.opcion}
+              onClick={() => {
+                cerrar(false)
+                onAppMovil()
+              }}
+            >
+              <span className={styles.icono}>
+                <Smartphone size={18} />
+              </span>
+              <span className={styles.texto}>
+                App móvil
+                <span className={styles.detalle}>Descargar e historial de versiones</span>
               </span>
             </button>
           )}

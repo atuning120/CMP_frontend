@@ -1,0 +1,37 @@
+/* Control segmentado como el de Dashboards */
+.pestanasAdmin {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+
+  .pestana {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .activa {
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    color: var(--text-h);
+  }
+}

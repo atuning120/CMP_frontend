@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, Check, Info, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
 import DialogoConfirmacion from '../../components/DialogoConfirmacion/DialogoConfirmacion.jsx'
 import FormularioUsuario from '../../components/FormularioUsuario/FormularioUsuario.jsx'
+import PestanasAdmin from '../../components/PestanasAdmin/PestanasAdmin.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useUsuarios } from '../../hooks/consultas.js'
 import { idUsuarioSesion, useSesion } from '../../services/session.js'
@@ -161,6 +162,7 @@ function Admin() {
 
   return (
     <section className={styles.admin}>
+      <PestanasAdmin />
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>

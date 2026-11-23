@@ -33,6 +33,7 @@
     "@turf/point-on-feature": "^7.4.0",
     "lucide-react": "^1.55.0",
     "maplibre-gl": "^6.14.0",
+    "qrcode": "1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
