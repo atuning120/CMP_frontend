@@ -3,6 +3,7 @@ import SkeletonMapa from './components/SkeletonMapa/SkeletonMapa.jsx'
 import MainLayout from './components/MainLayout/MainLayout.jsx'
 import RequireAuth from './components/RequireAuth/RequireAuth.jsx'
 import Admin from './pages/Admin/Admin.jsx'
+import AdminVersionesApp from './pages/AdminVersionesApp/AdminVersionesApp.jsx'
 import Dashboards from './pages/Dashboards/Dashboards.jsx'
 import Alertas from './pages/Alertas/Alertas.jsx'
 import ErrorPage from './pages/ErrorPage/ErrorPage.jsx'
@@ -32,6 +33,13 @@ function importarConRecarga(importar) {
 export const router = createBrowserRouter([
   // Fuera de MainLayout: el login no muestra la navegación
   { path: '/login', element: <Login />, errorElement: <ErrorPage /> },
+  // Página pública de descarga de la app móvil: sin sesión, para los teléfonos de terreno. Carga diferida: el generador
+  // de QR solo se descarga al abrirla
+  {
+    path: '/app-movil',
+    errorElement: <ErrorPage />,
+    lazy: () => importarConRecarga(() => import('./pages/AppMovil/AppMovil.jsx')).then((m) => ({ Component: m.default })),
+  },
   {
     // Todo el panel requiere sesión
     element: <RequireAuth />,
@@ -66,7 +74,10 @@ export const router = createBrowserRouter([
               },
               {
                 element: <RequireAuth roles={['ADMIN']} />,
-                children: [{ path: 'admin', element: <Admin /> }],
+                children: [
+                  { path: 'admin', element: <Admin /> },
+                  { path: 'admin/app-movil', element: <AdminVersionesApp /> },
+                ],
               },
               { path: '*', element: <NotFound /> },
             ],

@@ -486,15 +486,7 @@
   }
 }
 
-
-/* Ajuste responsivo */
-@media (max-width: 900px) {
-  .flota {
-    padding: 20px 16px 32px;
-  }
-}
-
-@media (max-width: 1100px) {
+@media (max-width: 1100px){
   .flota {
     .accionTexto {
       display: none;
@@ -505,6 +497,14 @@
     }
   }
 }
+
+/* Ajuste responsivo */
+@media (max-width: 900px) {
+  .flota {
+    padding: 20px 16px 32px;
+  }
+}
+
 
 /* Teléfono: la tabla pasa a una tarjeta por máquina, con la etiqueta de cada dato (data-label) */
 @media (max-width: 640px) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import {
   AlertCircle,
   ArrowRight,
@@ -7,6 +7,7 @@ import {
   EyeOff,
   Lock,
   ShieldCheck,
+  Smartphone,
   User,
 } from 'lucide-react'
 import cmpLogo from '../../assets/CMP_logo.png'
@@ -214,6 +215,14 @@ function Login() {
           <p className={styles.help}>
             Acceso exclusivo para personal autorizado.
           </p>
+
+          <Link to="/app-movil" className={styles.appMovil}>
+            <Smartphone size={18} aria-hidden="true" />
+            <span>
+              ¿Usas la app en terreno? <strong>Descarga GeoPlanta Móvil</strong>
+            </span>
+            <ArrowRight size={16} aria-hidden="true" />
+          </Link>
         </div>
 
         <footer className={styles.panelFooter}>

@@ -125,6 +125,8 @@ function MainLayout() {
                 : null
             }
             onRecorrido={recorrido ? comenzar : null}
+            // Página pública de descarga (fuera del panel; tiene su botón para volver)
+            onAppMovil={() => navigate('/app-movil')}
             onCerrarSesion={() => setConfirmandoSalida(true)}
           />
         </div>
