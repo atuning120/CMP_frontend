@@ -29,6 +29,15 @@ const MAX_BYTES = MAX_MB * 1024 * 1024
 
 const horasTexto = (horas) => `${horas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} h`
 
+const numeroTexto = (n) => (n === null || n === undefined ? '—' : n.toLocaleString('es-CL', { maximumFractionDigits: 1 }))
+const pesosTexto = (n) => (n === null || n === undefined ? '—' : `$${Math.round(n).toLocaleString('es-CL')}`)
+
+// Tablas de la hoja «EP #NN MLC» que se guardan junto con la «Base de datos»
+const TABLAS_TARIFA = [
+  { tipo: 'GARANTIZADA', titulo: 'Tarifas garantizadas' },
+  { tipo: 'DIFERENCIADA', titulo: 'Tarifas diferenciadas' },
+]
+
 const tamanoTexto = (bytes) =>
   bytes < 1024 * 1024
     ? `${Math.max(1, Math.round(bytes / 1024)).toLocaleString('es-CL')} KB`
@@ -240,7 +249,8 @@ function CargaEstadoPago({ onCerrar, onCargado }) {
           )}
           <p className={styles.privacidad}>
             <ShieldCheck size={14} className={styles.privacidadIcono} />
-            Solo se lee la hoja «Base de datos». Las demás hojas (horas extra, tarifas, montos) y el archivo no se guardan.
+            Solo se leen la hoja «Base de datos» y las tablas de tarifas de la hoja «EP #NN». Las demás hojas (horas extra,
+            otros montos) y el archivo no se guardan.
           </p>
           {error && (
             <p className={styles.error} role="alert">
@@ -389,6 +399,41 @@ function VistaPrevia({ vista, periodo }) {
           </table>
         </div>
       )}
+
+      {TABLAS_TARIFA.map(({ tipo, titulo }) => {
+        const filas = (vista.tarifas ?? []).filter((t) => t.tipo === tipo)
+        if (!filas.length) return null
+        return (
+          <div key={tipo} className={styles.tablaMarco}>
+            <table className={styles.tabla}>
+              <caption className={styles.tablaTitulo}>{titulo}</caption>
+              <thead>
+                <tr>
+                  <th scope="col" className={styles.celdaTitulo}>Ítem</th>
+                  <th scope="col" className={`${styles.celdaTitulo} ${styles.numero}`}>Cantidad</th>
+                  <th scope="col" className={`${styles.celdaTitulo} ${styles.numero}`}>P. unitario</th>
+                  <th scope="col" className={`${styles.celdaTitulo} ${styles.numero}`}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filas.map((t) => (
+                  <tr key={t.fila} className={styles.fila}>
+                    <td className={styles.celda}>
+                      {t.item} {t.descripcion}
+                    </td>
+                    <td className={`${styles.celda} ${styles.numero}`}>
+                      {numeroTexto(t.cantidad)}
+                      {t.unidad ? ` ${t.unidad}` : ''}
+                    </td>
+                    <td className={`${styles.celda} ${styles.numero}`}>{pesosTexto(t.precioUnitario)}</td>
+                    <td className={`${styles.celda} ${styles.numero}`}>{pesosTexto(t.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      })}
 
       {sinFlota.length > 0 && (
         <div className={styles.bloqueInfo}>
