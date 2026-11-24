@@ -215,8 +215,32 @@
     .overlay {
       top: 10px;
       left: 10px;
-      right: 56px;
+      right: 60px;
       gap: 6px;
+    }
+  }
+}
+
+/* Pantallas táctiles: zoom y brújula más grandes para el dedo */
+@media (pointer: coarse) {
+  .mapaPlanta {
+    .mapa :global(.maplibregl-ctrl-zoom-in),
+    .mapa :global(.maplibregl-ctrl-zoom-out),
+    .mapa :global(.maplibregl-ctrl-compass) {
+      width: 40px;
+      height: 40px;
+    }
+  }
+}
+
+/* Teléfono: la hoja del panel monta sobre el borde inferior del mapa (--hoja-solape, de la página) */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .mapaPlanta {
+    min-height: 0;
+
+    .mapa :global(.maplibregl-ctrl-bottom-left),
+    .mapa :global(.maplibregl-ctrl-bottom-right) {
+      bottom: var(--hoja-solape, 0px);
     }
   }
 }

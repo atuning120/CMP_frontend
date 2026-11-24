@@ -63,7 +63,9 @@
     white-space: nowrap;
   }
 
+  /* position: relative: el texto oculto del contador se recorta aquí; si no, ensancha la página en teléfonos */
   .nav {
+    position: relative;
     display: flex;
     align-self: stretch;
     gap: 4px;

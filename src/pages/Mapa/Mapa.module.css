@@ -16,6 +16,11 @@
     overflow: hidden;
   }
 
+  /* Solo en teléfono, donde el panel es una hoja deslizable */
+  .asa {
+    display: none;
+  }
+
   /* Contraído: las etiquetas emergentes salen de la barra y quedan sobre el mapa */
   &.contraido .lateral {
     position: relative;
@@ -561,88 +566,6 @@
       color: var(--on-primary);
     }
   }
-
-  /* Trayecto dibujado: qué es, cuánto recorrió y cómo cerrarlo. Abajo al centro, sobre la escala */
-  .trayecto {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: max-content;
-    max-width: calc(100% - 32px);
-    box-sizing: border-box;
-    padding: 8px 8px 8px 12px;
-    border: 1px solid var(--hero-rule);
-    border-radius: 12px;
-    background: var(--map-overlay-bg);
-    box-shadow: var(--map-sombra);
-    color: var(--map-overlay-text);
-    transform: translateX(-50%);
-  }
-
-  .trayectoIcono {
-    display: inline-flex;
-    flex-shrink: 0;
-    color: var(--map-recorrido);
-  }
-
-  .trayectoTexto {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-  }
-
-  .trayectoTitulo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .trayectoEnVivo {
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: var(--map-recorrido);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--map-area-casing);
-  }
-
-  .trayectoResumen {
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.85;
-  }
-
-  .trayectoCerrar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: 8px;
-    background: none;
-    color: var(--map-overlay-text);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--hero-rule);
-    }
-
-    &:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-  }
 }
 
 /* MAPA RESPONSIVO*/
@@ -722,9 +645,11 @@
       display: none;
     }
 
+    /* Fondo opaco: en un mapa chico quedan etiquetas debajo, y transparentadas no se leen ni estas ni aquellas */
     .chip,
     .modos {
       height: 32px;
+      background: var(--brand-deep);
       font-size: 12px;
     }
 
@@ -737,16 +662,129 @@
        por sus esquinas redondeadas */
     .detalleGeocerca {
       top: auto;
-      bottom: 44px;
+      bottom: calc(44px + var(--hoja-solape, 0px));
       left: 10px;
       width: calc(100% - 20px);
-      max-height: calc(100% - 98px);
+      max-height: calc(100% - 98px - var(--hoja-solape, 0px));
+    }
+  }
+}
+
+/* Teléfono (también apaisado): el mapa ocupa la pantalla y el panel es una hoja que se desliza sobre él. Cerrada, asoma
+   su título; se abre con el scroll de la página o con el asa. Los 80 px son el alto del asa más el del título */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .mapaPage {
+    --hoja-asomo: 80px;
+    /* La hoja monta sobre el borde del mapa: por sus esquinas redondeadas se ve la imagen satelital */
+    --hoja-solape: 16px;
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+
+    .mapa {
+      position: sticky;
+      top: 0;
+      z-index: 0;
+      flex: none;
+      height: calc(100% - var(--hoja-asomo) + var(--hoja-solape));
     }
 
-    .trayecto {
-      bottom: 36px;
-      width: calc(100% - 20px);
-      max-width: none;
+    /* El recorrido guiado desplaza la página hasta cada elemento: los del mapa no deben quedar bajo la hoja */
+    &.enRecorrido .mapa {
+      position: relative;
+    }
+
+    /* Dibujando o editando una geocerca la hoja queda fuera de la pantalla */
+    &.editandoGeocerca .mapa {
+      height: calc(100% + var(--hoja-solape));
+    }
+
+    .lateral,
+    &.contraido .lateral {
+      position: relative;
+      z-index: 1;
+      flex: none;
+      margin-top: calc(-1 * var(--hoja-solape));
+      border-radius: var(--hoja-solape) var(--hoja-solape) 0 0;
+      background: var(--surface);
+      box-shadow: var(--shadow-hoja);
+    }
+
+    .rail {
+      border-top: none;
+      border-radius: var(--hoja-solape) var(--hoja-solape) 0 0;
+    }
+
+    /* Fija arriba de la lista: se vuelve al mapa desde cualquier punto de ella */
+    .asa {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: var(--hoja-solape) var(--hoja-solape) 0 0;
+      background: var(--surface);
+      font: inherit;
+      cursor: pointer;
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 3px var(--focus-ring);
+      }
+    }
+
+    .asaBarra {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--input-border-hover);
+    }
+
+    .asaTexto {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-h);
+    }
+  }
+}
+
+/* Apaisado la ficha de la máquina es más alta que el mapa: se desplaza por dentro */
+@media (max-width: 900px) and (max-height: 500px) {
+  .mapaPage {
+    .tarjeta {
+      max-height: 100px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+  }
+}
+
+/* Pantallas táctiles: controles del mapa más grandes para el dedo */
+@media (pointer: coarse) {
+  .mapaPage {
+    .modos {
+      height: 44px;
+    }
+
+    .modo {
+      height: 36px;
+      padding: 0 12px;
+    }
+
+    .tarjetaTrayectoBoton {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
     }
   }
 }

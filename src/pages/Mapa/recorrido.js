@@ -73,3 +73,18 @@ export const inicioDelDia = (ahora = new Date()) => {
   dia.setHours(0, 0, 0, 0)
   return dia.toISOString()
 }
+
+const formatoHora = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const formatoDiaHora = new Intl.DateTimeFormat('es-CL', {
+  day: '2-digit',
+  month: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+// Hora de un extremo del trayecto; con el día si no es hoy (un turno de noche empieza el día anterior)
+export const horaTrayecto = (fecha) => {
+  const valor = new Date(fecha)
+  return valor.toDateString() === new Date().toDateString() ? formatoHora.format(valor) : formatoDiaHora.format(valor)
+}

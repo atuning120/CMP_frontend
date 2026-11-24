@@ -41,6 +41,8 @@
   --code-bg: #f1f3f4;
   --shadow: 0 1px 2px rgba(60, 64, 67, 0.12), 0 2px 6px rgba(60, 64, 67, 0.1);
   --shadow-raised: 0 4px 12px rgba(60, 64, 67, 0.16);
+  /* Hoja inferior del mapa en teléfono: la sombra va hacia arriba, sobre la imagen satelital */
+  --shadow-hoja: 0 -4px 16px rgba(0, 0, 0, 0.35);
 
   /* Panel de marca (login) y header: siempre sobre azul CMP */
   --on-hero: #fff;

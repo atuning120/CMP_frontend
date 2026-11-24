@@ -91,6 +91,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   const listoRef = useRef(false)
   const marcadoresRef = useRef([])
   const popupRef = useRef(null)
+  const clavePopupRef = useRef(null)
   const onSeleccionarRef = useRef(onSeleccionar)
   const [listo, setListo] = useState(false)
   const [cursor, setCursor] = useState(null)
@@ -302,6 +303,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       marcadoresRef.current.forEach((m) => m.remove())
       marcadoresRef.current = []
       popupRef.current?.remove()
+      popupRef.current = null
       drawRef.current?.stop()
       drawRef.current = null
       listoRef.current = false
@@ -398,25 +400,40 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   // Tarjeta flotante (contenido React vía portal dentro del popup de MapLibre)
   useEffect(() => {
     if (!listo) return
+    // Misma tarjeta con datos nuevos (llega una posición GPS): solo se mueve. Recrearla le daría el foco cada vez, lo que
+    // cierra el teclado del teléfono y devuelve la página al mapa
+    if (popup && popupRef.current && clavePopupRef.current === popup.clave) {
+      popupRef.current.setLngLat(popup.lngLat)
+      return
+    }
     popupRef.current?.remove()
     popupRef.current = null
     if (!popup) return
-    popupRef.current = new Popup({ closeButton: false, closeOnClick: false, offset: 18, maxWidth: '300px', className: styles.popup })
+    clavePopupRef.current = popup.clave
+    popupRef.current = new Popup({ closeButton: false, closeOnClick: false, focusAfterOpen: false, offset: 18, maxWidth: '300px', className: styles.popup })
       .setLngLat(popup.lngLat)
       .setDOMContent(popupNodo)
       .addTo(mapRef.current)
+    // El foco lo da la página y no MapLibre: sin preventScroll corta el desplazamiento que en teléfono lleva al mapa
+    popupNodo.querySelector('button')?.focus({ preventScroll: true })
   }, [listo, popup, popupNodo])
 
   useImperativeHandle(ref, () => ({
-    // Encuadra un polígono o centra un punto
-    enfocar(objetivo) {
+    // Encuadra un polígono (o el trayecto) o centra un punto. margenInferior: lo que tapa en teléfono, en px, la tarjeta
+    // que va al pie del mapa
+    enfocar(objetivo, margenInferior = 200) {
       const map = mapRef.current
       if (!map) return
-      if (Array.isArray(objetivo)) return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5) })
+      const { clientWidth, clientHeight } = map.getContainer()
+      const angosto = clientWidth <= 640
+      const bajo = clientHeight <= 400
+      // En teléfono el punto va bajo el centro: su tarjeta cabe arriba sin quedar tras los controles
+      if (Array.isArray(objetivo)) {
+        return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5), offset: [0, angosto || bajo ? 60 : 0] })
+      }
       const [o, s, e, n] = bbox(objetivo)
-      // En teléfono la tarjeta de la geocerca ocupa el borde inferior: se deja ese espacio libre
-      const angosto = map.getContainer().clientWidth <= 640
-      const padding = angosto ? { top: 56, bottom: 184, left: 24, right: 24 } : 80
+      // Apaisado no queda alto para reservar el de la tarjeta
+      const padding = bajo ? 32 : angosto ? { top: 64, bottom: margenInferior, left: 24, right: 24 } : 80
       map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices

@@ -360,3 +360,34 @@
     }
   }
 }
+
+/* Teléfonos muy angostos (320 px): los tres filtros caben con su contador */
+@media (max-width: 360px) {
+  .flotaPanel {
+    .filtro {
+      gap: 4px;
+      padding: 0 4px;
+      font-size: 12px;
+    }
+
+    .filtroConteo {
+      min-width: 14px;
+      padding: 1px 4px;
+    }
+  }
+}
+
+/* Teléfono: el título es lo que asoma de la hoja (36 px + 4 y 12 de margen, bajo el asa de 28) */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .flotaPanel {
+    .header {
+      gap: 12px;
+      padding-top: 4px;
+    }
+
+    .titleRow {
+      align-items: center;
+      min-height: 36px;
+    }
+  }
+}

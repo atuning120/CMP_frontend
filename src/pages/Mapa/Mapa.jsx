@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOutletContext } from 'react-router-dom'
-import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck, X } from 'lucide-react'
+import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
@@ -9,19 +9,19 @@ import MapaPlanta from '../../components/MapaPlanta/MapaPlanta.jsx'
 import PuntoEstado from '../../components/PuntoEstado/PuntoEstado.jsx'
 import Skeleton from '../../components/Skeleton/Skeleton.jsx'
 import TextoFormateado from '../../components/TextoFormateado/TextoFormateado.jsx'
+import TrayectoMapa from '../../components/TrayectoMapa/TrayectoMapa.jsx'
 import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } from '../../hooks/consultas.js'
 import { puedeVerAlertas, suscribirEstadosOperacionales } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
 import { haceCuanto as haceCuantoTiempo } from '../../services/gpsService.js'
-import { mensajeDeError } from '../../services/errores.js'
 import {
   obtenerRecorridoMaquina,
   obtenerRecorridoTurno,
   obtenerUltimasPosiciones,
   suscribirPosiciones,
 } from '../../services/trackingService.js'
-import { agregarAlRecorrido, distanciaRecorridoKm, geojsonRecorrido, inicioDelDia } from './recorrido.js'
+import { agregarAlRecorrido, distanciaRecorridoKm, geojsonRecorrido, horaTrayecto, inicioDelDia } from './recorrido.js'
 import {
   actualizarEstadoOperacional,
   actualizarGps,
@@ -47,6 +47,12 @@ const leerContraido = () => {
     return false
   }
 }
+// Alto (px) que la tarjeta del trayecto ocupa al pie del mapa en teléfono
+const MARGEN_TRAYECTO = 176
+// Teléfono (también apaisado): el panel es una hoja que se desliza sobre el mapa. La misma consulta que en Mapa.module.css
+const CON_HOJA = '(max-width: 640px), (max-width: 900px) and (max-height: 500px)'
+// Con la hoja abierta queda a la vista una franja del mapa
+const APERTURA_HOJA = 0.7
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
 // Mientras no llega cada respuesta (referencias estables para los useMemo)
@@ -61,33 +67,12 @@ const haceCuanto = (fechaHora, ahora) => {
   return minutos < 1 ? 'hace menos de 1 min' : `hace ${minutos} min`
 }
 
-const formatoHora = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' })
-const formatoDiaHora = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-const formatoKm = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
-const formatoEntero = new Intl.NumberFormat('es-CL')
-// Hora de un extremo del trayecto; con el día si no es hoy (un turno de noche empieza el día anterior)
-const horaTrayecto = (fecha) => {
-  const valor = new Date(fecha)
-  return valor.toDateString() === new Date().toDateString() ? formatoHora.format(valor) : formatoDiaHora.format(valor)
-}
-
-// Texto de la barra del trayecto: qué período cubre, cuánto recorrió y con cuántas posiciones
-function resumenTrayecto(consulta, distanciaKm) {
-  if (consulta.isPending) return 'Cargando trayecto…'
-  if (consulta.error && !consulta.data) return mensajeDeError(consulta.error, 'No se pudo cargar el trayecto.')
-  const { desde, hasta, puntos, truncado } = consulta.data
-  const periodo = `${horaTrayecto(desde)} – ${hasta ? horaTrayecto(hasta) : 'ahora'}`
-  if (puntos.length === 0) return `${periodo} · sin posiciones GPS en este período`
-  const partes = [periodo, `${formatoKm.format(distanciaKm)} km`, `${formatoEntero.format(puntos.length)} posiciones`]
-  if (truncado) partes.push('muestra solo las primeras')
-  return partes.join(' · ')
-}
-
 function Mapa() {
   const sesion = useSesion()
   const admin = esAdmin(sesion)
   const mapaRef = useRef(null)
   const seccionMapaRef = useRef(null)
+  const paginaRef = useRef(null)
   const queryClient = useQueryClient()
   // Al volver al mapa se dibuja lo último recibido (caché) mientras se actualiza en segundo plano
   const geocercasQuery = useGeocercas()
@@ -191,7 +176,8 @@ function Mapa() {
 
   // Al terminar el turno del trayecto (la flota ya no lo trae como actual) se pide de nuevo: el Backend lo devuelve
   // cerrado en su hora de término y deja de sumar las posiciones del turno siguiente
-  const turnoVigente = trayecto?.tipo === 'turno' && flota.find((m) => m.idMaquina === trayecto.idMaquina)?.idTurnoActual
+  const maquinaTrayecto = trayecto && flota.find((m) => m.idMaquina === trayecto.idMaquina)
+  const turnoVigente = trayecto?.tipo === 'turno' && maquinaTrayecto?.idTurnoActual
   useEffect(() => {
     if (trayecto?.tipo !== 'turno' || flotaQuery.isPending || turnoVigente === trayecto.idTurno) return
     if (trayectoQuery.data?.hasta === null) queryClient.invalidateQueries({ queryKey: claveTrayecto })
@@ -205,7 +191,7 @@ function Mapa() {
     const clave = claveTrayecto.join('|')
     if (encuadradoRef.current === clave) return
     encuadradoRef.current = clave
-    mapaRef.current?.enfocar(geojsonTrayecto)
+    mapaRef.current?.enfocar(geojsonTrayecto, MARGEN_TRAYECTO)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trayecto, geojsonTrayecto, puntosTrayecto])
 
@@ -218,6 +204,8 @@ function Mapa() {
       idTurno: tipo === 'turno' ? maquina.idTurnoActual : null,
       desde: tipo === 'hoy' ? inicioDelDia() : null,
     })
+    // En teléfono la ficha de la máquina taparía el trayecto que se acaba de pedir
+    if (matchMedia(CON_HOJA).matches) setSeleccion(null)
   }
 
   const cerrarTrayecto = () => {
@@ -273,9 +261,19 @@ function Mapa() {
   // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver lo elegido o dibujar
   const verMapa = useCallback(() => {
     if (!matchMedia('(max-width: 900px)').matches) return
-    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
-    seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
+    const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    // Con la hoja el mapa no se mueve de su lugar: lo que se baja es la hoja
+    if (matchMedia(CON_HOJA).matches) paginaRef.current?.scrollTo({ top: 0, behavior })
+    else seccionMapaRef.current?.scrollIntoView({ behavior, block: 'start' })
   }, [])
+
+  // Hoja del teléfono: se abre deslizándola (es el scroll de la página) o tocando su asa
+  const [hojaAbierta, setHojaAbierta] = useState(false)
+  const alternarHoja = () => {
+    if (hojaAbierta) return verMapa()
+    const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    paginaRef.current?.scrollTo({ top: seccionMapaRef.current.offsetHeight * APERTURA_HOJA, behavior })
+  }
 
   const seleccionarMaquina = (idMaquina) => {
     setSeleccion({ tipo: 'maquina', id: idMaquina })
@@ -343,6 +341,7 @@ function Mapa() {
       if (!posicion || !item) return null
       const { maquina, estado, ubicacion } = item
       return {
+        clave: `maquina-${maquina.idMaquina}`,
         lngLat: posicion.lngLat,
         contenido: (
           <div className={styles.tarjeta}>
@@ -407,6 +406,7 @@ function Mapa() {
       seleccion.tipo === 'area' ? p.maquina.idAreaActual === seleccion.id : p.maquina.idZonaActual === seleccion.id,
     ).length
     return {
+      clave: `${seleccion.tipo}-${seleccion.id}`,
       lngLat: puntoInterior(geocerca.poligono),
       contenido: (
         <div className={styles.tarjeta}>
@@ -461,9 +461,28 @@ function Mapa() {
 
   return (
     <div
-      className={`${styles.mapaPage} ${contraido ? styles.contraido : ''} ${editando ? styles.editandoGeocerca : ''}`}
+      ref={paginaRef}
+      className={`${styles.mapaPage} ${contraido ? styles.contraido : ''} ${editando ? styles.editandoGeocerca : ''} ${recorridoActivo ? styles.enRecorrido : ''}`}
+      onScroll={(e) => e.target === e.currentTarget && setHojaAbierta(e.currentTarget.scrollTop > 40)}
     >
       <div id="panel-lateral-mapa" className={styles.lateral}>
+        {!contraido && (
+          <button
+            type="button"
+            className={styles.asa}
+            onClick={alternarHoja}
+            aria-expanded={hojaAbierta}
+            aria-label={hojaAbierta ? 'Bajar la lista y ver el mapa' : 'Subir la lista'}
+          >
+            {hojaAbierta ? (
+              <span className={styles.asaTexto}>
+                <ChevronDown size={16} /> Ver mapa
+              </span>
+            ) : (
+              <span className={styles.asaBarra} />
+            )}
+          </button>
+        )}
         {contraido ? (
           <nav className={styles.rail} aria-label="Panel lateral contraído">
             {/* Secciones: al elegir una, el panel se expande en ella */}
@@ -603,25 +622,15 @@ function Mapa() {
         {/* Tarjeta flotante de la geocerca seleccionada (la llena GeocercasPanel con un portal) */}
         <div ref={setDestinoDetalle} className={styles.detalleGeocerca} />
         {trayecto && (
-          <div className={styles.trayecto} role="region" aria-label={`Trayecto de ${trayecto.nombre}`}>
-            <span className={styles.trayectoIcono}>
-              <Route size={16} />
-            </span>
-            <span className={styles.trayectoTexto}>
-              <strong className={styles.trayectoTitulo}>
-                {trayecto.nombre} · {trayecto.tipo === 'turno' ? 'trayecto del turno' : 'trayecto de hoy'}
-                {trayectoQuery.data?.hasta === null && trayectoQuery.data.puntos.length > 0 && (
-                  <span className={styles.trayectoEnVivo}>en vivo</span>
-                )}
-              </strong>
-              <span className={styles.trayectoResumen} aria-live="polite">
-                {resumenTrayecto(trayectoQuery, kmTrayecto)}
-              </span>
-            </span>
-            <button type="button" className={styles.trayectoCerrar} onClick={cerrarTrayecto} aria-label="Cerrar trayecto">
-              <X size={16} />
-            </button>
-          </div>
+          <TrayectoMapa
+            trayecto={trayecto}
+            consulta={trayectoQuery}
+            distanciaKm={kmTrayecto}
+            conTurno={trayecto.tipo === 'turno' || Boolean(maquinaTrayecto?.idTurnoActual)}
+            onTipo={(tipo) => maquinaTrayecto && verTrayecto(maquinaTrayecto, tipo)}
+            onCerrar={cerrarTrayecto}
+            oculta={Boolean(popup) || (modo === 'geocercas' && Boolean(seleccion || editando))}
+          />
         )}
         {error && (
           <p className={styles.error} role="alert">

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, Check, Info, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
+import { AlertCircle, Check, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
 import DialogoConfirmacion from '../../components/DialogoConfirmacion/DialogoConfirmacion.jsx'
 import FormularioUsuario from '../../components/FormularioUsuario/FormularioUsuario.jsx'
 import PestanasAdmin from '../../components/PestanasAdmin/PestanasAdmin.jsx'
@@ -180,15 +180,6 @@ function Admin() {
           <Plus size={18} /> Nuevo usuario
         </button>
       </header>
-
-      <p className={styles.nota} data-recorrido="admin-roles">
-        <Info size={16} className={styles.notaIcono} />
-        {/* En un span: dentro del flex, el texto y el <strong> serían columnas separadas */}
-        <span>
-          Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). Los
-          cambios de rol se aplican la próxima vez que la persona inicie sesión. Desactivar no borra su historial.
-        </span>
-      </p>
 
       <div className={styles.toolbar}>
         <label className={styles.search}>

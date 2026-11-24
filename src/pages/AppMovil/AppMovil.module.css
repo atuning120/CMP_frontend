@@ -518,8 +518,11 @@
 
 @media (max-width: 520px) {
   .appMovil {
-    padding: 10px 16px;
-    
+    .barra {
+      gap: 12px;
+      padding: 0 16px;
+    }
+
     .contenido {
       padding: 24px 16px 40px;
     }
