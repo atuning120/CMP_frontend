@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, Check, Info, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
+import { AlertCircle, Check, LoaderCircle, Pencil, Plus, Search, ShieldCheck, UserCheck, Users, UserX } from 'lucide-react'
 import DialogoConfirmacion from '../../components/DialogoConfirmacion/DialogoConfirmacion.jsx'
 import FormularioUsuario from '../../components/FormularioUsuario/FormularioUsuario.jsx'
 import PestanasAdmin from '../../components/PestanasAdmin/PestanasAdmin.jsx'
