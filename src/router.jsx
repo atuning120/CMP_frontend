@@ -8,6 +8,7 @@ import Dashboards from './pages/Dashboards/Dashboards.jsx'
 import Alertas from './pages/Alertas/Alertas.jsx'
 import ErrorPage from './pages/ErrorPage/ErrorPage.jsx'
 import Flota from './pages/Flota/Flota.jsx'
+import FlotaGps from './pages/FlotaGps/FlotaGps.jsx'
 import Historial from './pages/Historial/Historial.jsx'
 import Login from './pages/Login/Login.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
@@ -63,11 +64,12 @@ export const router = createBrowserRouter([
                 hydrateFallbackElement: <SkeletonMapa />,
               },
               {
-                // Gestión de la flota, historial, alertas y dashboards: jefes de turno y administradores
+                // Gestión de la flota y sus GPS, historial, alertas y dashboards: jefes de turno y administradores
                 element: <RequireAuth roles={['JEFE_TURNO', 'ADMIN']} />,
                 children: [
                   { path: 'dashboards', element: <Dashboards /> },
                   { path: 'flota', element: <Flota /> },
+                  { path: 'flota/gps', element: <FlotaGps /> },
                   { path: 'historial', element: <Historial /> },
                   { path: 'alertas', element: <Alertas /> },
                 ],
