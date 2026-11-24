@@ -372,7 +372,36 @@
     padding: 16px 12px 28px;
 
     .title {
+      min-height: 28px;
+      margin-bottom: 12px;
       font-size: 22px;
+    }
+
+    /* Las acciones van junto al título: la lista empieza más arriba */
+    .header {
+      position: relative;
+    }
+
+    .header .acciones {
+      position: absolute;
+      top: -6px;
+      right: 0;
+    }
+
+    .header .boton {
+      min-width: 40px;
+      height: 40px;
+      padding: 0 11px;
+    }
+
+    /* Recortado, no display: none: el lector de pantalla lo sigue leyendo */
+    .botonTexto {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
 
     .subtitle {

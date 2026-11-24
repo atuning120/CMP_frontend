@@ -215,8 +215,20 @@
     .overlay {
       top: 10px;
       left: 10px;
-      right: 56px;
+      right: 60px;
       gap: 6px;
+    }
+  }
+}
+
+/* Pantallas táctiles: zoom y brújula más grandes para el dedo */
+@media (pointer: coarse) {
+  .mapaPlanta {
+    .mapa :global(.maplibregl-ctrl-zoom-in),
+    .mapa :global(.maplibregl-ctrl-zoom-out),
+    .mapa :global(.maplibregl-ctrl-compass) {
+      width: 40px;
+      height: 40px;
     }
   }
 }

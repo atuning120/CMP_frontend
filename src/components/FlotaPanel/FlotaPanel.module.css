@@ -360,3 +360,19 @@
     }
   }
 }
+
+/* Teléfonos muy angostos (320 px): los tres filtros caben con su contador */
+@media (max-width: 360px) {
+  .flotaPanel {
+    .filtro {
+      gap: 4px;
+      padding: 0 4px;
+      font-size: 12px;
+    }
+
+    .filtroConteo {
+      min-width: 14px;
+      padding: 1px 4px;
+    }
+  }
+}

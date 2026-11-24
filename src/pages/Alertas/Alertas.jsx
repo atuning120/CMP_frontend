@@ -210,7 +210,7 @@ function Alertas() {
           </p>
         </div>
         <button type="button" className={styles.boton} onClick={recargar} disabled={cargando} title="Recargar">
-          <RefreshCw size={16} /> Recargar
+          <RefreshCw size={16} /> <span className={styles.botonTexto}>Recargar</span>
         </button>
       </header>
 
@@ -225,7 +225,7 @@ function Alertas() {
               className={`${styles.segmento} ${tipo === id ? styles.segmentoActivo : ''}`}
               onClick={() => setTipo(id)}
             >
-              <Icono size={15} /> {etiqueta}
+              <Icono size={15} className={styles.segmentoIcono} /> {etiqueta}
             </button>
           ))}
         </div>
@@ -240,7 +240,7 @@ function Alertas() {
               className={`${styles.segmento} ${estado === id ? styles.segmentoActivo : ''}`}
               onClick={() => setEstado(id)}
             >
-              <Icono size={15} /> {etiqueta}
+              <Icono size={15} className={styles.segmentoIcono} /> {etiqueta}
             </button>
           ))}
         </div>

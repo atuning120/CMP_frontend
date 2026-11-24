@@ -215,3 +215,45 @@
     line-height: 1.5;
   }
 }
+
+@media (max-width: 900px) {
+  .dashboards {
+    padding: 20px 16px 32px;
+  }
+}
+
+/* Teléfono: mismos márgenes que el resto del panel y pestañas a todo el ancho */
+@media (max-width: 640px) {
+  .dashboards {
+    padding: 16px 12px 28px;
+
+    .title {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+
+    .grupo {
+      display: flex;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .segmento {
+      flex: 1;
+      justify-content: center;
+      padding: 0 8px;
+    }
+  }
+}
+
+/* Pantallas táctiles: pestañas más altas para el dedo */
+@media (pointer: coarse) {
+  .dashboards {
+    .segmento {
+      height: 40px;
+    }
+  }
+}

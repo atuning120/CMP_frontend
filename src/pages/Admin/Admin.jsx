@@ -181,15 +181,6 @@ function Admin() {
         </button>
       </header>
 
-      <p className={styles.nota} data-recorrido="admin-roles">
-        <Info size={16} className={styles.notaIcono} />
-        {/* En un span: dentro del flex, el texto y el <strong> serían columnas separadas */}
-        <span>
-          Quien entra por primera vez con Microsoft queda como <strong>Visor</strong> (solo ve el mapa y la flota). Los
-          cambios de rol se aplican la próxima vez que la persona inicie sesión. Desactivar no borra su historial.
-        </span>
-      </p>
-
       <div className={styles.toolbar}>
         <label className={styles.search}>
           <Search size={16} className={styles.searchIcon} />

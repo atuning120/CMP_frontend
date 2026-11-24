@@ -167,7 +167,7 @@ function Historial() {
             disabled={!rango || exportando || (vigente && eventos.length === 0)}
             title="Descargar el historial del rango y tipo elegidos en Excel (no aplica la búsqueda)"
           >
-            <FileSpreadsheet size={16} /> {exportando ? 'Generando…' : 'Exportar Excel'}
+            <FileSpreadsheet size={16} /> {exportando ? 'Generando…' : <span><span className={styles.botonTexto}>Exportar </span>Excel</span>}
           </button>
           <button
             type="button"
@@ -176,7 +176,7 @@ function Historial() {
             disabled={cargando}
             title="Recargar"
           >
-            <RefreshCw size={16} /> Recargar
+            <RefreshCw size={16} /> <span className={styles.botonTexto}>Recargar</span>
           </button>
         </div>
       </header>

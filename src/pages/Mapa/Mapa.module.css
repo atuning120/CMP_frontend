@@ -561,88 +561,6 @@
       color: var(--on-primary);
     }
   }
-
-  /* Trayecto dibujado: qué es, cuánto recorrió y cómo cerrarlo. Abajo al centro, sobre la escala */
-  .trayecto {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: max-content;
-    max-width: calc(100% - 32px);
-    box-sizing: border-box;
-    padding: 8px 8px 8px 12px;
-    border: 1px solid var(--hero-rule);
-    border-radius: 12px;
-    background: var(--map-overlay-bg);
-    box-shadow: var(--map-sombra);
-    color: var(--map-overlay-text);
-    transform: translateX(-50%);
-  }
-
-  .trayectoIcono {
-    display: inline-flex;
-    flex-shrink: 0;
-    color: var(--map-recorrido);
-  }
-
-  .trayectoTexto {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-  }
-
-  .trayectoTitulo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .trayectoEnVivo {
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: var(--map-recorrido);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--map-area-casing);
-  }
-
-  .trayectoResumen {
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    opacity: 0.85;
-  }
-
-  .trayectoCerrar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 30px;
-    height: 30px;
-    border: none;
-    border-radius: 8px;
-    background: none;
-    color: var(--map-overlay-text);
-    cursor: pointer;
-
-    &:hover {
-      background: var(--hero-rule);
-    }
-
-    &:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px var(--focus-ring);
-    }
-  }
 }
 
 /* MAPA RESPONSIVO*/
@@ -722,9 +640,11 @@
       display: none;
     }
 
+    /* Fondo opaco: en un mapa chico quedan etiquetas debajo, y transparentadas no se leen ni estas ni aquellas */
     .chip,
     .modos {
       height: 32px;
+      background: var(--brand-deep);
       font-size: 12px;
     }
 
@@ -742,11 +662,25 @@
       width: calc(100% - 20px);
       max-height: calc(100% - 98px);
     }
+  }
+}
 
-    .trayecto {
-      bottom: 36px;
-      width: calc(100% - 20px);
-      max-width: none;
+/* Pantallas táctiles: controles del mapa más grandes para el dedo */
+@media (pointer: coarse) {
+  .mapaPage {
+    .modos {
+      height: 44px;
+    }
+
+    .modo {
+      height: 36px;
+      padding: 0 12px;
+    }
+
+    .tarjetaTrayectoBoton {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
     }
   }
 }

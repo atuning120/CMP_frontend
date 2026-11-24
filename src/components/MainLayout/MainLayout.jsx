@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { LogOut } from 'lucide-react'
-import { NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import { useAlertasEnVivo } from '../../hooks/alertasEnVivo.js'
@@ -51,6 +51,16 @@ function MainLayout() {
   // Recorrido guiado del rol: se ofrece en el primer ingreso y se repite desde el botón de ayuda
   const { recorrido, fase, comenzar, cerrar } = useRecorridoGuiado(sesion)
 
+  // En teléfono las pestañas se desplazan en su fila: la de la página actual siempre queda a la vista
+  const navRef = useRef(null)
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const nav = navRef.current
+    const activa = nav?.querySelector('[aria-current="page"]')
+    if (activa) nav.scrollTo({ left: activa.offsetLeft - (nav.clientWidth - activa.offsetWidth) / 2 })
+    // El contador de alertas ensancha su pestaña al llegar
+  }, [pathname, activas])
+
   const handleLogout = () => {
     salir()
     navigate('/login', { replace: true })
@@ -70,7 +80,7 @@ function MainLayout() {
           </span>
         </div>
 
-        <nav className={styles.nav}>
+        <nav ref={navRef} className={styles.nav}>
           <NavLink to="/mapa" className={navLinkClass}>
             Mapa
           </NavLink>

@@ -91,6 +91,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   const listoRef = useRef(false)
   const marcadoresRef = useRef([])
   const popupRef = useRef(null)
+  const clavePopupRef = useRef(null)
   const onSeleccionarRef = useRef(onSeleccionar)
   const [listo, setListo] = useState(false)
   const [cursor, setCursor] = useState(null)
@@ -302,6 +303,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       marcadoresRef.current.forEach((m) => m.remove())
       marcadoresRef.current = []
       popupRef.current?.remove()
+      popupRef.current = null
       drawRef.current?.stop()
       drawRef.current = null
       listoRef.current = false
@@ -398,9 +400,16 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   // Tarjeta flotante (contenido React vía portal dentro del popup de MapLibre)
   useEffect(() => {
     if (!listo) return
+    // Misma tarjeta con datos nuevos (llega una posición GPS): solo se mueve. Recrearla le daría el foco cada vez, lo que
+    // cierra el teclado del teléfono y devuelve la página al mapa
+    if (popup && popupRef.current && clavePopupRef.current === popup.clave) {
+      popupRef.current.setLngLat(popup.lngLat)
+      return
+    }
     popupRef.current?.remove()
     popupRef.current = null
     if (!popup) return
+    clavePopupRef.current = popup.clave
     popupRef.current = new Popup({ closeButton: false, closeOnClick: false, offset: 18, maxWidth: '300px', className: styles.popup })
       .setLngLat(popup.lngLat)
       .setDOMContent(popupNodo)
@@ -408,15 +417,15 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   }, [listo, popup, popupNodo])
 
   useImperativeHandle(ref, () => ({
-    // Encuadra un polígono o centra un punto
-    enfocar(objetivo) {
+    // Encuadra un polígono (o el trayecto) o centra un punto. margenInferior: lo que tapa en teléfono, en px, la tarjeta
+    // que va al pie del mapa
+    enfocar(objetivo, margenInferior = 184) {
       const map = mapRef.current
       if (!map) return
       if (Array.isArray(objetivo)) return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5) })
       const [o, s, e, n] = bbox(objetivo)
-      // En teléfono la tarjeta de la geocerca ocupa el borde inferior: se deja ese espacio libre
       const angosto = map.getContainer().clientWidth <= 640
-      const padding = angosto ? { top: 56, bottom: 184, left: 24, right: 24 } : 80
+      const padding = angosto ? { top: 64, bottom: margenInferior, left: 24, right: 24 } : 80
       map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices
