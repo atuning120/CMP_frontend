@@ -51,18 +51,24 @@
     color: var(--map-overlay-text);
   }
 
-  /* Etiquetas (marcadores HTML de MapLibre) */
+  /* Nombres de geocercas (marcadores HTML de MapLibre): rotulados sobre el terreno, sin caja, para que
+     no se confundan con las máquinas, que son las únicas con ficha */
   .areaLabel,
   .zonaLabel {
-    padding: 3px 8px;
+    padding: 3px 6px;
+    border: none;
     border-radius: 6px;
+    background: none;
     font: inherit;
-    font-size: 12px;
     font-weight: 600;
     line-height: 1.3;
     white-space: nowrap;
-    color: var(--map-overlay-text);
+    text-shadow: var(--map-texto-halo);
     cursor: pointer;
+
+    &:hover {
+      color: var(--map-seleccion);
+    }
 
     &:focus-visible {
       outline: 2px solid var(--map-seleccion);
@@ -71,19 +77,17 @@
   }
 
   .areaLabel {
-    margin-bottom: 6px;
-    border: 1px dashed var(--map-area);
-    background: var(--map-label-bg);
-    box-shadow: var(--map-sombra);
-    letter-spacing: 0.01em;
+    margin-bottom: 2px;
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    color: var(--map-area-texto);
   }
 
   .zonaLabel {
     margin-top: 16px;
-    border: 1px solid var(--map-label-border);
-    background: var(--map-label-bg);
-    box-shadow: var(--map-sombra);
-    font-size: 11px;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: var(--map-zona-texto);
   }
 
   .maquina {
@@ -111,15 +115,35 @@
       box-shadow: var(--map-sombra);
     }
 
+    /* Ficha clara con punta hacia el punto de la máquina */
     .codigo {
-      padding: 1px 6px;
-      border-radius: 5px;
-      background: var(--map-label-bg);
+      position: relative;
+      margin-top: 3px;
+      padding: 2px 8px;
+      border: 1px solid var(--map-maquina-borde);
+      border-radius: 6px;
+      background: var(--map-maquina-bg);
       box-shadow: var(--map-sombra);
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
-      color: var(--map-overlay-text);
+      line-height: 1.35;
+      white-space: nowrap;
+      color: var(--map-maquina-texto);
+    }
+
+    .codigo::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      width: 8px;
+      height: 8px;
+      border: 1px solid var(--map-maquina-borde);
+      border-right: none;
+      border-bottom: none;
+      background: inherit;
+      transform: translateX(-50%) rotate(45deg);
     }
 
     /* Turno de más de 10 h: halo alrededor del punto, sea cual sea su estado */
@@ -159,7 +183,7 @@
     display: none;
   }
 
-  /* Hora de una posición del trayecto bajo el cursor: una etiqueta como las de las zonas */
+  /* Hora de una posición del trayecto bajo el cursor: etiqueta oscura y compacta */
   .popupPunto {
     pointer-events: none;
 
