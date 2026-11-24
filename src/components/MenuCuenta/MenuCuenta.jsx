@@ -69,7 +69,7 @@ function MenuCuenta({ email, rol, iniciales, avisos, onRecorrido, onAppMovil, on
         aria-expanded={abierto}
         aria-controls={idMenu}
         aria-label={`Menú de la cuenta: ${email ?? ''}`}
-        title="Menú de la cuenta"
+        data-tooltip="Menú de la cuenta"
         data-recorrido="menu-cuenta"
       >
         <span className={styles.avatar} aria-hidden="true">

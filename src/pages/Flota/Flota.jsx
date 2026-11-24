@@ -229,7 +229,12 @@ function Flota() {
                       {m.patente && <span className={styles.patente}>{m.patente}</span>}
                       {m.esContratista && <span className={styles.contratista}>Contratista</span>}
                       {gps && (
-                        <Link to="/flota/gps" className={styles.conGps} title={`Con GPS ${gps.imei}. Ver los GPS de la flota`}>
+                        <Link
+                          to="/flota/gps"
+                          className={styles.conGps}
+                          data-tooltip={`GPS ${gps.imei}`}
+                          data-tooltip-detalle="Ver los GPS de la flota"
+                        >
                           <SatelliteDish size={12} aria-hidden="true" /> GPS
                         </Link>
                       )}
@@ -278,7 +283,9 @@ function Flota() {
                         type="button"
                         className={styles.accion}
                         onClick={() => setAccion({ tipo: 'editar', maquina: m })}
-                        title="Editar la ficha, el operador o el estado"
+                        aria-label={`Editar ${m.nombre}`}
+                        data-tooltip="Editar"
+                        data-tooltip-detalle="La ficha, el operador o el estado"
                       >
                         <Pencil size={15} />
                         <span className={styles.accionTexto}>Editar</span>
@@ -289,7 +296,9 @@ function Flota() {
                           className={styles.accion}
                           onClick={() => setAccion({ tipo: 'reemplazar', maquina: m })}
                           disabled={!reemplazable(m)}
-                          title={
+                          aria-label={`Reemplazar ${m.nombre}`}
+                          data-tooltip="Reemplazar"
+                          data-tooltip-detalle={
                             reemplazable(m)
                               ? 'Otra máquina toma su lugar mientras se repara'
                               : 'Primero, en Editar, cambia su estado a en mantenimiento o fuera de servicio'
@@ -304,7 +313,9 @@ function Flota() {
                           type="button"
                           className={styles.accion}
                           onClick={() => setAccion({ tipo: 'devolver', maquina: m })}
-                          title={`Vuelve a operar y ${m.respaldo.nombre} vuelve a su estado anterior`}
+                          aria-label={`Devolver ${m.nombre}`}
+                          data-tooltip="Devolver"
+                          data-tooltip-detalle={`Vuelve a operar y ${m.respaldo.nombre} vuelve a su estado anterior`}
                         >
                           <Undo2 size={15} />
                           <span className={styles.accionTexto}>Devolver</span>

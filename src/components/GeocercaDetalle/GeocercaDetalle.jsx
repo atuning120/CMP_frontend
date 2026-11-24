@@ -165,7 +165,7 @@ function GeocercaDetalle({
                           role="radio"
                           aria-checked={elegido}
                           aria-label={nombre}
-                          title={nombre}
+                          data-tooltip={nombre}
                           className={`${styles.icono} ${elegido ? styles.iconoElegido : ''}`}
                           onClick={() => onForm((f) => ({ ...f, icono: clave === 'capas' ? '' : clave }))}
                         >

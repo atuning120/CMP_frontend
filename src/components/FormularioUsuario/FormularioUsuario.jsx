@@ -243,7 +243,7 @@ function FormularioUsuario({ usuario = null, esPropio = false, onCerrar, onGuard
                   className={styles.icono}
                   onClick={() => setVerPassword((v) => !v)}
                   aria-label={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  title={verPassword ? 'Ocultar' : 'Mostrar'}
+                  data-tooltip={verPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {verPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>

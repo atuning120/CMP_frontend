@@ -100,11 +100,11 @@ function Admin() {
 
   const controlRol = (u) => {
     if (u.rol === 'OPERADOR') {
-      return <span className={styles.rolFijo} title="El rol de un operador va ligado a su ficha y no se cambia">{ETIQUETA_ROL.OPERADOR}</span>
+      return <span className={styles.rolFijo} data-tooltip="El rol de un operador va ligado a su ficha y no se cambia">{ETIQUETA_ROL.OPERADOR}</span>
     }
     if (u.idUsuario === miId || u.esPrincipal) {
       const motivo = u.esPrincipal ? 'El administrador principal se define en la configuración del Backend' : 'No puedes cambiar tu propio rol'
-      return <span className={styles.rolFijo} title={motivo}>{ETIQUETA_ROL[u.rol] ?? u.rol}</span>
+      return <span className={styles.rolFijo} data-tooltip={motivo}>{ETIQUETA_ROL[u.rol] ?? u.rol}</span>
     }
     return (
       <select
@@ -275,7 +275,11 @@ function Admin() {
                     {u.nombre}
                     {u.idUsuario === miId && <span className={styles.tu}>tú</span>}
                     {u.esPrincipal && (
-                      <span className={styles.principal} title="Administrador principal: no se puede desactivar ni cambiar de rol">
+                      <span
+                        className={styles.principal}
+                        data-tooltip="Administrador principal"
+                        data-tooltip-detalle="No se puede desactivar ni cambiar de rol"
+                      >
                         <ShieldCheck size={12} /> Principal
                       </span>
                     )}

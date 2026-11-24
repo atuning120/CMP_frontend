@@ -130,7 +130,7 @@ function HistorialEvento({ evento }) {
         )}
       </div>
 
-      <time className={styles.fecha} dateTime={evento.fecha} title={fechaCompleta(evento.fecha)}>
+      <time className={styles.fecha} dateTime={evento.fecha} data-tooltip={fechaCompleta(evento.fecha)}>
         <span aria-hidden="true">{formatearFecha(evento.fecha)}</span>
         <span className={styles.visuallyHidden}>{fechaCompleta(evento.fecha)}</span>
       </time>

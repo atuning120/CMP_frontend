@@ -75,7 +75,7 @@ function GrupoOrdenable({ id, nombre, ordenable, children }) {
             type="button"
             className={styles.asa}
             aria-label={`Mover ${nombre}`}
-            title="Arrastra para cambiar el orden"
+            data-tooltip="Arrastra para cambiar el orden"
             {...attributes}
             {...listeners}
           >
@@ -305,7 +305,7 @@ function GeocercasPanel({
     const motivo = !item.poligono ? 'Sin polígono' : fueraDeFaena(item.poligono) ? 'Fuera de la faena' : null
     return (
       motivo && (
-        <span className={styles.aviso} title={motivo}>
+        <span className={styles.aviso} data-tooltip={motivo}>
           <AlertTriangle size={14} aria-hidden="true" />
           <span className={styles.visuallyHidden}>{motivo}</span>
         </span>
@@ -454,13 +454,15 @@ function GeocercasPanel({
                           type="button"
                           className={styles.item}
                           onClick={() => seleccionar('area', a)}
-                          title={a.nombre}
+                          data-tooltip={a.nombre}
+                          data-tooltip-lado="derecha"
+                          data-tooltip-recortado={nombreEnLista(a) === a.nombre ? true : undefined}
                         >
                           <DistintivoArea codigo={a.codigo} icono={a.icono} />
                           <span className={styles.itemNombre}>{nombreEnLista(a)}</span>
                           {aviso(a)}
                           {total > 0 && (
-                            <span className={styles.conteo} title={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
+                            <span className={styles.conteo} data-tooltip={`${total} ${total === 1 ? 'zona' : 'zonas'}`}>
                               {total}
                             </span>
                           )}
@@ -477,7 +479,9 @@ function GeocercasPanel({
                                   seleccion?.tipo === 'zona' && seleccion.id === z.idZona ? styles.itemActivo : ''
                                 }`}
                                 onClick={() => seleccionar('zona', z)}
-                                title={z.nombre}
+                                data-tooltip={z.nombre}
+                                data-tooltip-lado="derecha"
+                                data-tooltip-recortado
                               >
                                 <MapPinned size={14} className={styles.iconoZona} />
                                 <span className={styles.itemNombre}>{z.nombre}</span>

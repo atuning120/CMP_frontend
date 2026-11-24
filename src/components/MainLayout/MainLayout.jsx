@@ -103,7 +103,11 @@ function MainLayout() {
             <NavLink to="/alertas" className={navLinkClass} data-recorrido="nav-alertas">
               Alertas
               {activas > 0 && (
-                <span className={styles.badge} title={`${activas} alertas activas: operadores con más de 10 h trabajadas o máquinas detenidas por mantención o falla`}>
+                <span
+                  className={styles.badge}
+                  data-tooltip={activas === 1 ? '1 alerta activa' : `${activas} alertas activas`}
+                  data-tooltip-detalle="Operadores con más de 10 h trabajadas o máquinas detenidas por mantención o falla"
+                >
                   {activas}
                   <span className={styles.visuallyHidden}> activas</span>
                 </span>

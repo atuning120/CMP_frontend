@@ -246,7 +246,7 @@ function RecorridoGuiado({ recorrido, onTerminar }) {
               className={styles.cerrar}
               onClick={() => terminar('omitido')}
               aria-label="Omitir recorrido"
-              title="Omitir recorrido (Esc)"
+              data-tooltip="Omitir recorrido (Esc)"
             >
               <X size={16} />
             </button>

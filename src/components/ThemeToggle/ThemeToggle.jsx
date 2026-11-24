@@ -13,7 +13,7 @@ function ThemeToggle({ className = '', variante }) {
       className={`${styles.themeToggle} ${variante === 'marca' ? styles.marca : ''} ${className}`}
       onClick={toggleTheme}
       aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-      title={isDark ? 'Modo claro' : 'Modo oscuro'}
+      data-tooltip={isDark ? 'Modo claro' : 'Modo oscuro'}
     >
       {isDark ? <Sun size={18} className={styles.sun} /> : <Moon size={18} className={styles.moon} />}
     </button>

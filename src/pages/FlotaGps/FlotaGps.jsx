@@ -171,13 +171,13 @@ function FlotaGps() {
   const botonesDe = (d) => {
     const estado = estadoGps(d)
     return [
-      estado === 'vinculado' && { Icono: ArrowLeftRight, texto: 'Cambiar', titulo: 'Pasar este GPS a otra máquina', onClick: () => abrir('asignar', d) },
-      estado === 'libre' && { Icono: Link2, texto: 'Vincular', titulo: 'Vincular este GPS a una máquina', onClick: () => abrir('asignar', d) },
-      estado === 'baja' && { Icono: Power, texto: 'Reactivar', titulo: 'Volver a usar este GPS', onClick: () => cambiarActivo(d, true) },
-      estado === 'vinculado' && { Icono: Unlink, texto: 'Desvincular', titulo: 'Desvincular: dejar este GPS sin máquina', onClick: () => abrir('desvincular', d), soloIcono: true },
-      { Icono: Pencil, texto: 'Editar', titulo: 'Editar el modelo o la SIM', onClick: () => abrir('editar', d), soloIcono: true },
-      { Icono: History, texto: 'Historial', titulo: 'Historial: máquinas en que ha estado', onClick: () => abrir('historial', d), soloIcono: true },
-      estado === 'libre' && { Icono: PowerOff, texto: 'Dar de baja', titulo: 'Dar de baja: dejar de usar este GPS', onClick: () => setPorDarDeBaja(d), soloIcono: true },
+      estado === 'vinculado' && { Icono: ArrowLeftRight, texto: 'Cambiar', detalle: 'Pasar este GPS a otra máquina', onClick: () => abrir('asignar', d) },
+      estado === 'libre' && { Icono: Link2, texto: 'Vincular', detalle: 'Asignar este GPS a una máquina', onClick: () => abrir('asignar', d) },
+      estado === 'baja' && { Icono: Power, texto: 'Reactivar', detalle: 'Volver a usar este GPS', onClick: () => cambiarActivo(d, true) },
+      estado === 'vinculado' && { Icono: Unlink, texto: 'Desvincular', detalle: 'Dejar este GPS sin máquina', onClick: () => abrir('desvincular', d), soloIcono: true },
+      { Icono: Pencil, texto: 'Editar', detalle: 'El modelo o la SIM', onClick: () => abrir('editar', d), soloIcono: true },
+      { Icono: History, texto: 'Historial', detalle: 'Máquinas en que ha estado', onClick: () => abrir('historial', d), soloIcono: true },
+      estado === 'libre' && { Icono: PowerOff, texto: 'Dar de baja', detalle: 'Dejar de usar este GPS', onClick: () => setPorDarDeBaja(d), soloIcono: true },
     ].filter(Boolean)
   }
 
@@ -363,13 +363,14 @@ function FlotaGps() {
                       </td>
                       <td className={`${styles.td} ${styles.acciones}`}>
                         <div className={styles.botones}>
-                          {botonesDe(d).map(({ Icono, texto, titulo, onClick, soloIcono }) => (
+                          {botonesDe(d).map(({ Icono, texto, detalle, onClick, soloIcono }) => (
                             <button
                               key={texto}
                               type="button"
                               className={`${styles.accion} ${soloIcono ? styles.accionIcono : ''}`}
                               onClick={onClick}
-                              title={titulo}
+                              data-tooltip={texto}
+                              data-tooltip-detalle={detalle}
                               aria-label={`${texto} GPS ${d.imei}`}
                             >
                               <Icono size={15} />

@@ -258,41 +258,6 @@
       visibility 0.15s;
   }
 
-  /* Etiqueta emergente a la derecha de cada elemento de la barra (data-tooltip). Sigue el tema claro u
-     oscuro, igual que la tarjeta de la leyenda */
-  .railBoton,
-  .railDato,
-  .alternar {
-    &::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      top: 50%;
-      left: calc(100% + 10px);
-      z-index: 5;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-      box-shadow: var(--shadow-raised);
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      color: var(--text-h);
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-4px, -50%);
-      transition:
-        opacity 0.12s ease-out,
-        transform 0.12s ease-out;
-    }
-
-    &:hover::after,
-    &:focus-visible::after {
-      opacity: 1;
-      transform: translate(0, -50%);
-    }
-  }
-
   .visuallyHidden {
     position: absolute;
     width: 1px;
@@ -625,10 +590,6 @@
 
     .alternar {
       display: none;
-
-      &::after {
-        display: none;
-      }
     }
 
     /* En pantallas angostas el mapa va arriba y la lista debajo */
