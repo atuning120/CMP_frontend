@@ -1,7 +1,7 @@
 /* Abajo al centro del mapa, sobre la escala y la atribución */
 .trayectoMapa {
   position: absolute;
-  bottom: 40px;
+  bottom: calc(40px + var(--hoja-solape, 0px));
   left: 50%;
   z-index: 3;
   display: flex;
@@ -134,15 +134,20 @@
 @media (max-width: 640px) {
   .trayectoMapa {
     right: 10px;
-    bottom: 40px;
+    bottom: calc(40px + var(--hoja-solape, 0px));
     left: 10px;
     width: auto;
     min-width: 0;
     max-width: none;
-    background: var(--brand-deep);
     transform: none;
+  }
+}
 
-    /* La tarjeta de una máquina o geocerca ocupa ese lugar del mapa: vuelve al cerrarla */
+/* Teléfono (también apaisado): la tarjeta de una máquina o geocerca ocupa ese lugar del mapa; vuelve al cerrarla */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .trayectoMapa {
+    background: var(--brand-deep);
+
     &.oculta {
       display: none;
     }

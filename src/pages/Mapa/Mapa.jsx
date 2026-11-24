@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useOutletContext } from 'react-router-dom'
-import { AlertCircle, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck } from 'lucide-react'
+import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, Eye, Info, Layers, Route, Truck } from 'lucide-react'
 import FlotaPanel from '../../components/FlotaPanel/FlotaPanel.jsx'
 import GeocercasPanel from '../../components/GeocercasPanel/GeocercasPanel.jsx'
 import LeyendaMapa from '../../components/LeyendaMapa/LeyendaMapa.jsx'
@@ -48,7 +48,11 @@ const leerContraido = () => {
   }
 }
 // Alto (px) que la tarjeta del trayecto ocupa al pie del mapa en teléfono
-const MARGEN_TRAYECTO = 160
+const MARGEN_TRAYECTO = 176
+// Teléfono (también apaisado): el panel es una hoja que se desliza sobre el mapa. La misma consulta que en Mapa.module.css
+const CON_HOJA = '(max-width: 640px), (max-width: 900px) and (max-height: 500px)'
+// Con la hoja abierta queda a la vista una franja del mapa
+const APERTURA_HOJA = 0.7
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
 
 // Mientras no llega cada respuesta (referencias estables para los useMemo)
@@ -63,14 +67,12 @@ const haceCuanto = (fechaHora, ahora) => {
   return minutos < 1 ? 'hace menos de 1 min' : `hace ${minutos} min`
 }
 
-// Teléfono: las tarjetas del mapa no caben juntas
-const enTelefono = () => matchMedia('(max-width: 640px)').matches
-
 function Mapa() {
   const sesion = useSesion()
   const admin = esAdmin(sesion)
   const mapaRef = useRef(null)
   const seccionMapaRef = useRef(null)
+  const paginaRef = useRef(null)
   const queryClient = useQueryClient()
   // Al volver al mapa se dibuja lo último recibido (caché) mientras se actualiza en segundo plano
   const geocercasQuery = useGeocercas()
@@ -203,7 +205,7 @@ function Mapa() {
       desde: tipo === 'hoy' ? inicioDelDia() : null,
     })
     // En teléfono la ficha de la máquina taparía el trayecto que se acaba de pedir
-    if (enTelefono()) setSeleccion(null)
+    if (matchMedia(CON_HOJA).matches) setSeleccion(null)
   }
 
   const cerrarTrayecto = () => {
@@ -259,9 +261,19 @@ function Mapa() {
   // En pantalla angosta la lista va bajo el mapa: se vuelve a él para ver lo elegido o dibujar
   const verMapa = useCallback(() => {
     if (!matchMedia('(max-width: 900px)').matches) return
-    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches
-    seccionMapaRef.current?.scrollIntoView({ behavior: suave ? 'smooth' : 'auto', block: 'start' })
+    const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    // Con la hoja el mapa no se mueve de su lugar: lo que se baja es la hoja
+    if (matchMedia(CON_HOJA).matches) paginaRef.current?.scrollTo({ top: 0, behavior })
+    else seccionMapaRef.current?.scrollIntoView({ behavior, block: 'start' })
   }, [])
+
+  // Hoja del teléfono: se abre deslizándola (es el scroll de la página) o tocando su asa
+  const [hojaAbierta, setHojaAbierta] = useState(false)
+  const alternarHoja = () => {
+    if (hojaAbierta) return verMapa()
+    const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+    paginaRef.current?.scrollTo({ top: seccionMapaRef.current.offsetHeight * APERTURA_HOJA, behavior })
+  }
 
   const seleccionarMaquina = (idMaquina) => {
     setSeleccion({ tipo: 'maquina', id: idMaquina })
@@ -449,9 +461,28 @@ function Mapa() {
 
   return (
     <div
-      className={`${styles.mapaPage} ${contraido ? styles.contraido : ''} ${editando ? styles.editandoGeocerca : ''}`}
+      ref={paginaRef}
+      className={`${styles.mapaPage} ${contraido ? styles.contraido : ''} ${editando ? styles.editandoGeocerca : ''} ${recorridoActivo ? styles.enRecorrido : ''}`}
+      onScroll={(e) => e.target === e.currentTarget && setHojaAbierta(e.currentTarget.scrollTop > 40)}
     >
       <div id="panel-lateral-mapa" className={styles.lateral}>
+        {!contraido && (
+          <button
+            type="button"
+            className={styles.asa}
+            onClick={alternarHoja}
+            aria-expanded={hojaAbierta}
+            aria-label={hojaAbierta ? 'Bajar la lista y ver el mapa' : 'Subir la lista'}
+          >
+            {hojaAbierta ? (
+              <span className={styles.asaTexto}>
+                <ChevronDown size={16} /> Ver mapa
+              </span>
+            ) : (
+              <span className={styles.asaBarra} />
+            )}
+          </button>
+        )}
         {contraido ? (
           <nav className={styles.rail} aria-label="Panel lateral contraído">
             {/* Secciones: al elegir una, el panel se expande en ella */}

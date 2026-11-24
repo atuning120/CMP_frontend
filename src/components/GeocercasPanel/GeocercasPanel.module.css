@@ -389,3 +389,13 @@
     }
   }
 }
+
+/* Teléfono: el título es lo que asoma de la hoja (36 px + 4 y 12 de margen, bajo el asa de 28) */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .geocercasPanel {
+    .header {
+      padding-top: 4px;
+      padding-bottom: 12px;
+    }
+  }
+}

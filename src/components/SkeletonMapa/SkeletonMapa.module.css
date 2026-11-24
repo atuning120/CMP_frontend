@@ -75,3 +75,19 @@
     }
   }
 }
+
+/* Teléfono: el mapa a pantalla casi completa y la hoja del panel asomando */
+@media (max-width: 640px), (max-width: 900px) and (max-height: 500px) {
+  .skeletonMapa {
+    grid-template-rows: calc(100% - 64px) auto;
+    overflow: hidden;
+
+    .panel {
+      position: relative;
+      margin-top: -16px;
+      padding-top: 16px;
+      border-radius: 16px 16px 0 0;
+      box-shadow: var(--shadow-hoja);
+    }
+  }
+}

@@ -410,22 +410,30 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
     popupRef.current = null
     if (!popup) return
     clavePopupRef.current = popup.clave
-    popupRef.current = new Popup({ closeButton: false, closeOnClick: false, offset: 18, maxWidth: '300px', className: styles.popup })
+    popupRef.current = new Popup({ closeButton: false, closeOnClick: false, focusAfterOpen: false, offset: 18, maxWidth: '300px', className: styles.popup })
       .setLngLat(popup.lngLat)
       .setDOMContent(popupNodo)
       .addTo(mapRef.current)
+    // El foco lo da la página y no MapLibre: sin preventScroll corta el desplazamiento que en teléfono lleva al mapa
+    popupNodo.querySelector('button')?.focus({ preventScroll: true })
   }, [listo, popup, popupNodo])
 
   useImperativeHandle(ref, () => ({
     // Encuadra un polígono (o el trayecto) o centra un punto. margenInferior: lo que tapa en teléfono, en px, la tarjeta
     // que va al pie del mapa
-    enfocar(objetivo, margenInferior = 184) {
+    enfocar(objetivo, margenInferior = 200) {
       const map = mapRef.current
       if (!map) return
-      if (Array.isArray(objetivo)) return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5) })
+      const { clientWidth, clientHeight } = map.getContainer()
+      const angosto = clientWidth <= 640
+      const bajo = clientHeight <= 400
+      // En teléfono el punto va bajo el centro: su tarjeta cabe arriba sin quedar tras los controles
+      if (Array.isArray(objetivo)) {
+        return map.flyTo({ center: objetivo, zoom: Math.max(map.getZoom(), 16.5), offset: [0, angosto || bajo ? 60 : 0] })
+      }
       const [o, s, e, n] = bbox(objetivo)
-      const angosto = map.getContainer().clientWidth <= 640
-      const padding = angosto ? { top: 64, bottom: margenInferior, left: 24, right: 24 } : 80
+      // Apaisado no queda alto para reservar el de la tarjeta
+      const padding = bajo ? 32 : angosto ? { top: 64, bottom: margenInferior, left: 24, right: 24 } : 80
       map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices
