@@ -62,6 +62,17 @@
     height: 10px;
   }
 
+  /* Como en el mapa: atenuado y con el borde cortado */
+  .sinDatos {
+    box-sizing: border-box;
+    width: 13px;
+    height: 13px;
+    border: 2px dashed var(--text);
+    border-radius: 50%;
+    background: var(--map-detenida);
+    opacity: 0.7;
+  }
+
   /* La alerta es un halo alrededor del punto, sea cual sea su estado */
   .alerta {
     width: 10px;

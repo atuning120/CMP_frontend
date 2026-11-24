@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   actualizarGps,
+  reconciliarGps,
   aUtm,
   estadoMaquina,
   fueraDeFaena,
@@ -172,6 +173,15 @@ describe('posicionarMaquinas', () => {
       expect(p.lngLat).toEqual(puntoInterior(zona.poligono))
       expect(p.gps).toBeNull()
     })
+
+    it('un GPS real conserva su última posición, sin turno y con turno, marcada sin datos', () => {
+      const real = new Map([[1, { ...gps('2026-10-20T20:00:00Z').get(1), gpsReal: true }]])
+      const conTurno = maquina({ operadorActual: 'Ana', idAreaActual: 10, idZonaActual: 20 })
+      for (const m of [maquina(), conTurno]) {
+        expect(posicionarMaquinas([m], [area], [zona], real, AHORA)).toEqual([expect.objectContaining({ lngLat: [-70.82, -28.31], sinDatos: true })])
+      }
+      expect(posicionarMaquinas([maquina()], [area], [zona], gps('2026-10-21T12:58:00Z'), AHORA)[0].sinDatos).toBe(false)
+    })
   })
 })
 
@@ -189,5 +199,21 @@ describe('actualizarGps', () => {
   it('devuelve el mismo Map si nada cambió', () => {
     const inicial = new Map([[1, posicion(1, '2026-10-21T13:00:00Z')]])
     expect(actualizarGps(inicial, [posicion(1, '2026-10-21T12:00:00Z')])).toBe(inicial)
+  })
+})
+
+describe('reconciliarGps', () => {
+  const real = { idMaquina: 1, fechaHora: '2026-10-21T13:00:00Z', latitud: -28.3, longitud: -70.8, gpsReal: true }
+
+  it('deja de conservar la posición de una máquina que ya no tiene su GPS', () => {
+    const gps = new Map([[1, real]])
+    expect(reconciliarGps(gps, []).get(1).gpsReal).toBe(false)
+    expect(reconciliarGps(gps, [{ ...real, gpsReal: false }]).get(1).gpsReal).toBe(false)
+  })
+
+  it('mantiene lo más nuevo que llegó por WebSocket, y el mismo Map si nada cambió', () => {
+    const gps = new Map([[1, real]])
+    expect(reconciliarGps(gps, [real])).toBe(gps)
+    expect(reconciliarGps(gps, [{ ...real, fechaHora: '2026-10-21T12:00:00Z' }]).get(1)).toBe(real)
   })
 })

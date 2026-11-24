@@ -2,8 +2,9 @@ import { apiJson } from './api.js'
 import { suscribirSocket } from './socket.js'
 
 /**
- * Última posición GPS de cada máquina en las últimas horas:
- * [{ idMaquina, fechaHora (ISO), latitud, longitud, velocidad, rumbo, bateria }]
+ * Última posición GPS de cada máquina en las últimas horas (hasta 7 días la de un GPS real):
+ * [{ idMaquina, fechaHora (ISO), latitud, longitud, velocidad, rumbo, bateria, gpsReal }]
+ * gpsReal: es del GPS instalado hoy en la máquina, no del teléfono del operador
  */
 export const obtenerUltimasPosiciones = () => apiJson('/tracking/ultimas')
 

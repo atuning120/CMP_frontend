@@ -147,10 +147,11 @@ export const gpsVigente = (posicion, ahora) =>
   Boolean(posicion) && ahora - Date.parse(posicion.fechaHora) <= GPS_VIGENTE_MS
 
 /**
- * Posición de cada máquina en el mapa. Con una posición GPS reciente va en ese punto (tenga o no turno).
+ * Posición de cada máquina en el mapa. Con una posición GPS reciente va en ese punto (tenga o no turno). Un GPS real
+ * detenido duerme y deja de reportar: conserva su última posición, marcada sinDatos (no se sabe si sigue ahí).
  * Si no, se ubica en un punto interior de la zona (o del área) de su turno en curso; sin turno o sin
  * polígono, no aparece en el mapa.
- * gps: Map idMaquina -> { fechaHora, latitud, longitud, velocidad, ... }
+ * gps: Map idMaquina -> { fechaHora, latitud, longitud, velocidad, gpsReal, ... }
  */
 export function posicionarMaquinas(maquinas, areas, zonas, gps = new Map(), ahora = Date.now()) {
   const poligonoZona = new Map(zonas.map((z) => [z.idZona, z.poligono]))
@@ -158,8 +159,9 @@ export function posicionarMaquinas(maquinas, areas, zonas, gps = new Map(), ahor
   const puntos = new Map()
   return maquinas.flatMap((m) => {
     const posicion = gps.get(m.idMaquina)
-    if (gpsVigente(posicion, ahora)) {
-      return [{ maquina: m, lngLat: [posicion.longitud, posicion.latitud], indice: 0, gps: posicion }]
+    const vigente = gpsVigente(posicion, ahora)
+    if (vigente || posicion?.gpsReal) {
+      return [{ maquina: m, lngLat: [posicion.longitud, posicion.latitud], indice: 0, gps: posicion, sinDatos: !vigente }]
     }
     const poligono = poligonoZona.get(m.idZonaActual) ?? poligonoArea.get(m.idAreaActual)
     if (!m.operadorActual || !poligono) return []
@@ -168,7 +170,7 @@ export function posicionarMaquinas(maquinas, areas, zonas, gps = new Map(), ahor
     const grupo = puntos.get(clave)
     // Varias máquinas en la misma zona se reparten alrededor del punto para no taparse
     const indice = grupo.cantidad++
-    return [{ maquina: m, lngLat: grupo.punto, indice, gps: null }]
+    return [{ maquina: m, lngLat: grupo.punto, indice, gps: null, sinDatos: false }]
   })
 }
 
@@ -180,9 +182,26 @@ export function actualizarGps(gps, posiciones) {
   let siguiente = gps
   for (const p of posiciones) {
     const actual = siguiente.get(p.idMaquina)
-    if (actual && Date.parse(actual.fechaHora) >= Date.parse(p.fechaHora)) continue
+    const diferencia = actual ? Date.parse(p.fechaHora) - Date.parse(actual.fechaHora) : 1
+    // La misma posición puede dejar de ser del GPS de la máquina (se cambió a otra)
+    if (diferencia < 0 || (diferencia === 0 && actual.gpsReal === p.gpsReal)) continue
     if (siguiente === gps) siguiente = new Map(gps)
     siguiente.set(p.idMaquina, p)
+  }
+  return siguiente
+}
+
+/**
+ * Lista completa de últimas posiciones del Backend sobre lo que ya se tenía (pudo llegar algo más nuevo por WebSocket).
+ * A una máquina que ya no tiene su GPS real se le deja de conservar la posición.
+ */
+export function reconciliarGps(gps, posiciones) {
+  const conGpsReal = new Set(posiciones.filter((p) => p.gpsReal).map((p) => p.idMaquina))
+  let siguiente = actualizarGps(gps, posiciones)
+  for (const [idMaquina, p] of siguiente) {
+    if (!p.gpsReal || conGpsReal.has(idMaquina)) continue
+    if (siguiente === gps) siguiente = new Map(gps)
+    siguiente.set(idMaquina, { ...p, gpsReal: false })
   }
   return siguiente
 }

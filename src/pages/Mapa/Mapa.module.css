@@ -496,6 +496,11 @@
     }
   }
 
+  .tarjetaSinDatos {
+    font-weight: 600;
+    color: var(--warning-text);
+  }
+
   .tarjetaEstado {
     margin-top: 2px;
     font-weight: 700;

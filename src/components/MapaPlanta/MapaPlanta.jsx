@@ -368,12 +368,12 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
         onSeleccionarRef.current({ tipo: 'zona', id: z.idZona }),
       )
     })
-    maquinas.forEach(({ maquina, lngLat, indice, estado, categoria }) => {
+    maquinas.forEach(({ maquina, lngLat, indice, estado, categoria, sinDatos }) => {
       const activa = seleccion?.tipo === 'maquina' && seleccion.id === maquina.idMaquina
       const el = document.createElement('button')
       el.type = 'button'
-      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${activa ? styles.maquinaActiva : ''}`
-      el.setAttribute('aria-label', etiquetaMaquina(maquina, estado))
+      el.className = `${styles.maquina} ${styles[estado] ?? ''} ${activa ? styles.maquinaActiva : ''} ${sinDatos ? styles.sinDatos : ''}`
+      el.setAttribute('aria-label', `${etiquetaMaquina(maquina, estado)}${sinDatos ? ', sin datos GPS recientes' : ''}`)
       el.setAttribute('aria-pressed', String(activa))
       // Mismo punto de color que la leyenda (PuntoEstado)
       const punto = document.createElement('span')

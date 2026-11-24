@@ -46,20 +46,25 @@ export const distanciaRecorridoKm = (puntos) =>
   puntos.reduce((total, p, i) => (i === 0 ? 0 : total + distanciaKm(coordenada(puntos[i - 1]), coordenada(p))), 0)
 
 /**
- * Suma a un recorrido abierto (hasta = null) las posiciones de su máquina que llegan por WebSocket. Las que ya están o
- * son anteriores al último punto se ignoran (una posición guardada sin señal llega tarde: aparece al recargar).
+ * Suma a un recorrido abierto (hasta = null) las posiciones de su máquina que llegan por WebSocket. Una atrasada (guardada
+ * sin señal, o adelantada por una alarma) entra en su lugar; las que ya están y las de antes del recorrido se ignoran.
  * Devuelve el mismo objeto si nada cambió.
  */
 export function agregarAlRecorrido(recorrido, posiciones) {
   if (!recorrido || recorrido.hasta !== null) return recorrido
-  const ultimo = recorrido.puntos.at(-1)
-  const desde = Date.parse(ultimo?.fechaHora ?? recorrido.desde)
+  const desde = Date.parse(recorrido.desde)
+  const fechas = new Set(recorrido.puntos.map((p) => Date.parse(p.fechaHora)))
   const nuevos = posiciones
-    .filter((p) => p.idMaquina === recorrido.idMaquina && Date.parse(p.fechaHora) > desde)
-    .sort((a, b) => Date.parse(a.fechaHora) - Date.parse(b.fechaHora))
+    .filter((p) => {
+      const fecha = Date.parse(p.fechaHora)
+      if (p.idMaquina !== recorrido.idMaquina || fecha < desde || fechas.has(fecha)) return false
+      fechas.add(fecha)
+      return true
+    })
     .map(({ fechaHora, latitud, longitud, velocidad }) => ({ fechaHora, latitud, longitud, velocidad }))
   if (nuevos.length === 0) return recorrido
-  return { ...recorrido, puntos: [...recorrido.puntos, ...nuevos] }
+  const puntos = [...recorrido.puntos, ...nuevos].sort((a, b) => Date.parse(a.fechaHora) - Date.parse(b.fechaHora))
+  return { ...recorrido, puntos }
 }
 
 // Medianoche de hoy en la hora local del navegador, en ISO (el inicio de "trayecto de hoy")
