@@ -62,7 +62,17 @@ describe('agregarAlRecorrido', () => {
     expect(siguiente.puntos.at(-1)).toEqual(p(90))
   })
 
-  it('ignora las repetidas o atrasadas y devuelve el mismo objeto si no hay nada nuevo', () => {
+  it('una atrasada entra en su lugar, sin recargar', () => {
+    const conHueco = { ...abierto, puntos: [p(0), p(90)] }
+    const siguiente = agregarAlRecorrido(conHueco, [enVivo(60), enVivo(30), enVivo(30)])
+    expect(siguiente.puntos).toEqual([p(0), p(30), p(60), p(90)])
+  })
+
+  it('ignora las de antes del recorrido', () => {
+    expect(agregarAlRecorrido(abierto, [enVivo(-30)])).toBe(abierto)
+  })
+
+  it('ignora las repetidas y devuelve el mismo objeto si no hay nada nuevo', () => {
     expect(agregarAlRecorrido(abierto, [enVivo(30), enVivo(0)])).toBe(abierto)
     expect(agregarAlRecorrido(abierto, [enVivo(60, 9)])).toBe(abierto)
   })

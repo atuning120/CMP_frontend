@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, Search, Truck, Undo2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { AlertCircle, AlertTriangle, ArrowLeftRight, CheckCircle2, Pencil, Plus, SatelliteDish, Search, Truck, Undo2 } from 'lucide-react'
 import FlotaAccion from '../../components/FlotaAccion/FlotaAccion.jsx'
+import PestanasFlota from '../../components/PestanasFlota/PestanasFlota.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
-import { CLAVES, errorSinDatos, useCatalogos, useFlota } from '../../hooks/consultas.js'
+import { CLAVES, errorSinDatos, useCatalogos, useDispositivosGps, useFlota } from '../../hooks/consultas.js'
+import { gpsDeMaquina } from '../../services/gpsService.js'
 import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado, regresoVencido, sinOperador } from './estados.js'
 import styles from './Flota.module.css'
 
@@ -25,6 +28,7 @@ const sinCobertura = (m) => m.estado !== 'EN_RESERVA' && !m.respaldo && !m.cubre
 const reemplazable = (m) => sinCobertura(m) && !operaEnEstado(m.estado)
 
 const SIN_MAQUINAS = []
+const SIN_GPS = []
 const CATALOGOS_VACIOS = { tipos: [], marcas: [], modelos: [], operadores: [] }
 const FILAS_SKELETON = [1, 2, 3, 4, 5]
 
@@ -37,6 +41,9 @@ function Flota() {
   // Flota (compartida con el mapa) y catálogos de los formularios (tipos, marcas, modelos y operadores asignables)
   const flotaQuery = useFlota()
   const catalogosQuery = useCatalogos()
+  // Solo para mostrar qué máquina tiene GPS y ofrecer su cambio tras un reemplazo: si no carga, la flota funciona igual
+  const gpsQuery = useDispositivosGps()
+  const dispositivos = gpsQuery.data ?? SIN_GPS
   const flota = flotaQuery.data ?? SIN_MAQUINAS
   const catalogos = catalogosQuery.data ?? CATALOGOS_VACIOS
   // Los catálogos solo los usan los formularios: la tabla no los espera
@@ -66,16 +73,20 @@ function Flota() {
 
   // La acción ya quedó hecha: si la recarga falla, la tabla se pone al día en el próximo refresco (y no invita a
   // repetirla). Las alertas también cambian al cerrar un turno
-  const alGuardar = async (mensaje) => {
+  // cambio: { sale, entra } en un reemplazo o una devolución. El GPS de la que sale no se mueve solo (hay que
+  // instalarlo en la otra): se ofrece el enlace para registrarlo
+  const alGuardar = async (mensaje, cambio) => {
     await Promise.all(
       [CLAVES.flota, CLAVES.catalogos, CLAVES.alertas].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
     )
     setAccion(null)
-    setAviso(mensaje)
+    const gps = cambio && gpsDeMaquina(dispositivos, cambio.sale.idMaquina)
+    setAviso({ mensaje, pasarGps: gps ? { gps, ...cambio } : null })
   }
 
   return (
     <section className={styles.flota}>
+      <PestanasFlota />
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>
@@ -96,7 +107,19 @@ function Flota() {
 
       {aviso && (
         <p className={styles.exito} role="status">
-          <CheckCircle2 size={16} /> {aviso}
+          <CheckCircle2 size={16} />
+          <span>
+            {aviso.mensaje}
+            {aviso.pasarGps && (
+              <>
+                {' '}
+                El GPS sigue en {aviso.pasarGps.sale.nombre}:{' '}
+                <Link to={`/flota/gps?mover=${aviso.pasarGps.gps.idGps}&a=${aviso.pasarGps.entra.idMaquina}`} className={styles.enlaceAviso}>
+                  pasarlo a {aviso.pasarGps.entra.nombre}
+                </Link>
+              </>
+            )}
+          </span>
           <button type="button" className={styles.cerrarAviso} onClick={() => setAviso(null)} aria-label="Cerrar aviso">
             ×
           </button>
@@ -196,6 +219,7 @@ function Flota() {
             )}
             {visibles.map((m, i) => {
               const estado = estadoDe(m)
+              const gps = gpsDeMaquina(dispositivos, m.idMaquina)
               const vencido = regresoVencido(m, ahora)
               return (
                 <tr key={m.idMaquina} className={styles.fila}>
@@ -204,6 +228,11 @@ function Flota() {
                       {m.nombre}
                       {m.patente && <span className={styles.patente}>{m.patente}</span>}
                       {m.esContratista && <span className={styles.contratista}>Contratista</span>}
+                      {gps && (
+                        <Link to="/flota/gps" className={styles.conGps} title={`Con GPS ${gps.imei}. Ver los GPS de la flota`}>
+                          <SatelliteDish size={12} aria-hidden="true" /> GPS
+                        </Link>
+                      )}
                     </span>
                     <span className={styles.secundario}>
                       {[m.tipoMaquina, m.marca, m.modelo].filter(Boolean).join(' · ') || 'Sin tipo registrado'}

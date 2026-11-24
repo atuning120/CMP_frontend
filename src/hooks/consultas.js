@@ -12,6 +12,7 @@ import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 import { obtenerEvidencia } from '../services/evidenciasService.js'
 import { listarCargasEp, obtenerDashboard } from '../services/dashboardsService.js'
+import { listarGps, obtenerHistorialGps } from '../services/gpsService.js'
 import { listarVersionesAdmin, listarVersionesPublicas } from '../services/appMovilService.js'
 import { mensajeDeError } from '../services/errores.js'
 
@@ -24,6 +25,8 @@ export const CLAVES = {
   catalogos: ['catalogos'],
   geocercas: ['geocercas'],
   gps: ['gps'],
+  // Equipos GPS y la máquina de cada uno; dentro, el historial de uno: ['dispositivos-gps', 'historial', idGps]
+  dispositivosGps: ['dispositivos-gps'],
   // Trayecto de una máquina: ['recorrido', 'turno' | 'hoy', idTurno | idMaquina, desde]
   recorrido: ['recorrido'],
   usuarios: ['usuarios'],
@@ -65,6 +68,14 @@ export const useCatalogos = () => useQuery({ queryKey: CLAVES.catalogos, queryFn
 
 export const useGeocercas = () =>
   useQuery({ queryKey: CLAVES.geocercas, queryFn: obtenerMapa, staleTime: VIGENCIA_GEOCERCAS_MS })
+
+// La última posición y la batería de cada GPS cambian solas
+const REFRESCO_GPS_MS = 60_000
+export const useDispositivosGps = () =>
+  useQuery({ queryKey: CLAVES.dispositivosGps, queryFn: listarGps, refetchInterval: REFRESCO_GPS_MS })
+
+export const useHistorialGps = (idGps) =>
+  useQuery({ queryKey: [...CLAVES.dispositivosGps, 'historial', idGps], queryFn: () => obtenerHistorialGps(idGps) })
 
 export const useUsuarios = () => useQuery({ queryKey: CLAVES.usuarios, queryFn: listarUsuarios })
 

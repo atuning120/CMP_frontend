@@ -618,7 +618,10 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
         )
       } else if (tipo === 'devolver') {
         const { respaldo: devuelto } = await devolverMaquina(maquina.idMaquina, versionBase, justificacion.motivo, justificacion.observacion)
-        await onGuardado(`${maquina.nombre} volvió a operar; ${devuelto.nombre} quedó ${estadoDe(devuelto).etiqueta.toLowerCase()}.`)
+        await onGuardado(`${maquina.nombre} volvió a operar; ${devuelto.nombre} quedó ${estadoDe(devuelto).etiqueta.toLowerCase()}.`, {
+          sale: devuelto,
+          entra: maquina,
+        })
       } else {
         if (entrante.origen === 'flota' && !entrante.idMaquina) {
           setGuardando(false)
@@ -634,7 +637,7 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
           ...justificacion,
         }
         const { entrante: nueva } = await reemplazarMaquina(maquina.idMaquina, datos)
-        await onGuardado(`${nueva.nombre} tomó el lugar de ${maquina.nombre}.`)
+        await onGuardado(`${nueva.nombre} tomó el lugar de ${maquina.nombre}.`, { sale: maquina, entra: nueva })
       }
     } catch (e) {
       if (e?.code === MAQUINA_MODIFICADA) {

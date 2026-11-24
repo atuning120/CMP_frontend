@@ -13,6 +13,7 @@ import { CLAVES, errorSinDatos, useFlota, useGeocercas, useMaquinasConAlerta } f
 import { puedeVerAlertas, suscribirEstadosOperacionales } from '../../services/flotaService.js'
 import { reordenarAreas } from '../../services/geocercasService.js'
 import { esAdmin, useSesion } from '../../services/session.js'
+import { haceCuanto as haceCuantoTiempo } from '../../services/gpsService.js'
 import { mensajeDeError } from '../../services/errores.js'
 import {
   obtenerRecorridoMaquina,
@@ -24,6 +25,7 @@ import { agregarAlRecorrido, distanciaRecorridoKm, geojsonRecorrido, inicioDelDi
 import {
   actualizarEstadoOperacional,
   actualizarGps,
+  reconciliarGps,
   categoriaMaquina,
   ETIQUETA_ESTADO,
   estadoMaquina,
@@ -34,6 +36,7 @@ import styles from './Mapa.module.css'
 
 // La flota cambia con los turnos: se refresca cada minuto mientras la página está abierta
 const REFRESCO_FLOTA_MS = 60_000
+const REFRESCO_GPS_MS = 5 * 60_000
 
 // Preferencia de cada usuario en su navegador: el panel lateral contraído o expandido
 const CLAVE_PANEL = 'mapa.panelContraido'
@@ -96,10 +99,12 @@ function Mapa() {
     queryKey: CLAVES.gps,
     queryFn: async () => {
       const posiciones = await obtenerUltimasPosiciones()
-      return actualizarGps(queryClient.getQueryData(CLAVES.gps) ?? SIN_GPS, posiciones)
+      return reconciliarGps(queryClient.getQueryData(CLAVES.gps) ?? SIN_GPS, posiciones)
     },
     // Sin el WebSocket (fuera del mapa) se pierden posiciones: al volver siempre se piden las últimas
     staleTime: 0,
+    // Un GPS que cambió de máquina no avisa por el WebSocket
+    refetchInterval: REFRESCO_GPS_MS,
     refetchOnWindowFocus: false,
   })
   const geocercas = geocercasQuery.data ?? SIN_GEOCERCAS
@@ -344,7 +349,7 @@ function Mapa() {
             <strong className={styles.tarjetaTitulo}>
               {maquina.nombre} · {[maquina.tipoMaquina, maquina.modelo].filter(Boolean).join(' ')}
             </strong>
-            <span>Operador: {maquina.operadorActual}</span>
+            {maquina.operadorActual && <span>Operador: {maquina.operadorActual}</span>}
             {maquina.operadorActual && (
               <span className={styles.tarjetaCategoria}>
                 <PuntoEstado categoria={categoriaMaquina(maquina)} className={styles.tarjetaPunto} />
@@ -353,7 +358,13 @@ function Mapa() {
             )}
             <span>{ubicacion}</span>
             {maquina.horometroActual !== null && <span>Horómetro: {formatoHoras.format(maquina.horometroActual)} h</span>}
-            {posicion.gps && (
+            {posicion.sinDatos && (
+              <span className={styles.tarjetaSinDatos}>
+                Sin datos desde {haceCuantoTiempo(posicion.gps.fechaHora, ahora).toLowerCase()} · última posición{' '}
+                {horaTrayecto(posicion.gps.fechaHora)}
+              </span>
+            )}
+            {posicion.gps && !posicion.sinDatos && (
               <span>
                 GPS {haceCuanto(posicion.gps.fechaHora, ahora)}
                 {posicion.gps.velocidad !== null && ` · ${formatoHoras.format(posicion.gps.velocidad)} km/h`}

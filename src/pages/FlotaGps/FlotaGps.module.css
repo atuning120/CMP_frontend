@@ -1,0 +1,687 @@
+.flotaGps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+  text-align: left;
+
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 800;
+  }
+
+  .titleIcon {
+    color: var(--warning);
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 260px;
+    max-width: 360px;
+  }
+
+  .searchIcon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .searchInput {
+    width: 100%;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 12px 0 36px;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 14px;
+    color: var(--text-h);
+    caret-color: var(--primary);
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:hover {
+      border-color: var(--input-border-hover);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filtro {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 6px 0 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      background 0.15s ease-out,
+      border-color 0.15s ease-out;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      color: var(--text-h);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .filtroConteo {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .filtroActivo {
+    border-color: var(--primary);
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    color: var(--on-primary);
+
+    &:hover {
+      color: var(--on-primary);
+    }
+
+    .filtroConteo {
+      background: var(--hero-rule);
+    }
+  }
+
+  .error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--danger-border);
+    border-radius: 10px;
+    background: var(--danger-bg);
+    font-size: 14px;
+    color: var(--danger);
+  }
+
+  /* Tabla dentro de una tarjeta con el borde inferior de 3 px de la app */
+  .tablaWrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-bottom-width: 3px;
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .tabla {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .th {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-alt);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .fila {
+    transition: background 0.15s ease-out;
+
+    &:hover {
+      background: var(--page-bg);
+    }
+
+    &+.fila .td {
+      border-top: 1px solid var(--border);
+    }
+  }
+
+  .td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    color: var(--text-h);
+  }
+
+  .vacio {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-tertiary);
+  }
+
+  .primario {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    box-shadow: 0 2px 6px var(--primary-shadow);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--on-primary);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+  }
+
+  .exito {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    font-size: 14px;
+    color: var(--success);
+  }
+
+  .cerrarAviso {
+    margin-left: auto;
+    padding: 0 6px;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  /* Resumen: cobertura de la flota y lo que hay que revisar */
+  .resumen {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .indicador {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-bottom-width: 3px;
+    border-radius: 14px;
+    background: var(--surface);
+  }
+
+  .indicadorTitulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .indicadorIcono {
+    flex: none;
+    color: var(--primary);
+  }
+
+  .indicadorValor {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-h);
+  }
+
+  .indicadorDetalle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .indicadorAlerta {
+    border-color: color-mix(in srgb, var(--warning) 55%, transparent);
+
+    .indicadorIcono,
+    .indicadorValor {
+      color: var(--warning-text);
+    }
+  }
+
+  .cobertura {
+    width: 100%;
+    height: 6px;
+    margin: 4px 0;
+    border: none;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    overflow: hidden;
+    appearance: none;
+
+    &::-webkit-progress-bar {
+      background: var(--surface-alt);
+    }
+
+    &::-webkit-progress-value {
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    &::-moz-progress-bar {
+      background: var(--primary);
+    }
+  }
+
+  /* Una máquina reemplazada que se quedó con el GPS */
+  .sugerencia {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+    border-radius: 12px;
+    background: var(--selection-bg);
+  }
+
+  .sugerenciaIcono {
+    flex: none;
+    color: var(--primary);
+  }
+
+  .sugerenciaTexto {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-h);
+  }
+
+  .vacioInicial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sinMaquina {
+    font-weight: 600;
+    color: var(--text-tertiary);
+  }
+
+  .dato {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .callado {
+    display: block;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--warning-text);
+  }
+
+  .bateria {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .bateriaBuena {
+    color: var(--success-text);
+  }
+
+  .bateriaBaja {
+    color: var(--danger-text);
+  }
+
+  .imei {
+    display: block;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .maquina {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .secundario {
+    display: block;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  }
+
+  .vinculado {
+    background: color-mix(in srgb, var(--success) 13%, transparent);
+    color: var(--success);
+  }
+
+  .libre {
+    background: color-mix(in srgb, var(--primary) 13%, transparent);
+    color: var(--primary);
+  }
+
+  .baja {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  .acciones {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .botones {
+    display: flex;
+    gap: 6px;
+  }
+
+  .accion {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--input-border);
+    border-radius: 9px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--input-border-hover);
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+  }
+
+  .skConteo {
+    width: 8px;
+    height: 10px;
+    margin: 4px auto;
+  }
+
+  .skValor {
+    display: block;
+    width: 56px;
+    height: 24px;
+  }
+
+  .skTexto {
+    width: 100px;
+  }
+}
+
+@media (max-width: 1100px){
+  .flotaGps {
+    .accionTexto {
+      display: none;
+    }
+  }
+}
+
+/* Ajuste responsivo */
+@media (max-width: 900px) {
+  .flotaGps {
+    .resumen {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    padding: 20px 16px 32px;
+  }
+}
+
+/* Teléfono: la tabla pasa a una tarjeta por máquina, con la etiqueta de cada dato (data-label) */
+@media (max-width: 640px) {
+  .flotaGps {
+    gap: 14px;
+    padding: 16px 12px 28px;
+
+    .header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .title {
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+
+    .primario {
+      justify-content: center;
+    }
+
+    .search {
+      flex-basis: 100%;
+      max-width: none;
+    }
+
+    /* Filtros en una sola fila deslizable, pegada a los bordes de la pantalla */
+    .filtros {
+      flex-wrap: nowrap;
+      margin: 0 -12px;
+      padding: 2px 12px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filtro {
+      flex-shrink: 0;
+    }
+
+    .tablaWrapper {
+      overflow: visible;
+      border: none;
+      border-radius: 0;
+      background: none;
+    }
+
+    .tabla {
+      display: block;
+      min-width: 0;
+    }
+
+    .cabecera {
+      display: none;
+    }
+
+    /* Como flex, cada fila (tr) se vuelve un bloque: una tarjeta */
+    .cuerpo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vacio {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+
+    .fila {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 14px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-bottom-width: 3px;
+      border-radius: 14px;
+      background: var(--surface);
+
+      &:hover {
+        background: var(--surface);
+      }
+
+      /* La línea entre filas de la tabla no aplica a las tarjetas (salvo la de las acciones) */
+      & + .fila .td:not(.acciones) {
+        border-top: none;
+      }
+    }
+
+    .td {
+      display: block;
+      padding: 0;
+
+      &[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-tertiary);
+      }
+
+      /* Máquina y acciones ocupan todo el ancho de la tarjeta */
+      &:first-child,
+      &.acciones {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .acciones {
+      width: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .botones {
+      gap: 8px;
+    }
+
+    .accion {
+      flex: 1;
+      justify-content: center;
+      height: 38px;
+    }
+
+    .accionTexto {
+      display: inline;
+    }
+
+    .accionIcono {
+      flex: 0 0 44px;
+    }
+
+    .sugerencia {
+      flex-wrap: wrap;
+    }
+
+    .sugerenciaTexto {
+      flex-basis: 70%;
+    }
+  }
+}
+/* Pantallas táctiles: filtros y acciones más altos para el dedo */
+@media (pointer: coarse) {
+  .flotaGps {
+    .filtro {
+      height: 40px;
+    }
+
+    .accion {
+      height: 44px;
+    }
+  }
+}

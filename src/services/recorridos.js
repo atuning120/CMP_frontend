@@ -12,6 +12,7 @@ import {
   Palette,
   Plus,
   Route,
+  SatelliteDish,
   Search,
   ShieldAlert,
   ShieldCheck,
@@ -187,6 +188,13 @@ const FLOTA = seccion('Flota', '/flota', [
     titulo: 'Edita, reemplaza y devuelve',
     texto:
       'Editar cambia la ficha, el operador o el estado. Si una máquina entra a mantención, Reemplazar asigna otra que cubre su lugar, y Devolver la reincorpora cuando vuelve a operar.',
+  },
+  {
+    objetivo: 'flota-pestana-gps',
+    lado: 'abajo',
+    icono: SatelliteDish,
+    titulo: 'Los GPS de la flota',
+    texto: 'Vincula cada GPS a su máquina y pásalo a otra si la reemplaza. También ves su batería y su última posición.',
   },
 ])
 

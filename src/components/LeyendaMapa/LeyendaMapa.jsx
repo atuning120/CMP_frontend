@@ -11,6 +11,7 @@ const ELEMENTOS = [
   { estado: 'demora', texto: 'Demora', detalle: 'Estado del turno' },
   { estado: 'mantencion', texto: 'Mantención o falla', detalle: 'Estado del turno' },
   { estado: 'sinEstado', texto: 'Sin estado', detalle: 'Turno recién iniciado' },
+  { clase: 'sinDatos', texto: 'Sin datos GPS', detalle: 'Última posición' },
   { clase: 'alerta', texto: 'Alerta', detalle: 'Halo: turno de más de 10 h' },
 ]
 

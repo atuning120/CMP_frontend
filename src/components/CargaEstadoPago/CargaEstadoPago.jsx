@@ -249,8 +249,7 @@ function CargaEstadoPago({ onCerrar, onCargado }) {
           )}
           <p className={styles.privacidad}>
             <ShieldCheck size={14} className={styles.privacidadIcono} />
-            Solo se leen la hoja «Base de datos» y las tablas de tarifas de la hoja «EP #NN». Las demás hojas (horas extra,
-            otros montos) y el archivo no se guardan.
+            Solo se leen la hoja «Base de datos» y las tablas de tarifas de la hoja «EP #NN».
           </p>
           {error && (
             <p className={styles.error} role="alert">

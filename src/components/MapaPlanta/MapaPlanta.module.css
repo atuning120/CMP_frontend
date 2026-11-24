@@ -129,6 +129,15 @@
         0 0 0 6px var(--map-alerta-halo);
     }
 
+    /* Última posición de un GPS que dejó de reportar: se ve, pero atenuada */
+    &.sinDatos {
+      opacity: 0.7;
+    }
+
+    &.sinDatos .punto {
+      border-style: dashed;
+    }
+
     &.maquinaActiva .codigo {
       background: var(--map-seleccion);
       color: var(--on-warning);
