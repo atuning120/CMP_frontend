@@ -1,0 +1,110 @@
+.tooltip {
+  position: fixed;
+  inset: auto;
+  top: var(--tooltip-y, 0);
+  left: var(--tooltip-x, 0);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 16px));
+  margin: 0;
+  padding: 7px 11px;
+  overflow: visible;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-h);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  pointer-events: none;
+
+  &:popover-open {
+    animation: aparecer 0.14s ease-out;
+  }
+
+  /* Flecha: cuadrado girado del que solo asoma la mitad exterior, con su borde */
+  &::after {
+    content: '';
+    position: absolute;
+    box-sizing: border-box;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  &[data-lado='arriba'] {
+    --desde-y: 4px;
+
+    &::after {
+      top: 100%;
+      left: var(--tooltip-flecha);
+      clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    }
+  }
+
+  &[data-lado='abajo'] {
+    --desde-y: -4px;
+
+    &::after {
+      top: 0;
+      left: var(--tooltip-flecha);
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+  }
+
+  &[data-lado='derecha'] {
+    --desde-x: -4px;
+
+    &::after {
+      top: var(--tooltip-flecha);
+      left: 0;
+      clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+  }
+
+  &[data-lado='izquierda'] {
+    --desde-x: 4px;
+
+    &::after {
+      top: var(--tooltip-flecha);
+      left: 100%;
+      clip-path: polygon(0 0, 100% 0, 100% 100%);
+    }
+  }
+
+  .titulo,
+  .texto,
+  .detalle {
+    display: block;
+  }
+
+  .titulo {
+    font-weight: 700;
+  }
+
+  .texto {
+    font-weight: 600;
+  }
+
+  .detalle {
+    margin-top: 1px;
+    color: var(--text);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translate(var(--desde-x, 0), var(--desde-y, 0));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip:popover-open {
+    animation: none;
+  }
+}

@@ -209,7 +209,7 @@ function Alertas() {
             tiempo real; al atenderlas queda registrado quién lo hizo, cuándo y con qué comentario.
           </p>
         </div>
-        <button type="button" className={styles.boton} onClick={recargar} disabled={cargando} title="Recargar">
+        <button type="button" className={styles.boton} onClick={recargar} disabled={cargando} data-tooltip="Recargar">
           <RefreshCw size={16} /> <span className={styles.botonTexto}>Recargar</span>
         </button>
       </header>

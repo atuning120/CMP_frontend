@@ -165,7 +165,8 @@ function Historial() {
             onClick={exportarExcel}
             data-recorrido="historial-excel"
             disabled={!rango || exportando || (vigente && eventos.length === 0)}
-            title="Descargar el historial del rango y tipo elegidos en Excel (no aplica la búsqueda)"
+            data-tooltip="Exportar a Excel"
+            data-tooltip-detalle="Descarga el rango y tipo elegidos (no aplica la búsqueda)"
           >
             <FileSpreadsheet size={16} /> {exportando ? 'Generando…' : <span><span className={styles.botonTexto}>Exportar </span>Excel</span>}
           </button>
@@ -174,7 +175,7 @@ function Historial() {
             className={styles.boton}
             onClick={() => setRecargas((n) => n + 1)}
             disabled={cargando}
-            title="Recargar"
+            data-tooltip="Recargar"
           >
             <RefreshCw size={16} /> <span className={styles.botonTexto}>Recargar</span>
           </button>

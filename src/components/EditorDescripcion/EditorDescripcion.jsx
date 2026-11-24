@@ -104,7 +104,7 @@ function EditorDescripcion({ label, value, onChange, disabled = false }) {
               className={`${styles.boton} ${activo?.[clave] ? styles.botonActivo : ''}`}
               aria-label={nombre}
               aria-pressed={activo?.[clave] ?? false}
-              title={atajo ? `${nombre} (${atajo})` : nombre}
+              data-tooltip={atajo ? `${nombre} (${atajo})` : nombre}
               disabled={disabled || !editor}
               // Sin esto el editor pierde el foco y la selección antes del clic
               onMouseDown={(e) => e.preventDefault()}

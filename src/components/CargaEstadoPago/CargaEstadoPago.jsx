@@ -293,7 +293,7 @@ function ArchivoElegido({ archivo, arrastrando, ocupado, estado, onQuitar }) {
         <FileSpreadsheet size={22} strokeWidth={1.75} />
       </span>
       <div className={styles.archivoDatos}>
-        <span className={styles.archivoNombre} title={archivo.name}>
+        <span className={styles.archivoNombre} data-tooltip={archivo.name} data-tooltip-recortado>
           {archivo.name}
         </span>
         <span className={styles.archivoMeta}>

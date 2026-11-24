@@ -112,11 +112,23 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       maxPitch: 0,
       pitchWithRotate: false,
       attributionControl: { compact: true },
+      locale: {
+        'NavigationControl.ZoomIn': 'Acercar',
+        'NavigationControl.ZoomOut': 'Alejar',
+        'NavigationControl.ResetBearing': 'Volver al norte',
+      },
     })
     map.touchPitch.disable()
     map.addControl(new NavigationControl({ visualizePitch: false }), 'top-right')
     map.addControl(new ScaleControl({ unit: 'metric' }), 'bottom-left')
     mapRef.current = map
+
+    // Los botones de MapLibre traen title (la etiqueta del navegador): pasan a la del panel. Conservan su aria-label
+    for (const boton of contenedorRef.current.querySelectorAll('button[title]')) {
+      boton.dataset.tooltip = boton.title
+      boton.dataset.tooltipLado = 'izquierda'
+      boton.removeAttribute('title')
+    }
 
     // MapLibre solo escucha el tamaño de la ventana: al contraer o expandir el panel lateral cambia
     // el ancho del contenedor y hay que avisarle para que redibuje sin deformarse

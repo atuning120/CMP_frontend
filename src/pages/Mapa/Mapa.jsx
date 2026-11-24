@@ -493,6 +493,7 @@ function Mapa() {
                 onClick={() => abrirEn('flota')}
                 aria-label={`Flota: ${items.length} equipos`}
                 data-tooltip="Flota"
+                data-tooltip-lado="derecha"
               >
                 <span className={styles.railIcono}>
                   <Truck size={20} />
@@ -507,6 +508,7 @@ function Mapa() {
                   onClick={() => abrirEn('geocercas')}
                   aria-label={`Geocercas: ${areas.length} áreas`}
                   data-tooltip="Geocercas"
+                  data-tooltip-lado="derecha"
                 >
                   <span className={styles.railIcono}>
                     <Layers size={20} />
@@ -519,7 +521,7 @@ function Mapa() {
 
             {/* Resumen del estado de la flota, visible aunque el panel esté contraído */}
             <ul className={styles.railResumen} aria-label="Resumen de la flota">
-              <li className={styles.railDato} data-tooltip="Operando ahora" tabIndex={0}>
+              <li className={styles.railDato} data-tooltip="Operando ahora" data-tooltip-lado="derecha" tabIndex={0}>
                 <span className={`${styles.railPunto} ${styles.railOperando}`} />
                 {cargandoFlota ? (
                   <Skeleton className={styles.skRailNumero} />
@@ -529,7 +531,13 @@ function Mapa() {
                 <span className={styles.visuallyHidden}>operando</span>
               </li>
               {puedeVerAlertas(sesion) && (
-                <li className={styles.railDato} data-tooltip="Con alerta (turno de más de 10 h)" tabIndex={0}>
+                <li
+                  className={styles.railDato}
+                  data-tooltip="Con alerta"
+                  data-tooltip-detalle="Turno de más de 10 h"
+                  data-tooltip-lado="derecha"
+                  tabIndex={0}
+                >
                   <span className={`${styles.railPunto} ${styles.railAlerta}`} />
                   {cargandoFlota ? (
                     <Skeleton className={styles.skRailNumero} />
@@ -539,7 +547,7 @@ function Mapa() {
                   <span className={styles.visuallyHidden}>con alerta</span>
                 </li>
               )}
-              <li className={styles.railDato} data-tooltip="Fuera de servicio" tabIndex={0}>
+              <li className={styles.railDato} data-tooltip="Fuera de servicio" data-tooltip-lado="derecha" tabIndex={0}>
                 <span className={`${styles.railPunto} ${styles.railFuera}`} />
                 {cargandoFlota ? (
                   <Skeleton className={styles.skRailNumero} />
@@ -602,6 +610,7 @@ function Mapa() {
           aria-controls="panel-lateral-mapa"
           aria-label={contraido ? 'Expandir panel lateral' : 'Contraer panel lateral'}
           data-tooltip={contraido ? 'Expandir panel' : 'Contraer panel'}
+          data-tooltip-lado="derecha"
           data-recorrido="panel-alternar"
           disabled={!contraido && Boolean(editando)}
         >

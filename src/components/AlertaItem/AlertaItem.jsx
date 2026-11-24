@@ -54,7 +54,7 @@ function AlertaItem({ alerta, nueva, onAtendida }) {
         <AtencionAlerta alerta={alerta} onGuardada={onAtendida} />
       </div>
 
-      <time className={styles.fecha} dateTime={alerta.fecha} title={fechaCompleta(alerta.fecha)}>
+      <time className={styles.fecha} dateTime={alerta.fecha} data-tooltip={fechaCompleta(alerta.fecha)}>
         <span aria-hidden="true">{formatearFecha(alerta.fecha)}</span>
         <span className={styles.visuallyHidden}>{fechaCompleta(alerta.fecha)}</span>
       </time>

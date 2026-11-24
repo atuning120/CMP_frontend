@@ -11,7 +11,7 @@ function Miniatura({ evidencia, numero, total, cargar, onAbrir }) {
   const etiqueta = total > 1 ? `Ver foto ${numero} de ${total}` : 'Ver foto'
 
   return (
-    <button type="button" className={styles.miniatura} onClick={onAbrir} aria-label={etiqueta} title={etiqueta}>
+    <button type="button" className={styles.miniatura} onClick={onAbrir} aria-label={etiqueta} data-tooltip={etiqueta}>
       {foto.data ? (
         <img className={styles.foto} src={foto.data} alt="" />
       ) : foto.isError ? (

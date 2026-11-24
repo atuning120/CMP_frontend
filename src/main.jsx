@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 import './index.css'
+import Tooltip from './components/Tooltip/Tooltip.jsx'
 import { router } from './router.jsx'
 import { queryClient } from './services/queryClient.js'
 
@@ -11,5 +12,6 @@ createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
+    <Tooltip />
   </StrictMode>,
 )
