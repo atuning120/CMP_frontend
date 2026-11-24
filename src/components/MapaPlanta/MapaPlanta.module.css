@@ -51,24 +51,18 @@
     color: var(--map-overlay-text);
   }
 
-  /* Nombres de geocercas (marcadores HTML de MapLibre): rotulados sobre el terreno, sin caja, para que
-     no se confundan con las máquinas, que son las únicas con ficha */
+  /* Etiquetas (marcadores HTML de MapLibre) */
   .areaLabel,
   .zonaLabel {
-    padding: 3px 6px;
-    border: none;
+    padding: 3px 8px;
     border-radius: 6px;
-    background: none;
     font: inherit;
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.3;
     white-space: nowrap;
-    text-shadow: var(--map-texto-halo);
+    color: var(--map-overlay-text);
     cursor: pointer;
-
-    &:hover {
-      color: var(--map-seleccion);
-    }
 
     &:focus-visible {
       outline: 2px solid var(--map-seleccion);
@@ -77,17 +71,19 @@
   }
 
   .areaLabel {
-    margin-bottom: 2px;
-    font-size: 12.5px;
-    letter-spacing: 0.03em;
-    color: var(--map-area-texto);
+    margin-bottom: 6px;
+    border: 1px dashed var(--map-area);
+    background: var(--map-label-bg);
+    box-shadow: var(--map-sombra);
+    letter-spacing: 0.01em;
   }
 
   .zonaLabel {
     margin-top: 16px;
-    font-size: 11.5px;
-    letter-spacing: 0.02em;
-    color: var(--map-zona-texto);
+    border: 1px solid var(--map-label-border);
+    background: var(--map-label-bg);
+    box-shadow: var(--map-sombra);
+    font-size: 11px;
   }
 
   .maquina {
@@ -183,7 +179,7 @@
     display: none;
   }
 
-  /* Hora de una posición del trayecto bajo el cursor: etiqueta oscura y compacta */
+  /* Hora de una posición del trayecto bajo el cursor: una etiqueta como las de las zonas */
   .popupPunto {
     pointer-events: none;
 
