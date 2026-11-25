@@ -51,6 +51,7 @@ const FICHA_VACIA = {
   numeroChasis: '',
   horometroInicial: '',
   esContratista: false,
+  codigoEp: '',
 }
 
 const fichaDe = (m) => ({
@@ -63,10 +64,14 @@ const fichaDe = (m) => ({
   numeroChasis: m.numeroChasis ?? '',
   horometroInicial: '',
   esContratista: Boolean(m.esContratista),
+  codigoEp: m.codigoEp ?? '',
 })
 
 // Texto vacío -> null, como espera el Backend
 const opcional = (v) => (typeof v === 'string' ? v.trim() || null : v)
+
+// Solo los equipos de contratista lo tienen: con el interruptor apagado no se guarda
+const codigoEpDe = (f) => (f.esContratista ? f.codigoEp.trim() : '')
 
 const datosFicha = (f, conHorometro) => ({
   nombre: f.nombre.trim(),
@@ -77,10 +82,11 @@ const datosFicha = (f, conHorometro) => ({
   patente: opcional(f.patente),
   numeroChasis: opcional(f.numeroChasis),
   esContratista: f.esContratista,
+  codigoEp: opcional(codigoEpDe(f)),
   ...(conHorometro ? { horometroInicial: f.horometroInicial === '' ? null : Number(f.horometroInicial) } : {}),
 })
 
-// Lo que se compara al editar para saber si hay cambios (sin espacios extra ni mayúsculas en código y patente)
+// Lo que se compara al editar para saber si hay cambios (sin espacios extra ni mayúsculas en códigos y patente)
 const huella = (f, operador, estado) =>
   JSON.stringify([
     f.nombre.trim().toUpperCase(),
@@ -91,6 +97,7 @@ const huella = (f, operador, estado) =>
     String(f.anio),
     f.numeroChasis.trim(),
     f.esContratista,
+    codigoEpDe(f).toUpperCase(),
     operador,
     estado,
   ])
@@ -337,7 +344,7 @@ function CamposFicha({
       )}
       <div className={styles.dosColumnas}>
         <label className={styles.campo}>
-          <span className={styles.label}>Código interno *</span>
+          <span className={styles.label}>Código interno IMOPAC*</span>
           <input className={`${styles.input} ${styles.mayusculas}`} value={ficha.nombre} onChange={set('nombre')} maxLength={100} required placeholder="Ej. CF-07" />
         </label>
         <label className={styles.campo}>
@@ -435,6 +442,19 @@ function CamposFicha({
         </span>
         <input type="checkbox" role="switch" className={styles.switch} checked={ficha.esContratista} onChange={set('esContratista')} />
       </label>
+      {ficha.esContratista && (
+        <label className={styles.campo}>
+          <span className={styles.label}>Código en EP</span>
+          <input
+            className={`${styles.input} ${styles.mayusculas}`}
+            value={ficha.codigoEp}
+            onChange={set('codigoEp')}
+            maxLength={50}
+            placeholder="Opcional"
+          />
+          <span className={styles.ayuda}>N° Interno con que IMOPAC identifica este equipo en el estado de pago (EP) mensual.</span>
+        </label>
+      )}
     </div>
   )
 }
