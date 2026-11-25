@@ -12,24 +12,7 @@ import FlotaGps from './pages/FlotaGps/FlotaGps.jsx'
 import Historial from './pages/Historial/Historial.jsx'
 import Login from './pages/Login/Login.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
-
-// Tras un deploy, los chunks con el hash anterior ya no existen en el servidor: si una pestaña
-// abierta antes del deploy pide uno, recarga una vez para traer el index.html nuevo
-function importarConRecarga(importar) {
-  return importar().then(
-    (modulo) => {
-      sessionStorage.removeItem('recargaPorChunk')
-      return modulo
-    },
-    (error) => {
-      // Ya se recargó y sigue fallando: no es un deploy, mostrar el error
-      if (sessionStorage.getItem('recargaPorChunk')) throw error
-      sessionStorage.setItem('recargaPorChunk', '1')
-      window.location.reload()
-      return new Promise(() => {})
-    },
-  )
-}
+import { importarConRecarga } from './services/importarConRecarga.js'
 
 export const router = createBrowserRouter([
   // Fuera de MainLayout: el login no muestra la navegación

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { agregarAlRecorrido, distanciaRecorridoKm, geojsonRecorrido, inicioDelDia, SALTO_MS } from './recorrido.js'
+import {
+  agregarAlRecorrido,
+  distanciaRecorridoKm,
+  geojsonRecorrido,
+  inicioDelDia,
+  SALTO_MS,
+  tiempoSinSenalMs,
+} from './recorrido.js'
 
 const BASE = Date.parse('2026-11-12T11:00:00Z')
 // Cada punto 30 s después del anterior, salvo que se indique otro desfase; avanza ~0,001° de longitud (~100 m)
@@ -37,6 +44,13 @@ describe('geojsonRecorrido', () => {
     ])
   })
 
+  it('un trayecto terminado marca también su última posición', () => {
+    const fin = geojsonRecorrido([p(0), p(30)], { conFin: true }).features.at(-1)
+    expect(fin.properties.tipo).toBe('fin')
+    expect(fin.geometry.coordinates).toEqual([-70.809, -28.3])
+    expect(tipos(geojsonRecorrido([p(0)], { conFin: true }))).toEqual(['punto', 'inicio'])
+  })
+
   it('cada punto lleva su hora y velocidad para el cursor', () => {
     const [, punto] = geojsonRecorrido([p(0), p(30)]).features
     expect(punto.properties).toEqual({ tipo: 'punto', fechaHora: p(0).fechaHora, velocidad: 10 })
@@ -49,6 +63,20 @@ describe('distanciaRecorridoKm', () => {
     expect(distanciaRecorridoKm([p(0), p(30), p(60)])).toBeCloseTo(0.196, 2)
     expect(distanciaRecorridoKm([p(0)])).toBe(0)
     expect(distanciaRecorridoKm([])).toBe(0)
+  })
+})
+
+describe('tiempoSinSenalMs', () => {
+  const salto = SALTO_MS / 1000
+
+  it('con posiciones de principio a fin es cero', () => {
+    expect(tiempoSinSenalMs([p(0), p(30), p(60)], p(0).fechaHora, p(90).fechaHora)).toBe(0)
+  })
+
+  it('suma los huecos del medio y los de los extremos', () => {
+    const puntos = [p(salto + 60), p(salto + 90), p(2 * salto + 180)]
+    const hasta = p(3 * salto + 300).fechaHora
+    expect(tiempoSinSenalMs(puntos, p(0).fechaHora, hasta)).toBe((salto + 60 + salto + 90 + salto + 120) * 1000)
   })
 })
 

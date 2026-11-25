@@ -17,10 +17,11 @@ const punto = (tipo, p) => ({
  * - 'tramo': línea continua entre posiciones seguidas
  * - 'salto': recta entre dos posiciones separadas por más de SALTO_MS (sin señal)
  * - 'punto': cada posición, con su hora y velocidad (se ven al acercarse y al pasar el cursor)
- * - 'inicio': la primera posición (el final es la máquina misma)
+ * - 'inicio': la primera posición
+ * - 'fin': la última, solo con conFin (un trayecto terminado). En vivo el final es la máquina misma
  * puntos: [{ fechaHora (ISO), latitud, longitud, velocidad }] de la más antigua a la más nueva
  */
-export function geojsonRecorrido(puntos) {
+export function geojsonRecorrido(puntos, { conFin = false } = {}) {
   const features = []
   let tramo = []
   const cerrarTramo = () => {
@@ -38,12 +39,19 @@ export function geojsonRecorrido(puntos) {
   cerrarTramo()
   puntos.forEach((p) => features.push(punto('punto', p)))
   if (puntos.length > 0) features.push(punto('inicio', puntos[0]))
+  if (conFin && puntos.length > 1) features.push(punto('fin', puntos.at(-1)))
   return { type: 'FeatureCollection', features }
 }
 
 // Distancia recorrida en km, sumando los tramos sin señal en línea recta (lo mínimo que tuvo que moverse)
 export const distanciaRecorridoKm = (puntos) =>
   puntos.reduce((total, p, i) => (i === 0 ? 0 : total + distanciaKm(coordenada(puntos[i - 1]), coordenada(p))), 0)
+
+// Tiempo sin posiciones entre desde y hasta: los saltos que se dibujan punteados y lo que faltó al empezar o al terminar
+export function tiempoSinSenalMs(puntos, desde, hasta) {
+  const fechas = [desde, ...puntos.map((p) => p.fechaHora), hasta].map((f) => Date.parse(f))
+  return fechas.slice(1).reduce((total, fecha, i) => (fecha - fechas[i] > SALTO_MS ? total + fecha - fechas[i] : total), 0)
+}
 
 /**
  * Suma a un recorrido abierto (hasta = null) las posiciones de su máquina que llegan por WebSocket. Una atrasada (guardada

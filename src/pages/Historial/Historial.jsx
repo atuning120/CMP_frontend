@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AlertCircle, CalendarRange, FileSpreadsheet, History, Layers, Play, RefreshCw, Search, Truck } from 'lucide-react'
 import HistorialEvento from '../../components/HistorialEvento/HistorialEvento.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
@@ -8,6 +8,10 @@ import { descargarHistorialExcel, listarHistorial } from '../../services/histori
 import { agruparPorDia, hoyMasDias, RANGOS, rangoPersonalizado, rangoUltimosDias } from './fechas.js'
 import styles from './Historial.module.css'
 import { mensajeDeError } from '../../services/errores.js'
+import { importarConRecarga } from '../../services/importarConRecarga.js'
+
+// Carga diferida: MapLibre pesa ~1 MB y solo se necesita al abrir un trayecto
+const TrayectoTurno = lazy(() => importarConRecarga(() => import('../../components/TrayectoTurno/TrayectoTurno.jsx')))
 
 const TIPOS = [
   { id: 'TODO', etiqueta: 'Todo', icono: Layers },
@@ -57,6 +61,8 @@ function Historial() {
   const [exportando, setExportando] = useState(false)
   const [errorExcel, setErrorExcel] = useState(null)
   const [busqueda, setBusqueda] = useState('')
+  // Cierre de turno cuyo trayecto se está viendo
+  const [cierreTrayecto, setCierreTrayecto] = useState(null)
   // Con muchos eventos cargados, filtrar no debe trabar la escritura
   const busquedaDiferida = useDeferredValue(busqueda)
   // Muchos avisos del observer seguidos: el estado no alcanza a actualizarse entre uno y otro
@@ -318,7 +324,7 @@ function Historial() {
             <h2 className={styles.diaTitulo}>{dia.titulo}</h2>
             <ul className={styles.eventos}>
               {dia.eventos.map((evento) => (
-                <HistorialEvento key={evento.id} evento={evento} />
+                <HistorialEvento key={evento.id} evento={evento} onVerTrayecto={setCierreTrayecto} />
               ))}
             </ul>
           </div>
@@ -343,6 +349,12 @@ function Historial() {
             <p className={styles.fin}>No hay más eventos en este rango.</p>
           ))}
       </div>
+
+      {cierreTrayecto && (
+        <Suspense fallback={<AvisoCarga texto="Cargando trayecto…" />}>
+          <TrayectoTurno cierre={cierreTrayecto} onCerrar={() => setCierreTrayecto(null)} />
+        </Suspense>
+      )}
     </section>
   )
 }

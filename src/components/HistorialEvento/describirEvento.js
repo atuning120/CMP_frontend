@@ -98,6 +98,8 @@ export function describirEvento(evento) {
     : ''
   const traslado = esCambioUbicacion ? [ubicacionAnterior, ubicacion].filter(Boolean).join(' → ') : ''
   const reporte = reporteDe(evento)
+  // Turno terminado: se puede ver por dónde anduvo la máquina
+  const idTurnoCerrado = esCierre ? numero(detalle?.idTurno) : null
 
   return {
     presentacion,
@@ -114,6 +116,7 @@ export function describirEvento(evento) {
     horometro,
     traslado,
     reporte,
+    idTurnoCerrado,
   }
 }
 

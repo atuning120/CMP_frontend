@@ -1,10 +1,11 @@
-import { AlarmClockOff, Clock, MapPin, UserCheck } from 'lucide-react'
+import { AlarmClockOff, Clock, MapPin, Route, UserCheck } from 'lucide-react'
 import GaleriaEvidencias from '../GaleriaEvidencias/GaleriaEvidencias.jsx'
 import { fechaCompleta, formatearFecha } from '../../pages/Historial/fechas.js'
 import { describirEvento, etiquetaEstado } from './describirEvento.js'
 import styles from './HistorialEvento.module.css'
 
-function HistorialEvento({ evento }) {
+// onVerTrayecto: se ofrece en los cierres de turno (el trayecto de un turno en curso se ve en el mapa)
+function HistorialEvento({ evento, onVerTrayecto }) {
   const descripcion = describirEvento(evento)
   // Un tipo que esta versión del panel no conoce (Backend más nuevo) no debe romper la lista
   if (!descripcion) return null
@@ -24,6 +25,7 @@ function HistorialEvento({ evento }) {
     horometro,
     traslado,
     reporte,
+    idTurnoCerrado,
   } = descripcion
   const Icono = presentacion.icono
   const tono = presentacion.tono
@@ -127,6 +129,17 @@ function HistorialEvento({ evento }) {
               descripcion: reporte.descripcion ?? evento.observacion,
             }}
           />
+        )}
+
+        {idTurnoCerrado !== null && (
+          <button
+            type="button"
+            className={styles.verTrayecto}
+            onClick={() => onVerTrayecto(evento)}
+            aria-label={`Ver trayecto de ${evento.maquina.nombre} en el turno de ${evento.actor}`}
+          >
+            <Route size={14} /> Ver trayecto
+          </button>
         )}
       </div>
 
