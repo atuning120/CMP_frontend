@@ -68,11 +68,19 @@ export function agruparPorDia(eventos) {
   return dias
 }
 
-// "hace 5 min", "hace 3 h", "hoy 14:30", "ayer 14:30" o "05/10 14:30"
-// Fecha y hora completas ("13 de noviembre de 2026, 08:24"): la que leen los lectores de pantalla junto a la relativa
+// Fecha y hora completas ("13 de noviembre de 2026, 08:24"): la que leen los lectores de pantalla en vez de la abreviada
 const formatoCompleto = new Intl.DateTimeFormat('es-CL', { dateStyle: 'long', timeStyle: 'short' })
 export const fechaCompleta = (iso) => formatoCompleto.format(new Date(iso))
 
+// "25/11/2026 - 08:24"
+export function fechaConHora(iso) {
+  const fecha = new Date(iso)
+  const dia = fecha.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const hora = fecha.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+  return `${dia.replaceAll('-', '/')} - ${hora}`
+}
+
+// "hace 5 min", "hace 3 h", "hoy 14:30", "ayer 14:30" o "05/10 14:30"
 export function formatearFecha(iso) {
   const fecha = new Date(iso)
   const minutos = Math.floor((Date.now() - fecha.getTime()) / 60000)
