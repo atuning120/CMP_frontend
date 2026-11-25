@@ -160,9 +160,9 @@ const DASHBOARDS = seccion('Dashboards', '/dashboards', [
     objetivo: 'dashboards-vistas',
     lado: 'abajo',
     icono: FileSpreadsheet,
-    titulo: 'Operación y estado de pago',
+    titulo: 'Operación, estado de pago y comparación',
     texto:
-      'Operación resume lo registrado en la app. Estado de pago muestra los indicadores del Excel mensual del contratista, que subes desde esa misma vista.',
+      'Operación resume lo registrado en la app. Estado de pago muestra los indicadores del Excel mensual del contratista, que subes desde esa misma vista. Comparación cruza las horas de ese Excel con las registradas en la app.',
   },
 ])
 

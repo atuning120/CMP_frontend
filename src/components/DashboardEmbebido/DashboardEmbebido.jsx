@@ -10,7 +10,7 @@ const CARGA_LENTA_MS = 20_000
 
 /**
  * Dashboard de Metabase en un <iframe> con la URL que firma el Backend (quien lo ve no necesita cuenta en Metabase).
- * tipo: 'operacion' | 'estado-pago' (con el período AAAA-MM de una carga). Los gráficos quedan sobre el fondo de la
+ * tipo: 'operacion' | 'estado-pago' | 'comparacion' (los dos últimos, con el período AAAA-MM de una carga). Los gráficos quedan sobre el fondo de la
  * página; el modo oscuro lo resuelve el CSS sin recargar el iframe.
  */
 function DashboardEmbebido({ tipo, periodo, titulo }) {

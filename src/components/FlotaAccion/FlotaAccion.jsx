@@ -452,7 +452,7 @@ function CamposFicha({
             maxLength={50}
             placeholder="Opcional"
           />
-          <span className={styles.ayuda}>N° Interno con que IMOPAC identifica este equipo en el estado de pago (EP) mensual.</span>
+          <span className={styles.ayuda}>N° Interno con que IMOPAC identifica este equipo.</span>
         </label>
       )}
     </div>

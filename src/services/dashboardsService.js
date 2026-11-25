@@ -45,8 +45,8 @@ export const periodoAnterior = (hoy = new Date()) => {
 export const listarCargasEp = () => apiJson('/dashboards/cargas')
 
 /**
- * URL firmada del dashboard para el <iframe>: { url, expiraEn, carga }. tipo: 'operacion' | 'estado-pago'
- * (este último con el período AAAA-MM de una carga). Vence en una hora.
+ * URL firmada del dashboard para el <iframe>: { url, expiraEn, carga }. tipo: 'operacion' | 'estado-pago' |
+ * 'comparacion' (los dos últimos con el período AAAA-MM de una carga). Vence en una hora.
  */
 export const obtenerDashboard = (tipo, periodo) =>
   apiJson(`/dashboards/${tipo}${periodo ? `?${new URLSearchParams({ periodo })}` : ''}`)

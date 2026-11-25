@@ -46,7 +46,7 @@ las geocercas y los usuarios sin depender del celular.
 | **Flota** | `/flota` | Las mismas acciones que el jefe de turno tiene en la app móvil (asignar, liberar, cambiar estado, etc.). Cada acción pide un motivo y queda registrada en la bitácora. |
 | **Historial** | `/historial` | Bitácora de inicios y cierres de turno, cambios de área y acciones sobre la flota, agrupada por día y con scroll infinito. Incluye la galería de evidencias fotográficas. |
 | **Alertas** | `/alertas` | Turnos excedidos, cierres automáticos y máquinas detenidas. Las alertas nuevas llegan en tiempo real y cada una se puede atender y comentar. |
-| **Dashboards** | `/dashboards` | Indicadores de operación y comparación con el estado de pago mensual (carga de Excel con previsualización), embebidos desde Metabase. |
+| **Dashboards** | `/dashboards` | Indicadores de operación, estado de pago mensual (carga de Excel con previsualización) y comparación entre ambos, embebidos desde Metabase. |
 | **Administración** | `/admin` | Alta y edición de usuarios web y operadores, roles, activación y restablecimiento de contraseña. |
 
 Además:
