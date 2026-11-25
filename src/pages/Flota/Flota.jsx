@@ -65,7 +65,7 @@ function Flota() {
     return flota.filter((m) => {
       if (!FILTROS.find((f) => f.id === filtro).incluye(m)) return false
       if (!texto) return true
-      return [m.nombre, m.patente, m.tipoMaquina, m.marca, m.modelo, m.operadorAsignado?.nombre, m.operadorActual]
+      return [m.nombre, m.patente, m.codigoEp, m.tipoMaquina, m.marca, m.modelo, m.operadorAsignado?.nombre, m.operadorActual]
         .filter(Boolean)
         .some((v) => v.toLowerCase().includes(texto))
     })
@@ -227,7 +227,9 @@ function Flota() {
                     <span className={styles.codigo}>
                       {m.nombre}
                       {m.patente && <span className={styles.patente}>{m.patente}</span>}
-                      {m.esContratista && <span className={styles.contratista}>Contratista</span>}
+                      {m.esContratista && (
+                        <span className={styles.contratista}>Contratista{m.codigoEp && ` · EP ${m.codigoEp}`}</span>
+                      )}
                       {gps && (
                         <Link
                           to="/flota/gps"

@@ -41,7 +41,7 @@ export const puedeGestionarFlota = (sesion) => ROLES_GESTION_FLOTA.includes(sesi
 
 const enviar = (method, path, body) => apiJson(path, { method, body: JSON.stringify(body) })
 
-// datos: { nombre, marca, modelo, tipoMaquina, anio, patente, numeroChasis, horometroInicial, esContratista, idOperador, motivo, observacion }
+// datos: { nombre, marca, modelo, tipoMaquina, anio, patente, numeroChasis, horometroInicial, esContratista, codigoEp, idOperador, motivo, observacion }
 export const crearMaquina = (datos) => enviar('POST', '/maquinas', datos)
 
 // versionBase (en editar, reemplazar y devolver): la `version` de la máquina que vio el jefe de turno.

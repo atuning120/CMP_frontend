@@ -1,6 +1,6 @@
 import { AlarmClockOff, Clock, MapPin, Route, UserCheck } from 'lucide-react'
 import GaleriaEvidencias from '../GaleriaEvidencias/GaleriaEvidencias.jsx'
-import { fechaCompleta, formatearFecha } from '../../pages/Historial/fechas.js'
+import { fechaCompleta, fechaConHora } from '../../pages/Historial/fechas.js'
 import { describirEvento, etiquetaEstado } from './describirEvento.js'
 import styles from './HistorialEvento.module.css'
 
@@ -143,8 +143,8 @@ function HistorialEvento({ evento, onVerTrayecto }) {
         )}
       </div>
 
-      <time className={styles.fecha} dateTime={evento.fecha} data-tooltip={fechaCompleta(evento.fecha)}>
-        <span aria-hidden="true">{formatearFecha(evento.fecha)}</span>
+      <time className={styles.fecha} dateTime={evento.fecha}>
+        <span aria-hidden="true">{fechaConHora(evento.fecha)}</span>
         <span className={styles.visuallyHidden}>{fechaCompleta(evento.fecha)}</span>
       </time>
     </li>

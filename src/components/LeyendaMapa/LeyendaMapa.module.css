@@ -62,15 +62,14 @@
     height: 10px;
   }
 
-  /* Como en el mapa: atenuado y con el borde cortado */
+  /* Como en el mapa: un anillo hueco, no un punto relleno (el de "Sin estado" es del mismo gris) */
   .sinDatos {
     box-sizing: border-box;
-    width: 13px;
-    height: 13px;
-    border: 2px dashed var(--text);
+    width: 14px;
+    height: 14px;
+    border: 3px solid var(--map-detenida);
     border-radius: 50%;
-    background: var(--map-detenida);
-    opacity: 0.7;
+    background: var(--map-maquina-texto);
   }
 
   /* La alerta es un halo alrededor del punto, sea cual sea su estado */

@@ -440,7 +440,7 @@ function VistaPrevia({ vista, periodo }) {
           <div>
             <p className={styles.parrafo}>
               {sinFlota.length === 1 ? 'Un N° Interno no coincide' : `${sinFlota.length} N° Interno no coinciden`} con el
-              código de ninguna máquina de la flota: se cargan igual. Revisa que no estén mal escritos.
+              código interno ni el código en EP de ninguna máquina de la flota: se cargan igual. Revisa que no estén mal escritos.
             </p>
           </div>
         </div>
