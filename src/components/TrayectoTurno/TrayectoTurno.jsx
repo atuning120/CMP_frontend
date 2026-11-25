@@ -18,11 +18,10 @@ const SIN_GEOCERCAS = { areas: [], zonas: [] }
 const SIN_MAQUINAS = []
 // Al pie del mapa no va ninguna tarjeta, solo la escala
 const MARGEN_INFERIOR = 64
-// En teléfono las etiquetas de inicio y término no deben cortarse contra el borde
-const MARGEN_LATERAL = 64
+// En teléfono la leyenda ocupa dos líneas
+const MARGEN_SUPERIOR = 96
 
 const hora = (fecha) => formatoHora.format(new Date(fecha))
-const lngLat = (p) => [p.longitud, p.latitud]
 const enMinutos = (ms) => Math.round(ms / 60_000)
 
 // "Lunes, 23 de noviembre" y "08:00 – 16:30" (con el día de término si cruza la medianoche)
@@ -37,10 +36,24 @@ const periodo = (inicio, termino) => {
   }
 }
 
-// El mismo trazo con que MapaPlanta dibuja cada línea (grosor, contorno y punteado)
-function Leyenda({ conSaltos }) {
+// Los mismos trazos y puntos con que MapaPlanta dibuja el trayecto. conFin: con una sola posición no hay término
+function Leyenda({ conFin, conSaltos }) {
   return (
     <ul className={styles.leyenda} aria-label="Leyenda del trayecto">
+      <li className={styles.item}>
+        <svg className={styles.extremo} viewBox="0 0 20 20" aria-hidden="true">
+          <circle className={styles.inicio} cx="10" cy="10" r="8.25" />
+        </svg>
+        Inicio
+      </li>
+      {conFin && (
+        <li className={styles.item}>
+          <svg className={styles.extremo} viewBox="0 0 20 20" aria-hidden="true">
+            <circle className={styles.fin} cx="10" cy="10" r="8.25" />
+          </svg>
+          Término
+        </li>
+      )}
       <li className={styles.item}>
         <svg className={styles.trazo} viewBox="0 0 34 10" aria-hidden="true">
           <line className={styles.contorno} x1="5" y1="5" x2="29" y2="5" />
@@ -75,14 +88,6 @@ function TrayectoTurno({ cierre, onCerrar }) {
   const conPuntos = puntos?.length > 0
   const geojson = useMemo(() => (puntos ? geojsonRecorrido(puntos, { conFin: true }) : null), [puntos])
   const conSaltos = geojson?.features.some((f) => f.properties.tipo === 'salto') ?? false
-  const hitos = useMemo(() => {
-    if (!puntos?.length) return []
-    const inicio = { tipo: 'inicio', texto: `Inicio · ${hora(puntos[0].fechaHora)}`, lngLat: lngLat(puntos[0]) }
-    if (puntos.length === 1) return [inicio]
-    const ultimo = puntos.at(-1)
-    return [inicio, { tipo: 'fin', texto: `Término · ${hora(ultimo.fechaHora)}`, lngLat: lngLat(ultimo) }]
-  }, [puntos])
-
   const { dia, horas } = periodo(detalle.horaInicio, fecha)
   const datos = useMemo(() => {
     const sinSenal = conPuntos ? enMinutos(tiempoSinSenalMs(puntos, detalle.horaInicio, fecha)) : null
@@ -106,14 +111,14 @@ function TrayectoTurno({ cierre, onCerrar }) {
     return () => dialog.close()
   }, [])
 
-  const encuadrar = useCallback(() => mapaRef.current?.enfocar(geojson, MARGEN_INFERIOR, MARGEN_LATERAL), [geojson])
+  const encuadrar = useCallback(() => mapaRef.current?.enfocar(geojson, MARGEN_INFERIOR, MARGEN_SUPERIOR), [geojson])
   useEffect(() => {
     if (conPuntos) encuadrar()
   }, [conPuntos, encuadrar])
 
   const overlay = conPuntos && (
     <>
-      <Leyenda conSaltos={conSaltos} />
+      <Leyenda conFin={puntos.length > 1} conSaltos={conSaltos} />
       <button type="button" className={styles.encuadrar} onClick={encuadrar} aria-label="Encuadrar el trayecto">
         <Maximize size={14} aria-hidden="true" /> <span className={styles.encuadrarTexto}>Encuadrar</span>
       </button>
@@ -171,7 +176,6 @@ function TrayectoTurno({ cierre, onCerrar }) {
           zonas={zonas}
           maquinas={SIN_MAQUINAS}
           recorrido={geojson}
-          hitos={hitos}
           overlay={overlay}
           soloLectura
         />

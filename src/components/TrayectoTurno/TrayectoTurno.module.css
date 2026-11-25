@@ -227,7 +227,7 @@
   .encuadrar {
     display: inline-flex;
     align-items: center;
-    height: 34px;
+    min-height: 34px;
     box-sizing: border-box;
     margin: 0;
     border: 1px solid var(--hero-rule);
@@ -242,8 +242,9 @@
   }
 
   .leyenda {
-    gap: 14px;
-    padding: 0 12px 0 8px;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    padding: 6px 12px;
     list-style: none;
   }
 
@@ -276,6 +277,27 @@
     fill: none;
     stroke: var(--map-recorrido);
     stroke-linecap: round;
+  }
+
+  .extremo {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+
+  .inicio,
+  .fin {
+    stroke-width: 3.5px;
+  }
+
+  .inicio {
+    fill: var(--map-area);
+    stroke: var(--map-recorrido);
+  }
+
+  .fin {
+    fill: var(--map-recorrido);
+    stroke: var(--map-area);
   }
 
   .contorno {
@@ -354,6 +376,11 @@
       font-size: 15px;
     }
 
+    /* Deja lugar al botón en la misma fila */
+    .leyenda {
+      max-width: calc(100% - 52px);
+    }
+
     .encuadrarTexto {
       display: none;
     }
@@ -368,7 +395,7 @@
     }
 
     .encuadrar {
-      height: 40px;
+      min-height: 40px;
     }
   }
 }

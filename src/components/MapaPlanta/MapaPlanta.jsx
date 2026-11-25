@@ -97,7 +97,7 @@ const puntosEnDibujo = (draw) => {
  * máquinas y, si se pide, el trayecto de una (GeoJSON de geojsonRecorrido). Expone por `ref` el
  * control del dibujo (Terra Draw) para el modo administrador. soloLectura (trayecto de un turno pasado): las geocercas
  * no se seleccionan, moverlo no cambia el encuadre con que vuelve /mapa, la línea lleva flechas con el sentido y cualquier
- * punto de ella muestra su hora. hitos: [{ tipo: 'inicio' | 'fin', texto, lngLat }], etiquetas fijas del trayecto.
+ * punto de ella muestra su hora.
  */
 // Lo que anuncia un lector de pantalla al llegar a una máquina: código, estado operacional y si tiene alerta
 function etiquetaMaquina(maquina, estado) {
@@ -107,7 +107,7 @@ function etiquetaMaquina(maquina, estado) {
   return partes.join(', ')
 }
 
-function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay, hitos, soloLectura = false }) {
+function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay, soloLectura = false }) {
   const contenedorRef = useRef(null)
   const mapRef = useRef(null)
   const drawRef = useRef(null)
@@ -479,17 +479,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       nuevos.push(new Marker({ element: el, anchor: 'top', offset: desplazamiento(indice) }).setLngLat(lngLat).addTo(map))
     })
 
-    hitos?.forEach(({ tipo, texto, lngLat }) => {
-      const el = document.createElement('span')
-      el.className = `${styles.hito} ${styles[tipo]}`
-      el.textContent = texto
-      // Una arriba y otra abajo: un turno suele terminar cerca de donde empezó
-      const anchor = tipo === 'inicio' ? 'bottom' : 'top'
-      nuevos.push(new Marker({ element: el, anchor, offset: [0, anchor === 'bottom' ? -14 : 14] }).setLngLat(lngLat).addTo(map))
-    })
-
     marcadoresRef.current = nuevos
-  }, [listo, areas, zonas, maquinas, seleccion, editando, soloLectura, hitos])
+  }, [listo, areas, zonas, maquinas, seleccion, editando, soloLectura])
 
   // Tarjeta flotante (contenido React vía portal dentro del popup de MapLibre)
   useEffect(() => {
@@ -514,8 +505,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
 
   useImperativeHandle(ref, () => ({
     // Encuadra un polígono (o el trayecto) o centra un punto. margenInferior: lo que tapa en teléfono, en px, la tarjeta
-    // que va al pie del mapa; margenLateral, también solo en teléfono
-    enfocar(objetivo, margenInferior = 200, margenLateral = 24) {
+    // que va al pie del mapa; margenSuperior, lo que tapa arriba
+    enfocar(objetivo, margenInferior = 200, margenSuperior = 64) {
       const map = mapRef.current
       if (!map) return
       const { clientWidth, clientHeight } = map.getContainer()
@@ -527,7 +518,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       }
       const [o, s, e, n] = bbox(objetivo)
       // Apaisado no queda alto para reservar el de la tarjeta
-      const padding = bajo ? 32 : angosto ? { top: 64, bottom: margenInferior, left: margenLateral, right: margenLateral } : 80
+      const padding = bajo ? 32 : angosto ? { top: margenSuperior, bottom: margenInferior, left: 24, right: 24 } : 80
       map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices
