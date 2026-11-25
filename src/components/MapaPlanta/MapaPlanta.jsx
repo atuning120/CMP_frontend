@@ -34,7 +34,7 @@ const ESTILO = {
 const VACIO = { type: 'FeatureCollection', features: [] }
 const CAPAS_SELECCIONABLES = ['zonas-relleno', 'areas-relleno']
 const esTipo = (tipo) => ['==', ['get', 'tipo'], tipo]
-const formatoHoraPunto = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+const formatoHoraPunto = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
 const formatoVelocidad = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 })
 
 // Los colores salen de los tokens del tema (src/index.css)
@@ -46,6 +46,28 @@ const coleccion = (items, idKey, excluir) => ({
     .filter((i) => i.poligono && i[idKey] !== excluir)
     .map((i) => ({ type: 'Feature', id: i[idKey], geometry: i.poligono, properties: { id: i[idKey] } })),
 })
+
+// Flecha (apunta a la derecha, como avanza la línea) para marcar el sentido del trayecto
+const flechaSentido = (relleno, borde) => {
+  const lado = 32
+  const lienzo = document.createElement('canvas')
+  lienzo.width = lado
+  lienzo.height = lado
+  const ctx = lienzo.getContext('2d')
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 4
+  ctx.strokeStyle = borde
+  ctx.fillStyle = relleno
+  ctx.beginPath()
+  ctx.moveTo(8, 5)
+  ctx.lineTo(27, 16)
+  ctx.lineTo(8, 27)
+  ctx.lineTo(13, 16)
+  ctx.closePath()
+  ctx.stroke()
+  ctx.fill()
+  return ctx.getImageData(0, 0, lado, lado)
+}
 
 // Varias máquinas en la misma zona se reparten en un círculo de 26 px alrededor del punto
 const desplazamiento = (indice) => {
@@ -73,7 +95,9 @@ const puntosEnDibujo = (draw) => {
 /**
  * Mapa satelital de la planta con áreas (borde discontinuo), zonas de trabajo (borde continuo),
  * máquinas y, si se pide, el trayecto de una (GeoJSON de geojsonRecorrido). Expone por `ref` el
- * control del dibujo (Terra Draw) para el modo administrador.
+ * control del dibujo (Terra Draw) para el modo administrador. soloLectura (trayecto de un turno pasado): las geocercas
+ * no se seleccionan, moverlo no cambia el encuadre con que vuelve /mapa, la línea lleva flechas con el sentido y cualquier
+ * punto de ella muestra su hora.
  */
 // Lo que anuncia un lector de pantalla al llegar a una máquina: código, estado operacional y si tiene alerta
 function etiquetaMaquina(maquina, estado) {
@@ -83,7 +107,7 @@ function etiquetaMaquina(maquina, estado) {
   return partes.join(', ')
 }
 
-function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay }) {
+function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSeleccionar, editando, popup, overlay, soloLectura = false }) {
   const contenedorRef = useRef(null)
   const mapRef = useRef(null)
   const drawRef = useRef(null)
@@ -93,6 +117,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
   const popupRef = useRef(null)
   const clavePopupRef = useRef(null)
   const onSeleccionarRef = useRef(onSeleccionar)
+  // No cambia mientras el mapa está montado
+  const soloLecturaRef = useRef(soloLectura)
   const [listo, setListo] = useState(false)
   const [cursor, setCursor] = useState(null)
   const [popupNodo] = useState(() => document.createElement('div'))
@@ -221,7 +247,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
         type: 'circle',
         source: 'recorrido',
         filter: esTipo('punto'),
-        minzoom: 15,
+        minzoom: soloLecturaRef.current ? 17.5 : 15,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 15, 2.5, 19, 5],
           'circle-color': trayecto,
@@ -229,6 +255,31 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
           'circle-stroke-width': 1,
         },
       })
+      if (soloLecturaRef.current) {
+        map.addImage('sentido', flechaSentido(area, token('--map-maquina-texto')), { pixelRatio: 2 })
+        map.addLayer({
+          id: 'recorrido-sentido',
+          type: 'symbol',
+          source: 'recorrido',
+          filter: esTipo('tramo'),
+          layout: { 'symbol-placement': 'line', 'symbol-spacing': 110, 'icon-image': 'sentido', 'icon-padding': 12 },
+        })
+        // Invisible: dónde responde al cursor, a cualquier zoom
+        map.addLayer({
+          id: 'recorrido-toque',
+          type: 'circle',
+          source: 'recorrido',
+          filter: esTipo('punto'),
+          paint: { 'circle-radius': 10, 'circle-opacity': 0 },
+        })
+        map.addSource('recorrido-cursor', { type: 'geojson', data: VACIO })
+        map.addLayer({
+          id: 'recorrido-cursor',
+          type: 'circle',
+          source: 'recorrido-cursor',
+          paint: { 'circle-radius': 5, 'circle-color': sel, 'circle-stroke-color': area, 'circle-stroke-width': 2 },
+        })
+      }
       map.addLayer({
         id: 'recorrido-inicio',
         type: 'circle',
@@ -237,26 +288,44 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
         paint: { 'circle-radius': 6.5, 'circle-color': area, 'circle-stroke-color': trayecto, 'circle-stroke-width': 3.5 },
       })
 
+      // Al revés que el inicio: relleno con el color de la línea
+      map.addLayer({
+        id: 'recorrido-fin',
+        type: 'circle',
+        source: 'recorrido',
+        filter: esTipo('fin'),
+        paint: { 'circle-radius': 6.5, 'circle-color': trayecto, 'circle-stroke-color': area, 'circle-stroke-width': 3.5 },
+      })
+
       // Hora y velocidad de la posición bajo el cursor
       const popupPunto = new Popup({ closeButton: false, closeOnClick: false, offset: 10, className: styles.popupPunto })
-      map.on('mousemove', 'recorrido-puntos', (e) => {
-        const [punto] = e.features
+      const capaPuntos = soloLecturaRef.current ? 'recorrido-toque' : 'recorrido-puntos'
+      map.on('mousemove', capaPuntos, (e) => {
+        // Con varias bajo el cursor, la más cercana
+        const distancia = (f) => map.project(f.geometry.coordinates).dist(e.point)
+        const punto = e.features.reduce((mejor, f) => (!mejor || distancia(f) < distancia(mejor) ? f : mejor), null)
         if (!punto) return
+        map.getSource('recorrido-cursor')?.setData(punto.geometry)
         const { fechaHora, velocidad } = punto.properties
         const texto = formatoHoraPunto.format(new Date(fechaHora))
         const conVelocidad = typeof velocidad === 'number' ? `${texto} · ${formatoVelocidad.format(velocidad)} km/h` : texto
         popupPunto.setLngLat(punto.geometry.coordinates).setText(conVelocidad).addTo(map)
       })
-      map.on('mouseleave', 'recorrido-puntos', () => popupPunto.remove())
+      map.on('mouseleave', capaPuntos, () => {
+        popupPunto.remove()
+        map.getSource('recorrido-cursor')?.setData(VACIO)
+      })
 
       // Clic en una zona (tiene prioridad) o en un área. Mientras se dibuja, el clic es de Terra Draw
       map.on('click', (e) => {
+        if (soloLecturaRef.current) return
         if (drawRef.current && drawRef.current.getMode() !== 'static') return
         const [hit] = map.queryRenderedFeatures(e.point, { layers: CAPAS_SELECCIONABLES })
         if (!hit) return onSeleccionarRef.current(null)
         onSeleccionarRef.current({ tipo: hit.layer.id === 'zonas-relleno' ? 'zona' : 'area', id: hit.id })
       })
       map.on('mousemove', (e) => {
+        if (soloLecturaRef.current) return
         setCursor(e.lngLat)
         const dibujando = drawRef.current && drawRef.current.getMode() !== 'static'
         const sobre = !dibujando && map.queryRenderedFeatures(e.point, { layers: CAPAS_SELECCIONABLES }).length > 0
@@ -310,6 +379,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       setListo(true)
     })
 
+    // Es un valor fijo, no un nodo
+    const recordarVista = !soloLecturaRef.current
     return () => {
       observador.disconnect()
       marcadoresRef.current.forEach((m) => m.remove())
@@ -319,7 +390,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       drawRef.current?.stop()
       drawRef.current = null
       listoRef.current = false
-      ultimaVista = { center: map.getCenter().toArray(), zoom: map.getZoom(), bearing: map.getBearing() }
+      if (recordarVista) ultimaVista = { center: map.getCenter().toArray(), zoom: map.getZoom(), bearing: map.getBearing() }
       map.remove()
       mapRef.current = null
     }
@@ -358,14 +429,16 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
     const nuevos = []
 
     const etiqueta = (texto, clase, lngLat, anchor, onClick) => {
-      const el = document.createElement('button')
-      el.type = 'button'
-      el.className = clase
+      const el = document.createElement(soloLectura ? 'span' : 'button')
+      el.className = soloLectura ? `${clase} ${styles.fija}` : clase
       el.textContent = texto
-      el.addEventListener('click', (e) => {
-        e.stopPropagation()
-        onClick()
-      })
+      if (!soloLectura) {
+        el.type = 'button'
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          onClick()
+        })
+      }
       nuevos.push(new Marker({ element: el, anchor }).setLngLat(lngLat).addTo(map))
     }
 
@@ -407,7 +480,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
     })
 
     marcadoresRef.current = nuevos
-  }, [listo, areas, zonas, maquinas, seleccion, editando])
+  }, [listo, areas, zonas, maquinas, seleccion, editando, soloLectura])
 
   // Tarjeta flotante (contenido React vía portal dentro del popup de MapLibre)
   useEffect(() => {
@@ -432,8 +505,8 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
 
   useImperativeHandle(ref, () => ({
     // Encuadra un polígono (o el trayecto) o centra un punto. margenInferior: lo que tapa en teléfono, en px, la tarjeta
-    // que va al pie del mapa
-    enfocar(objetivo, margenInferior = 200) {
+    // que va al pie del mapa; margenSuperior, lo que tapa arriba
+    enfocar(objetivo, margenInferior = 200, margenSuperior = 64) {
       const map = mapRef.current
       if (!map) return
       const { clientWidth, clientHeight } = map.getContainer()
@@ -445,7 +518,7 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       }
       const [o, s, e, n] = bbox(objetivo)
       // Apaisado no queda alto para reservar el de la tarjeta
-      const padding = bajo ? 32 : angosto ? { top: 64, bottom: margenInferior, left: 24, right: 24 } : 80
+      const padding = bajo ? 32 : angosto ? { top: margenSuperior, bottom: margenInferior, left: 24, right: 24 } : 80
       map.fitBounds([[o, s], [e, n]], { padding, maxZoom: 18 })
     },
     // Dibuja un polígono nuevo; al cerrarlo queda seleccionado para ajustar sus vértices
@@ -526,11 +599,13 @@ function MapaPlanta({ ref, areas, zonas, maquinas, recorrido, seleccion, onSelec
       {!listo && <Skeleton className={styles.cargando} />}
       <div className={styles.overlay}>
         {overlay}
-        <span className={styles.coordenadas}>
-          {utm
-            ? `UTM ${utm.zona}${utm.hemisferio}  ${formatoUtm.format(utm.este)} E / ${formatoUtm.format(utm.norte)} N`
-            : 'Mueve el cursor sobre el mapa'}
-        </span>
+        {!soloLectura && (
+          <span className={styles.coordenadas}>
+            {utm
+              ? `UTM ${utm.zona}${utm.hemisferio}  ${formatoUtm.format(utm.este)} E / ${formatoUtm.format(utm.norte)} N`
+              : 'Mueve el cursor sobre el mapa'}
+          </span>
+        )}
       </div>
       {popup && createPortal(popup.contenido, popupNodo)}
     </div>

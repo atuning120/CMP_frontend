@@ -83,10 +83,10 @@ function RegularizarHorometro({ alerta, onRegularizado }) {
         />
       </label>
       <p className={styles.ayuda}>
-        Partió con {formatoHoras.format(horometroInicial)} h.{' '}
+        Horómetro inicial: {formatoHoras.format(horometroInicial)} h.{' '}
         {haySiguiente
-          ? `El turno siguiente de la máquina partió con ${formatoHoras.format(horometroSiguiente)} h: es el máximo posible.`
-          : 'Léelo en la cabina de la máquina.'}
+          ? `El turno siguiente de la máquina inicio con ${formatoHoras.format(horometroSiguiente)} h: es el máximo posible.`
+          : '.'}
       </p>
       {muchasHoras && (
         <p className={styles.aviso}>

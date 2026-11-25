@@ -12,6 +12,7 @@ import { obtenerMapa } from '../services/geocercasService.js'
 import { listarUsuarios } from '../services/usuariosService.js'
 import { obtenerEvidencia } from '../services/evidenciasService.js'
 import { listarCargasEp, obtenerDashboard } from '../services/dashboardsService.js'
+import { obtenerRecorridoTurno } from '../services/trackingService.js'
 import { listarGps, obtenerHistorialGps } from '../services/gpsService.js'
 import { listarVersionesAdmin, listarVersionesPublicas } from '../services/appMovilService.js'
 import { mensajeDeError } from '../services/errores.js'
@@ -27,7 +28,8 @@ export const CLAVES = {
   gps: ['gps'],
   // Equipos GPS y la máquina de cada uno; dentro, el historial de uno: ['dispositivos-gps', 'historial', idGps]
   dispositivosGps: ['dispositivos-gps'],
-  // Trayecto de una máquina: ['recorrido', 'turno' | 'hoy', idTurno | idMaquina, desde]
+  // Trayecto de una máquina: ['recorrido', 'turno' | 'hoy', idTurno | idMaquina, desde]; el de un turno cerrado
+  // (historial): ['recorrido', 'cerrado', idTurno]
   recorrido: ['recorrido'],
   usuarios: ['usuarios'],
   evidencias: ['evidencias'],
@@ -76,6 +78,14 @@ export const useDispositivosGps = () =>
 
 export const useHistorialGps = (idGps) =>
   useQuery({ queryKey: [...CLAVES.dispositivosGps, 'historial', idGps], queryFn: () => obtenerHistorialGps(idGps) })
+
+// El trayecto de un turno ya cerrado no cambia mientras se mira
+export const useTrayectoCerrado = (idTurno) =>
+  useQuery({
+    queryKey: [...CLAVES.recorrido, 'cerrado', idTurno],
+    queryFn: () => obtenerRecorridoTurno(idTurno),
+    refetchOnWindowFocus: false,
+  })
 
 export const useUsuarios = () => useQuery({ queryKey: CLAVES.usuarios, queryFn: listarUsuarios })
 

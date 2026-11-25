@@ -68,6 +68,12 @@
       outline: 2px solid var(--map-seleccion);
       outline-offset: 2px;
     }
+
+    /* Mapa de solo lectura: el nombre no se puede elegir y deja arrastrar el mapa */
+    &.fija {
+      cursor: inherit;
+      pointer-events: none;
+    }
   }
 
   .areaLabel {

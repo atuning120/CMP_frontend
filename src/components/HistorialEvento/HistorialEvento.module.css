@@ -126,6 +126,36 @@
     }
   }
 
+  .verTrayecto {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    background: var(--surface);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-h);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-alt);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    @media (pointer: coarse) {
+      height: 40px;
+    }
+  }
+
   .fecha {
     flex: none;
     font-size: 12px;
