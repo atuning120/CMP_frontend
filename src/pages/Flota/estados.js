@@ -4,6 +4,7 @@ export const ESTADOS_MAQUINA = [
   { valor: 'BAJO_OBSERVACION', etiqueta: 'Operativa bajo observación', clase: 'observacion' },
   { valor: 'EN_MANTENIMIENTO', etiqueta: 'En mantenimiento', clase: 'mantenimiento' },
   { valor: 'EN_RESERVA', etiqueta: 'En reserva', clase: 'reserva' },
+  { valor: 'SIN_OPERADOR', etiqueta: 'Sin operador', clase: 'sinOperador' },
   { valor: 'BAJA', etiqueta: 'Fuera de servicio', clase: 'fuera' },
 ]
 
@@ -11,6 +12,9 @@ export const ESTADOS_MAQUINA = [
 // y para pasarla a esos estados hay que cerrar antes su turno en curso). "Bajo observación" sí opera
 const ESTADOS_SIN_OPERAR = ['EN_MANTENIMIENTO', 'EN_RESERVA', 'BAJA']
 export const operaEnEstado = (estado) => !ESTADOS_SIN_OPERAR.includes(estado)
+// "Sin operador" sí puede iniciar turno (al iniciarlo pasa sola a Operativa), pero no se marca así mientras alguien la
+// está operando: primero se cierra ese turno
+export const admiteTurnoEnCurso = (estado) => operaEnEstado(estado) && estado !== 'SIN_OPERADOR'
 
 // Estados con fecha estimada de regreso (una reparación, una falla mayor)
 export const conRegreso = (estado) => estado === 'EN_MANTENIMIENTO' || estado === 'BAJA'
@@ -21,5 +25,6 @@ export const regresoVencido = (maquina, ahora = Date.now()) =>
 
 export const estadoDe = (maquina) => ESTADOS_MAQUINA.find((e) => e.valor === maquina.estado) ?? ESTADOS_MAQUINA[0]
 
-// "Sin operador" no se guarda: nadie la tiene asignada ni la está operando en un turno
-export const sinOperador = (maquina) => !maquina.operadorAsignado && !maquina.operadorActual
+// "Sin asignar" no se guarda: nadie la tiene asignada ni la está operando en un turno. No confundir con el estado
+// "Sin operador", que marca el jefe de turno
+export const sinAsignar = (maquina) => !maquina.operadorAsignado && !maquina.operadorActual

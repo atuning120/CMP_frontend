@@ -7,14 +7,14 @@ import PestanasFlota from '../../components/PestanasFlota/PestanasFlota.jsx'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { CLAVES, errorSinDatos, useCatalogos, useDispositivosGps, useFlota } from '../../hooks/consultas.js'
 import { gpsDeMaquina } from '../../services/gpsService.js'
-import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado, regresoVencido, sinOperador } from './estados.js'
+import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado, regresoVencido, sinAsignar } from './estados.js'
 import styles from './Flota.module.css'
 
-// Un filtro por estado más "Sin operador", que se combina con cualquiera de ellos
+// Un filtro por estado más "Sin asignar" (nadie tiene asignada la máquina), que se combina con cualquiera de ellos
 const FILTROS = [
   { id: 'todas', etiqueta: 'Todas', incluye: () => true },
   ...ESTADOS_MAQUINA.map((e) => ({ id: e.valor, etiqueta: e.etiqueta, incluye: (m) => estadoDe(m).valor === e.valor })),
-  { id: 'sinOperador', etiqueta: 'Sin operador', incluye: sinOperador },
+  { id: 'sinAsignar', etiqueta: 'Sin asignar', incluye: sinAsignar },
 ]
 
 const formatoHoras = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 })
@@ -262,7 +262,9 @@ function Flota() {
                   <td className={styles.td} data-label="Estado">
                     <span className={styles.etiquetas}>
                       <span className={`${styles.estado} ${styles[estado.clase]}`}>{estado.etiqueta}</span>
-                      {sinOperador(m) && <span className={`${styles.estado} ${styles.sinOperador}`}>Sin operador</span>}
+                      {sinAsignar(m) && estado.valor !== 'SIN_OPERADOR' && (
+                        <span className={`${styles.estado} ${styles.sinAsignar}`}>Sin asignar</span>
+                      )}
                     </span>
                     {estado.valor !== 'ACTIVA' && m.motivoEstado && (
                       <span className={styles.secundario}>

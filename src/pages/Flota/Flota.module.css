@@ -413,8 +413,13 @@
     color: var(--text);
   }
 
-  /* No es un estado: acompaña al estado cuando nadie tiene asignada la máquina */
   .sinOperador {
+    background: color-mix(in srgb, var(--orange) 14%, transparent);
+    color: var(--orange-text);
+  }
+
+  /* No es un estado: acompaña al estado cuando nadie tiene asignada la máquina */
+  .sinAsignar {
     background: transparent;
     box-shadow: inset 0 0 0 1px var(--border);
     color: var(--text-tertiary);
