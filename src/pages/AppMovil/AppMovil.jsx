@@ -6,7 +6,7 @@ import cmpLogoDark from '../../assets/CMP_logo_modo_oscuro.png'
 import geoPlantaLogo from '../../assets/logoGeoPlanta.png'
 import Skeleton, { AvisoCarga } from '../../components/Skeleton/Skeleton.jsx'
 import { useVersionesApp } from '../../hooks/consultas.js'
-import { formatearFecha, formatearTamano, urlDescargaUltima, urlDescargaVersion } from '../../services/appMovilService.js'
+import { formatearFecha, formatearTamano, urlDescargaVersion } from '../../services/appMovilService.js'
 import { mensajeDeError } from '../../services/errores.js'
 import { useSesion } from '../../services/session.js'
 import styles from './AppMovil.module.css'
@@ -32,7 +32,7 @@ function useCodigoQr(texto) {
 const PASOS = [
   {
     titulo: 'Descarga el archivo',
-    texto: 'Con el botón, en el mismo teléfono, o escaneando el código QR con la cámara. Se guarda en Descargas.',
+    texto: 'Con el botón, en el mismo teléfono, o escaneando el código QR con la cámara para abrir esta página. Se guarda en Descargas.',
   },
   {
     titulo: 'Autoriza la instalación',
@@ -78,9 +78,12 @@ function Aviso({ titulo, texto, onReintentar }) {
   )
 }
 
-// La última versión publicada: botón de descarga y QR que siempre apunta a la última
+// Enlace de esta misma página: el QR la abre en el teléfono, donde se elige qué descargar
+const URL_PAGINA = `${window.location.origin}/app-movil`
+
+// La última versión publicada: botón de descarga y QR que abre esta página en el teléfono
 function Producto({ ultima }) {
-  const qr = useCodigoQr(urlDescargaUltima())
+  const qr = useCodigoQr(URL_PAGINA)
 
   return (
     <div className={styles.producto}>
@@ -125,17 +128,17 @@ function Producto({ ultima }) {
         </div>
       </div>
 
-      <aside className={styles.qr} aria-label="Descargar con el teléfono">
+      <aside className={styles.qr} aria-label="Abrir en el teléfono">
         <div className={styles.qrMarco}>
           {qr ? (
-            <img src={qr} alt="Código QR para descargar la última versión de GeoPlanta Móvil" className={styles.qrImagen} width="220" height="220" />
+            <img src={qr} alt="Código QR para abrir esta página en el teléfono" className={styles.qrImagen} width="220" height="220" />
           ) : (
             <Skeleton className={styles.qrImagen} />
           )}
         </div>
         <p className={styles.qrTexto}>
-          <QrCode size={16} className={styles.textoIcono} aria-hidden="true" /> Escanéalo con la cámara del teléfono para descargar
-          la última versión.
+          <QrCode size={16} className={styles.textoIcono} aria-hidden="true" /> Escanéalo con la cámara del teléfono para abrir
+          esta página y descargar la app.
         </p>
       </aside>
     </div>
