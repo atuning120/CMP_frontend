@@ -36,7 +36,7 @@ import {
   MOTIVOS_POR_ESTADO,
   MOTIVOS_REEMPLAZO,
 } from '../../pages/Flota/motivos.js'
-import { conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado } from '../../pages/Flota/estados.js'
+import { admiteTurnoEnCurso, conRegreso, ESTADOS_MAQUINA, estadoDe, operaEnEstado } from '../../pages/Flota/estados.js'
 import styles from './FlotaAccion.module.css'
 import { mensajeDeError } from '../../services/errores.js'
 import { CLAVES } from '../../hooks/consultas.js'
@@ -122,8 +122,8 @@ const ICONOS = {
 }
 
 // Respaldos posibles en un reemplazo (como en la app): no en mantenimiento ni cubriendo ya a otra. Primero los de
-// respaldo (en reserva o fuera de servicio), que quedan operativos al entrar
-const ESTADOS_RESPALDO = ['EN_RESERVA', 'BAJA', 'ACTIVA', 'BAJO_OBSERVACION']
+// respaldo (en reserva, sin operador o fuera de servicio), que quedan operativos al entrar
+const ESTADOS_RESPALDO = ['EN_RESERVA', 'SIN_OPERADOR', 'BAJA', 'ACTIVA', 'BAJO_OBSERVACION']
 
 /** Fecha estimada de regreso de una máquina en mantenimiento o fuera de servicio (opcional). */
 function CampoRegreso({ valor, onCambio, nombre }) {
@@ -184,6 +184,7 @@ function CierreTurno({ maquina, horometro, onCambio }) {
 // Qué pasa con una candidata al entrar en un reemplazo (el operador en turno sigue con ella)
 const notaCandidata = (m) => {
   if (m.estado === 'EN_RESERVA') return 'Disponible en reserva'
+  if (m.estado === 'SIN_OPERADOR') return 'Sin operador: queda operativa al entrar'
   if (m.estado === 'BAJA') return 'Fuera de servicio: queda operativa al entrar'
   if (m.operadorActual) return `En turno de ${m.operadorActual}`
   return estadoDe(m).etiqueta
@@ -544,11 +545,11 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
   // de operación (en "Editar") y conserva su estado y su regreso
   const estadoDestino = tipo === 'editar' ? estadoEditado : null
   const pideRegreso = estadoDestino !== null && conRegreso(estadoDestino)
-  // La máquina cuyo turno en curso hay que cerrar antes de sacarla de operación
+  // La máquina cuyo turno en curso hay que cerrar antes de sacarla de operación (o de marcarla sin operador)
   const conTurno = tipo === 'devolver' ? respaldo : maquina
   const sacaDeOperacion =
     tipo === 'devolver' ||
-    (cambiaEstado && !operaEnEstado(estadoEditado))
+    (cambiaEstado && !admiteTurnoEnCurso(estadoEditado))
   const pideCierre = Boolean(sacaDeOperacion && conTurno?.operadorActual && !turnoCerrado)
 
   const motivos = {
@@ -799,7 +800,9 @@ function FlotaAccion({ accion, catalogos, flota, onCerrar, onGuardado }) {
               {cambiaEstado && (
                 <p className={styles.aviso}>
                   <Info size={16} className={styles.avisoIcono} />
-                  {operaEnEstado(estadoEditado)
+                  {estadoEditado === 'SIN_OPERADOR'
+                    ? 'La máquina sigue disponible para iniciar turnos: cuando un operador inicie uno, vuelve sola a Operativa.'
+                    : operaEnEstado(estadoEditado)
                     ? 'La máquina queda disponible para iniciar turnos.'
                     : 'La máquina dejará de estar disponible para iniciar turnos. Si necesitas que otra la cubra, usa "Reemplazar".'}
                 </p>

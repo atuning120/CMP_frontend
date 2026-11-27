@@ -25,6 +25,9 @@
   --warning: #f9ab00;
   --warning-text: #a35a00;
   --on-warning: #1a1a1a;
+  /* Máquina "Sin operador" (distinto del ámbar de "bajo observación") */
+  --orange: #e8710a;
+  --orange-text: #b06000;
 
   /* Superficies y texto */
   --page-bg: #f8f9fa;
@@ -118,6 +121,8 @@
   --input-border: #3c4043;
   --input-border-hover: #5f6368;
   --warning-text: #f9ab00;
+  --orange: #fa903e;
+  --orange-text: #fcad70;
   --success-text: #81c995;
   --success-bg: rgba(129, 201, 149, 0.12);
   --success-border: rgba(129, 201, 149, 0.4);

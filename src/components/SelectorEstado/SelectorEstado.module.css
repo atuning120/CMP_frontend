@@ -121,6 +121,10 @@
       background: var(--text-tertiary);
     }
 
+    &.sinOperador {
+      background: var(--orange);
+    }
+
     &.fuera {
       background: var(--danger);
     }

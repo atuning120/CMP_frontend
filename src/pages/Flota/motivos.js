@@ -48,12 +48,21 @@ export const MOTIVOS_MANTENIMIENTO = [
 
 export const MOTIVOS_RESERVA = ['Equipo de respaldo', 'Baja demanda operacional', 'Sin frente de trabajo asignado', 'Otro']
 
+export const MOTIVOS_SIN_OPERADOR = [
+  'Operador con licencia médica',
+  'Operador de vacaciones o permiso',
+  'Operador reasignado a otro equipo',
+  'Falta de personal',
+  'Otro',
+]
+
 // Motivos según el estado al que pasa la máquina
 export const MOTIVOS_POR_ESTADO = {
   ACTIVA: MOTIVOS_HABILITAR,
   BAJO_OBSERVACION: MOTIVOS_OBSERVACION,
   EN_MANTENIMIENTO: MOTIVOS_MANTENIMIENTO,
   EN_RESERVA: MOTIVOS_RESERVA,
+  SIN_OPERADOR: MOTIVOS_SIN_OPERADOR,
   BAJA: MOTIVOS_DESHABILITAR,
 }
 
