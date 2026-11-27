@@ -13,7 +13,6 @@ export const MAXIMO_NOTAS = 2000
 export const FORMATO_VERSION = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/
 
 // Enlaces de descarga (públicos, el Backend responde con una redirección)
-export const urlDescargaUltima = () => `${API_URL}/app-movil/descarga`
 export const urlDescargaVersion = (idVersion) => `${API_URL}/app-movil/versiones/${idVersion}/descarga`
 
 // GET sin sesión: la página pública también la abren quienes no tienen cuenta en el panel
